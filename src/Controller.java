@@ -23,7 +23,7 @@ public class Controller
 	
 	public boolean processCellClick(int index) {
 		System.out.println("processing movement on " + index);
-		System.out.println(Arrays.toString(model.getNeighbors(index).toArray()));
+		model.getNeighbors(index);
 		// illegal?
 		
 		// If legal, update model 
