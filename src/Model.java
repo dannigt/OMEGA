@@ -2,11 +2,19 @@ import java.util.ArrayList;
 
 public class Model {
 	private int board_size;
-	private int[] cells; // empty is 0
+	public int[] cells; // empty is 0
 //	private boolean[][] adj_mat; // from, to
 	private ArrayList<Integer>[] adj_list;
+	private int[] player_idx;
+	private int cur_player_idx = 0;
+	private int max_player_idx;
 	
-	public Model(int size) {
+	public Model(int size, int num_player) {
+//		player_idx = new int[num_player];
+//		for (int i=0; i < num_player; i++) {
+//			player_idx[i] = i;
+//		}
+		max_player_idx = num_player - 1;
 		init(size);
 	}
 	
@@ -70,6 +78,14 @@ public class Model {
 		}
 	}
 	
+	public int getCellContent(int cell) {
+		return cells[cell];
+	}
+	
+	public void setCellContent(int cell, int player) {
+		cells[cell] = player;
+	}
+	
 	public ArrayList<Integer> getNeighbors(int cell) {
 //		ArrayList<Integer> res = new ArrayList<Integer>();
 //		for (int i=0; i < adj_mat[cell].length; i++) {
@@ -88,5 +104,14 @@ public class Model {
 	public boolean isTermination() {
 		//TODO: check for termination status
 		return false;
+	}
+	
+	public int nextPlayer() {
+		if (cur_player_idx < max_player_idx) {
+			cur_player_idx++;
+		} else {
+			cur_player_idx = 0;
+		}
+		return cur_player_idx;
 	}
 }

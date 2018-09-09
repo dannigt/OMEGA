@@ -1,24 +1,31 @@
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Container;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.Polygon;
+import java.awt.Toolkit;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
+import java.util.Arrays;
 
-import javax.swing.*;
-import javax.xml.crypto.dsig.spec.XSLTTransformParameterSpec;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
 
 //import Controller.DrawingPanel;
 //import Controller.DrawingPanel.MyMouseListener;
 
 public class View
 {
-	Controller c;
+	static Controller c;
 	//constants and global variables
 	final static Color COLOURBACK =  Color.WHITE;
 	final static Color COLOURCELL =  Color.WHITE;	 
 	final static Color COLOURGRID =  Color.BLACK;	 
+	
+	final static Color[] PALETTE = new Color[]{Color.WHITE, Color.RED, Color.BLUE, Color.YELLOW, Color.CYAN};
+	static Color[] player_colors;
 	
 	final static Color COLOURONE = new Color(255,255,255,200);
 	final static Color COLOURONETXT = Color.BLUE;
@@ -46,9 +53,13 @@ public class View
 	private static int t=0;	// short side of 30o triangle outside of each hex
 	private static int r=h/2;	// radius of inscribed circle (centre to middle of each side). r= h/2
 	private static int a=(int) (Math.sqrt(3)*(h/2.0));
+	
+	private static int num_colors;
 
-	public View(Controller c) {
+	public View(Controller c, int num_player) {
 		this.c = c;
+		this.num_colors = num_player;
+		this.player_colors = Arrays.copyOfRange(PALETTE, 0, num_player);
 	}
 	
 	public void createAndShowGUI()
@@ -72,9 +83,8 @@ public class View
 	{		
 		public DrawingPanel()
 		{	
-			setBackground(COLOURBACK);
-			MyMouseListener ml = new MyMouseListener();            
-			addMouseListener(ml);
+			setBackground(COLOURBACK);          
+			addMouseListener(new MyMouseListener());
 		}
 
 		public void paintComponent(Graphics g)
@@ -83,23 +93,7 @@ public class View
 //			g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 //			g.setFont(new Font("TimesRoman", Font.PLAIN, 20));
 //			super.paintComponent(g2);
-			View.drawEmptyBoard(BSIZE, g2, SCRSIZE/8, SCRSIZE/8);
-			//draw grid
-			
-//			for (int i=0;i<BSIZE;i++) {
-//				for (int j=0;j<BSIZE;j++) {
-//					hexmech.drawHex(i,j,g2);
-//				}
-//			}
-			//fill in hexes
-//			for (int i=0;i<BSIZE;i++) {
-//				for (int j=0;j<BSIZE;j++) {					
-//					hexmech.fillHex(i,j,board[i][j],g2);
-//				}
-//			}
-
-			//g.setColor(Color.RED);
-			//g.drawLine(mPt.x,mPt.y, mPt.x,mPt.y);
+			drawEmptyBoard(BSIZE, g2, SCRSIZE/8, SCRSIZE/8);
 		}
 		
 		class MyMouseListener extends MouseAdapter	{
@@ -110,22 +104,15 @@ public class View
 				System.out.println("cell " + pointToCellIndex(x, y) + " clicked");
 				
 				//TODO: pass cell index to controller.
-				c.processCellClick(pointToCellIndex(x, y));
-				
-				//DEBUG: colour in the hex which is supposedly the one clicked on
-				//clear the whole screen first.
-				/* for (int i=0;i<BSIZE;i++) {
-					for (int j=0;j<BSIZE;j++) {
-						board[i][j]=EMPTY;
-					}
-				} */
-
-				//What do you want to do when a hexagon is clicked?
-//				board[p.x][p.y] = (int)'X';
+//				c.processCellClick(pointToCellIndex(x, y));
+				c.processCellClick(pointToCellIndex(x, y), 1);
+//				Color to_paint = player_colors[c.processCellClick(pointToCellIndex(x, y))];
+//				System.out.println(to_paint);
+		
 				repaint();
 			}		 
-		} //end of MyMouseListener class 
-	} // end of DrawingPanel class
+		}
+	} 
 	
 //	public static void setXYasVertex(boolean b) {
 //		XYVertex=b;
@@ -150,7 +137,7 @@ public class View
 		//draw grid
 		int cnt = 0;
 		int num_rows = 2 * size - 1;
-		drawHex(x0, y0, g2); // reference point
+		drawHex(x0, y0, g2, COLOURCELL); // reference point
 		
 		for (int i=0; i <= num_rows/2; i++) {
 			int startX = x0 + a * (num_rows/2 - i); // towards right. X axis.
@@ -160,7 +147,9 @@ public class View
 			
 			for (int j=0; j < tilesPerRow; j++) {
 				int x = startX + 2 * a * j;
-				drawHex(x, y, g2);
+				Color to_paint = player_colors[c.getCellColor(cnt)];
+				drawHex(x, y, g2, to_paint);  
+				cnt++;
 				cellCenters.add(new Point(x, y));
 			}
 		}
@@ -172,8 +161,10 @@ public class View
 			
 			for (int j=0; j < tilesPerRow; j++) {
 				int x = startX + 2 * a * j;
-				drawHex(x, y, g2);
+				drawHex(x, y, g2, player_colors[c.getCellColor(cnt)]);  
+				cnt++;
 				cellCenters.add(new Point(x, y));
+				
 			}
 		}
 //		System.out.println(cellCenters.toString());
@@ -209,10 +200,11 @@ Calls: hex()
 Purpose: This function draws a hexagon based on the initial point (x,y).
 The hexagon is drawn in the colour specified in hexgame.COLOURELL.
 *********************************************************************/
-	public static void drawHex(int x, int y, Graphics2D g2) {
+	public static void drawHex(int x, int y, Graphics2D g2, Color cell_color) {
 		Polygon poly = hex(x,y);
-		g2.setColor(COLOURCELL);
+		g2.setColor(cell_color);
 		g2.fillPolygon(poly);
+		System.out.println(cell_color);
 		g2.setColor(COLOURGRID);
 		g2.drawPolygon(poly);
 	}

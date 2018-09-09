@@ -7,9 +7,9 @@ public class Controller
 {
 	private Model model;
 	private Controller() {
-		View view = new View(this);
+		View view = new View(this, 2);
 		view.createAndShowGUI();
-		model = new Model(3);
+		model = new Model(3, 2);
   	}
 
 	public static void main(String[] args)
@@ -21,15 +21,27 @@ public class Controller
 		});
 	}
 	
-	public boolean processCellClick(int index) {
-		System.out.println("processing movement on " + index);
-		model.getNeighbors(index);
-		// illegal?
+	public int getCellColor(int cell_index) {
+		System.out.println(cell_index + " has color " + model.getCellContent(cell_index));
+		return model.getCellContent(cell_index);
+	}
+	
+	public int processCellClick(int cell_index, int player_index) {
+		System.out.println("processing movement on cell " + cell_index);
 		
-		// If legal, update model 
-		// 
+//		model.getNeighbors(index);
+		
+		int cell_content = model.getCellContent(cell_index);
+		// illegal, return -1
+		if (cell_content != 0) { // if cell is already occupied TODO: implement swap here
+			return -1;
+		} else { // If legal, update model, return the player index
+			model.setCellContent(cell_index, player_index);
+			return model.nextPlayer();
+		}
+
 		// return true to view
-		return true;
+//		return 1;
 	}
 
 	//constants and global variables
