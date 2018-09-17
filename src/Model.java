@@ -5,16 +5,16 @@ public class Model {
 	public int[] cells; // empty is 0
 //	private boolean[][] adj_mat; // from, to
 	private ArrayList<Integer>[] adj_list;
-	private int[] player_idx;
+//	private int[] player_idx;
 	private int cur_player_idx = 0;
-	private int max_player_idx;
+	private int num_player;
 	
 	public Model(int size, int num_player) {
 //		player_idx = new int[num_player];
 //		for (int i=0; i < num_player; i++) {
 //			player_idx[i] = i;
 //		}
-		max_player_idx = num_player - 1;
+		this.num_player = num_player;
 		init(size);
 	}
 	
@@ -82,8 +82,8 @@ public class Model {
 		return cells[cell];
 	}
 	
-	public void setCellContent(int cell, int player) {
-		cells[cell] = player;
+	public void placePiece(int cell) {
+		cells[cell] = nextPlayer();
 	}
 	
 	public ArrayList<Integer> getNeighbors(int cell) {
@@ -106,12 +106,19 @@ public class Model {
 		return false;
 	}
 	
-	public int nextPlayer() {
-		if (cur_player_idx < max_player_idx) {
-			cur_player_idx++;
-		} else {
-			cur_player_idx = 0;
+	private int nextPlayer() {
+		int cnt = 0;
+		for (int cell : cells) {
+			cnt = (cell == 0) ? cnt : cnt+1;
 		}
-		return cur_player_idx;
+		System.out.println("filled: " + cnt + ", player: " + (cnt % num_player + 1));
+		return cnt % num_player + 1;
+		
+//		if (cur_player_idx < max_player_idx) {
+//			cur_player_idx++;
+//		} else {
+//			cur_player_idx = 0;
+//		}
+//		return cur_player_idx;
 	}
 }

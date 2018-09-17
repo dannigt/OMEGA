@@ -24,7 +24,7 @@ public class View
 	final static Color COLOURCELL =  Color.WHITE;	 
 	final static Color COLOURGRID =  Color.BLACK;	 
 	
-	final static Color[] PALETTE = new Color[]{Color.WHITE, Color.RED, Color.BLUE, Color.YELLOW, Color.CYAN};
+	final static Color[] PALETTE = new Color[]{Color.GRAY, Color.WHITE, Color.BLACK, Color.RED, Color.BLUE};
 	static Color[] player_colors;
 	
 	final static Color COLOURONE = new Color(255,255,255,200);
@@ -59,7 +59,7 @@ public class View
 	public View(Controller c, int num_player) {
 		this.c = c;
 		this.num_colors = num_player;
-		this.player_colors = Arrays.copyOfRange(PALETTE, 0, num_player);
+		this.player_colors = Arrays.copyOfRange(PALETTE, 0, num_player + 1);
 	}
 	
 	public void createAndShowGUI()
@@ -105,10 +105,11 @@ public class View
 				
 				//TODO: pass cell index to controller.
 //				c.processCellClick(pointToCellIndex(x, y));
-				c.processCellClick(pointToCellIndex(x, y), 1);
-//				Color to_paint = player_colors[c.processCellClick(pointToCellIndex(x, y))];
-//				System.out.println(to_paint);
-		
+				int flag = c.processCellClick(pointToCellIndex(x, y));
+				if (flag == -1){
+					System.out.println("----------------Illegal!----------------");
+				}
+				
 				repaint();
 			}		 
 		}
@@ -137,7 +138,7 @@ public class View
 		//draw grid
 		int cnt = 0;
 		int num_rows = 2 * size - 1;
-		drawHex(x0, y0, g2, COLOURCELL); // reference point
+//		drawHex(x0, y0, g2, COLOURCELL); // reference point
 		
 		for (int i=0; i <= num_rows/2; i++) {
 			int startX = x0 + a * (num_rows/2 - i); // towards right. X axis.
@@ -147,7 +148,9 @@ public class View
 			
 			for (int j=0; j < tilesPerRow; j++) {
 				int x = startX + 2 * a * j;
-				Color to_paint = player_colors[c.getCellColor(cnt)];
+				
+				int foo = c.getCellColor(cnt);
+				Color to_paint = player_colors[foo];
 				drawHex(x, y, g2, to_paint);  
 				cnt++;
 				cellCenters.add(new Point(x, y));
@@ -204,7 +207,7 @@ The hexagon is drawn in the colour specified in hexgame.COLOURELL.
 		Polygon poly = hex(x,y);
 		g2.setColor(cell_color);
 		g2.fillPolygon(poly);
-		System.out.println(cell_color);
+//		System.out.println(cell_color);
 		g2.setColor(COLOURGRID);
 		g2.drawPolygon(poly);
 	}
