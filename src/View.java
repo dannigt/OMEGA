@@ -8,58 +8,63 @@ import java.awt.Toolkit;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
-
-//import Controller.DrawingPanel;
-//import Controller.DrawingPanel.MyMouseListener;
 
 public class View
 {
 	static Controller c;
 	//constants and global variables
 	final static Color COLOURBACK =  Color.WHITE;
-	final static Color COLOURCELL =  Color.WHITE;	 
+//	final static Color COLOURCELL =  Color.WHITE;	 
 	final static Color COLOURGRID =  Color.BLACK;	 
 	
 	final static Color[] PALETTE = new Color[]{Color.GRAY, Color.WHITE, Color.BLACK, Color.RED, Color.BLUE};
-	static Color[] player_colors;
+//	static Color[] player_colors;
+//	
+//	final static Color COLOURONE = new Color(255,255,255,200);
+//	final static Color COLOURONETXT = Color.BLUE;
+//	final static Color COLOURTWO = new Color(0,0,0,200);
+//	final static Color COLOURTWOTXT = new Color(255,100,255);
 	
-	final static Color COLOURONE = new Color(255,255,255,200);
-	final static Color COLOURONETXT = Color.BLUE;
-	final static Color COLOURTWO = new Color(0,0,0,200);
-	final static Color COLOURTWOTXT = new Color(255,100,255);
-	
-	final static int EMPTY = 0;
-	final static int BSIZE = 3; //board size.
-	final static int NUM_ROWS = 2 * BSIZE - 1;
+//	final static int EMPTY = 0;
+	static int BSIZE; //board size.
+	static int NUM_ROWS;
 
 	final static int SCRSIZE = (int) Toolkit.getDefaultToolkit().getScreenSize().getHeight();
 //	final static int SCRSIZE = height; //HEXSIZE * (BSIZE + 1) + BORDERS*3; //screen size (vertical dimension).
-	static int BORDERS = SCRSIZE / NUM_ROWS / 2;
-	final static int HEXSIZE = BORDERS;	//hex size in pixels
+	static int BORDERS;
+	static int HEXSIZE;	//hex size in pixels
 	
 	//canvas x and y coordinates of all cells
-	private static ArrayList<Integer> xs = new ArrayList<Integer>();
-	private static ArrayList<Integer> ys = new ArrayList<Integer>();
-	private static ArrayList<Point> cellCenters = new ArrayList<Point>();
+	static ArrayList<Integer> xs = new ArrayList<Integer>();
+	static ArrayList<Integer> ys = new ArrayList<Integer>();
+	static ArrayList<Point> cellCenters = new ArrayList<Point>();
 	
 //	private static int BORDERS;	//default number of pixels for the border.
 	
-	private static int h=HEXSIZE;	// height. Distance between centres of two adjacent hexes. Distance between two opposite sides in a hex.
-	private static int s=HEXSIZE;	// length of one side
-	private static int t=0;	// short side of 30o triangle outside of each hex
-	private static int r=h/2;	// radius of inscribed circle (centre to middle of each side). r= h/2
-	private static int a=(int) (Math.sqrt(3)*(h/2.0));
+	private static int h;	// height. Distance between centres of two adjacent hexes. Distance between two opposite sides in a hex.
+	private static int s;	// length of one side
+	private static int t;	// short side of 30o triangle outside of each hex
+	private static int r;	// radius of inscribed circle (centre to middle of each side). r= h/2
+	private static int a;
 	
-	private static int num_colors;
-
-	public View(Controller c, int num_player) {
+	public View(Controller c, int board_size) {
 		this.c = c;
-		this.num_colors = num_player;
-		this.player_colors = Arrays.copyOfRange(PALETTE, 0, num_player + 1);
+		this.BSIZE = board_size;
+//		this.player_colors = Arrays.copyOfRange(PALETTE, 0, num_player + 1);
+		
+		NUM_ROWS = 2 * BSIZE - 1;
+//		final static int SCRSIZE = height; //HEXSIZE * (BSIZE + 1) + BORDERS*3; //screen size (vertical dimension).
+		BORDERS = SCRSIZE / NUM_ROWS / 2;
+		HEXSIZE = BORDERS;	//hex size in pixels
+		
+		h=HEXSIZE;	// height. Distance between centres of two adjacent hexes. Distance between two opposite sides in a hex.
+		s=HEXSIZE;	// length of one side
+		t=0;	// short side of 30o triangle outside of each hex
+		r=h/2;	// radius of inscribed circle (centre to middle of each side). r= h/2
+		a=(int) (Math.sqrt(3)*(h/2.0));
 	}
 	
 	public void createAndShowGUI()
@@ -93,7 +98,7 @@ public class View
 //			g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 //			g.setFont(new Font("TimesRoman", Font.PLAIN, 20));
 //			super.paintComponent(g2);
-			drawEmptyBoard(BSIZE, g2, SCRSIZE/8, SCRSIZE/8);
+			drawBoard(BSIZE, g2, SCRSIZE/8, SCRSIZE/8);
 		}
 		
 		class MyMouseListener extends MouseAdapter	{
@@ -130,7 +135,7 @@ public class View
 		a = (int) (Math.sqrt(3)*(height/2.0));
 	}
 
-	public static void drawEmptyBoard(int size, Graphics2D g2, int x0, int y0) {
+	public static void drawBoard(int size, Graphics2D g2, int x0, int y0) {
 //		g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 //		g.setFont(new Font("TimesRoman", Font.PLAIN, 20));
 //		super.paintComponent(g2);
@@ -149,8 +154,7 @@ public class View
 			for (int j=0; j < tilesPerRow; j++) {
 				int x = startX + 2 * a * j;
 				
-				int foo = c.getCellColor(cnt);
-				Color to_paint = player_colors[foo];
+				Color to_paint = PALETTE[c.getCellColor(cnt)];
 				drawHex(x, y, g2, to_paint);  
 				cnt++;
 				cellCenters.add(new Point(x, y));
@@ -164,7 +168,7 @@ public class View
 			
 			for (int j=0; j < tilesPerRow; j++) {
 				int x = startX + 2 * a * j;
-				drawHex(x, y, g2, player_colors[c.getCellColor(cnt)]);  
+				drawHex(x, y, g2, PALETTE[c.getCellColor(cnt)]);  
 				cnt++;
 				cellCenters.add(new Point(x, y));
 				
@@ -238,25 +242,25 @@ The hexagon is drawn in the colour specified in hexgame.COLOURELL.
 	  The colour is set by hexgame.COLOURONE and hexgame.COLOURTWO.
 	  The value of n is converted to letter and drawn in the hexagon.
 *****************************************************************************/
-	public static void fillHex(int i, int j, int n, Graphics2D g2) {
-		char c='o'; 
-		int x = i * (s+t);
-		int y = j * h + (i%2) * h/2;
-		if (n < 0) {
-			g2.setColor(COLOURONE);
-			g2.fillPolygon(hex(x,y));
-			g2.setColor(COLOURONETXT);
-			c = (char)(-n);
-			g2.drawString(""+c, x+r+BORDERS, y+r+BORDERS+4); //FIXME: handle XYVertex
-			//g2.drawString(x+","+y, x+r+BORDERS, y+r+BORDERS+4);
-		}
-		if (n > 0) {
-			g2.setColor(COLOURTWO);
-			g2.fillPolygon(hex(x,y));
-			g2.setColor(COLOURTWOTXT);
-			c = (char)n;
-			g2.drawString(""+c, x+r+BORDERS, y+r+BORDERS+4); //FIXME handle XYVertex
-			//g2.drawString(i+","+j, x+r+BORDERS, y+r+BORDERS+4);
-		}
-	}
+//	public static void fillHex(int i, int j, int n, Graphics2D g2) {
+//		char c='o'; 
+//		int x = i * (s+t);
+//		int y = j * h + (i%2) * h/2;
+//		if (n < 0) {
+//			g2.setColor(COLOURONE);
+//			g2.fillPolygon(hex(x,y));
+//			g2.setColor(COLOURONETXT);
+//			c = (char)(-n);
+//			g2.drawString(""+c, x+r+BORDERS, y+r+BORDERS+4); //FIXME: handle XYVertex
+//			//g2.drawString(x+","+y, x+r+BORDERS, y+r+BORDERS+4);
+//		}
+//		if (n > 0) {
+//			g2.setColor(COLOURTWO);
+//			g2.fillPolygon(hex(x,y));
+//			g2.setColor(COLOURTWOTXT);
+//			c = (char)n;
+//			g2.drawString(""+c, x+r+BORDERS, y+r+BORDERS+4); //FIXME handle XYVertex
+//			//g2.drawString(i+","+j, x+r+BORDERS, y+r+BORDERS+4);
+//		}
+//	}
 }

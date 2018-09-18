@@ -4,9 +4,11 @@ public class Controller
 {
 	private Model model;
 	private Controller() {
-		View view = new View(this, 2);
+		int size = 10;
+		int num_player = 2;
+		View view = new View(this, size);
 		view.createAndShowGUI();
-		model = new Model(10, 2);
+		model = new Model(size, num_player);
   	}
 
 	public static void main(String[] args)
@@ -19,7 +21,6 @@ public class Controller
 	}
 	
 	public int getCellColor(int cell_index) {
-//		System.out.println(cell_index + " has color " + model.getCellContent(cell_index));
 		return model.getCellContent(cell_index);
 	}
 	

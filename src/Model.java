@@ -1,13 +1,17 @@
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.HashMap;
+
+import org.omg.CORBA.CTX_RESTRICT_SCOPE;
 
 public class Model {
 	private int board_size;
 	public int[] cells; // empty is 0
 //	private boolean[][] adj_mat; // from, to
 	private ArrayList<Integer>[] adj_list;
-//	private int[] player_idx;
-	private int cur_player_idx = 0;
 	private int num_player;
+//	private HashMap<Integer, ArrayList<Integer>> cell_group_map = new HashMap<Integer, ArrayList<Integer>>();
+	private ArrayList<Integer>[] cell_group_map_2;
 	
 	public Model(int size, int num_player) {
 //		player_idx = new int[num_player];
@@ -26,6 +30,7 @@ public class Model {
 		System.out.println(num_cells + " cells, ");
 		
 		adj_list = new ArrayList[num_cells];
+		cell_group_map_2 = new ArrayList[num_cells];
 		
 		for (int i=0; i < adj_list.length; i++) {
 			adj_list[i] = new ArrayList<Integer>();
@@ -84,9 +89,30 @@ public class Model {
 	
 	public void placePiece(int cell) {
 		cells[cell] = nextPlayer();
+		calcConnectedAreaSize(cell, 0);
 	}
 	
-	public ArrayList<Integer> getNeighbors(int cell) {
+	private int calcConnectedAreaSize(int cell, int cnt) {
+		int cnt_ngb_color = 0;
+		
+		for (int neighbor : adj_list[cell]) {
+			if (cells[cell] == cells[neighbor]) {
+				cnt_ngb_color++;
+				System.out.println(cell_group_map_2[neighbor].size());
+			}
+//			return cnt;
+		}
+		if (cnt_ngb_color == 0) { // no neighbor of same color, area consisting of this piece alone
+			//TODO: add number of stuff
+			ArrayList<Integer> res = new ArrayList<Integer>(cells.length); // create a new list containing current cell
+			res.add(cell);
+//			cell_group_map.put(cell, res);
+			cell_group_map_2[cell] = res;
+		}
+		return 0;
+	}
+	
+	private ArrayList<Integer> getNeighbors(int cell) {
 //		ArrayList<Integer> res = new ArrayList<Integer>();
 //		for (int i=0; i < adj_mat[cell].length; i++) {
 //			if (adj_mat[cell][i]) {
@@ -94,11 +120,6 @@ public class Model {
 //			}
 //		}
 		return adj_list[cell];
-	}
-	
-	public boolean update(int cell, int value) {
-		//TODO: check if it's legal to update cell index 'cell' with value
-		return true;
 	}
 	
 	public boolean isTermination() {
@@ -111,14 +132,7 @@ public class Model {
 		for (int cell : cells) {
 			cnt = (cell == 0) ? cnt : cnt+1;
 		}
-		System.out.println("filled: " + cnt + ", player: " + (cnt % num_player + 1));
+//		System.out.println("filled: " + cnt + ", player: " + (cnt % num_player + 1));
 		return cnt % num_player + 1;
-		
-//		if (cur_player_idx < max_player_idx) {
-//			cur_player_idx++;
-//		} else {
-//			cur_player_idx = 0;
-//		}
-//		return cur_player_idx;
 	}
 }
