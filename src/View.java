@@ -16,10 +16,6 @@ public class View
 {
 	static Controller c;
 	//constants and global variables
-	final static Color COLOURBACK =  Color.WHITE;
-//	final static Color COLOURCELL =  Color.WHITE;	 
-	final static Color COLOURGRID =  Color.BLACK;	 
-	
 	final static Color[] PALETTE = new Color[]{Color.GRAY, Color.WHITE, Color.BLACK, Color.RED, Color.BLUE};
 
 	static int BSIZE; //board size.
@@ -81,7 +77,7 @@ public class View
 	{		
 		public DrawingPanel()
 		{	
-			setBackground(COLOURBACK);          
+			setBackground(Color.WHITE);
 			addMouseListener(new MyMouseListener());
 		}
 
@@ -201,7 +197,7 @@ The hexagon is drawn in the colour specified in hexgame.COLOURELL.
 		g2.setColor(cell_color);
 		g2.fillPolygon(poly);
 //		System.out.println(cell_color);
-		g2.setColor(COLOURGRID);
+		g2.setColor(Color.BLACK);
 		g2.drawPolygon(poly);
 	}
 	
