@@ -106,8 +106,6 @@ public class View
 				int x = e.getX(); 
 				int y = e.getY(); 
 			
-				System.out.println("cell " + pointToCellIndex(x, y) + " clicked");
-				
 				//TODO: pass cell index to controller.
 //				c.processCellClick(pointToCellIndex(x, y));
 				int flag = c.processCellClick(pointToCellIndex(x, y));

@@ -25,7 +25,7 @@ public class Controller
 	}
 	
 	public int processCellClick(int cell_index) {
-		System.out.println("processing movement on cell " + cell_index);
+		System.out.println("cell " + cell_index);
 
 		// if click is outside board, or cell is already occupied 
 		// illegal, return -1

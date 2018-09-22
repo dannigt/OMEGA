@@ -104,7 +104,7 @@ public class Model {
 				if (group == null) { // first connected group found
 					group = cell_group_map[neighbor];
 					group.add(cell); //modify group list by adding current cell
-				} else { // there has been a group found. merge group
+				} else if (!group.equals(cell_group_map[neighbor])){ // there has been a new group found. merge group
 					group.addAll(cell_group_map[neighbor]);
 					cell_group_map[neighbor] = group;
 				}
