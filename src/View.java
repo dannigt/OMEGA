@@ -21,14 +21,7 @@ public class View
 	final static Color COLOURGRID =  Color.BLACK;	 
 	
 	final static Color[] PALETTE = new Color[]{Color.GRAY, Color.WHITE, Color.BLACK, Color.RED, Color.BLUE};
-//	static Color[] player_colors;
-//	
-//	final static Color COLOURONE = new Color(255,255,255,200);
-//	final static Color COLOURONETXT = Color.BLUE;
-//	final static Color COLOURTWO = new Color(0,0,0,200);
-//	final static Color COLOURTWOTXT = new Color(255,100,255);
-	
-//	final static int EMPTY = 0;
+
 	static int BSIZE; //board size.
 	static int NUM_ROWS;
 
@@ -105,9 +98,7 @@ public class View
 			public void mouseClicked(MouseEvent e) { 
 				int x = e.getX(); 
 				int y = e.getY(); 
-			
-				//TODO: pass cell index to controller.
-//				c.processCellClick(pointToCellIndex(x, y));
+
 				int flag = c.processCellClick(pointToCellIndex(x, y));
 				if (flag == -1){
 					System.out.println("----------------Illegal!----------------");
@@ -139,7 +130,7 @@ public class View
 //		super.paintComponent(g2);
 		
 		//draw grid
-		int cnt = 0;
+		short cnt = 0;
 		int num_rows = 2 * size - 1;
 //		drawHex(x0, y0, g2, COLOURCELL); // reference point
 		
@@ -215,7 +206,7 @@ The hexagon is drawn in the colour specified in hexgame.COLOURELL.
 	}
 	
 	//take canvas point (x, y), convert to cell index.
-	public static int pointToCellIndex(int x, int y) {
+	public static short pointToCellIndex(int x, int y) {
 		Point given = new Point(x, y);
 		Point nearest = cellCenters.get(0);
 		for (Point p : cellCenters) {
@@ -224,7 +215,7 @@ The hexagon is drawn in the colour specified in hexgame.COLOURELL.
 			}
 		}
 		//Ensure that the point is within the board
-		return (nearest.distance(given) < a) ? cellCenters.indexOf(nearest) : -1;
+		return (short)((nearest.distance(given) < a) ? cellCenters.indexOf(nearest) : -1);
 	}
 	
 /***************************************************************************

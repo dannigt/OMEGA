@@ -4,8 +4,8 @@ public class Controller
 {
 	private Model model;
 	private Controller() {
-		int size = 10;
-		int num_player = 2;
+		byte size = 10;
+		byte num_player = 2;
 		View view = new View(this, size);
 		view.createAndShowGUI();
 		model = new Model(size, num_player);
@@ -20,11 +20,11 @@ public class Controller
 		});
 	}
 	
-	public int getCellColor(int cell_index) {
+	public short getCellColor(short cell_index) {
 		return model.getCellContent(cell_index);
 	}
 	
-	public int processCellClick(int cell_index) {
+	public short processCellClick(short cell_index) {
 		System.out.println("cell " + cell_index);
 
 		// if click is outside board, or cell is already occupied 
