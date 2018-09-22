@@ -11,7 +11,8 @@ public class Model {
 	private ArrayList<Integer>[] adj_list;
 	private int num_player;
 //	private HashMap<Integer, ArrayList<Integer>> cell_group_map = new HashMap<Integer, ArrayList<Integer>>();
-	private ArrayList<Integer>[] cell_group_map_2;
+	// cell index --> group represented by array list
+	private ArrayList<Integer>[] cell_group_map;
 	
 	public Model(int size, int num_player) {
 //		player_idx = new int[num_player];
@@ -30,10 +31,11 @@ public class Model {
 		System.out.println(num_cells + " cells, ");
 		
 		adj_list = new ArrayList[num_cells];
-		cell_group_map_2 = new ArrayList[num_cells];
+		cell_group_map = new ArrayList[num_cells];
 		
 		for (int i=0; i < adj_list.length; i++) {
-			adj_list[i] = new ArrayList<Integer>();
+			//at most 6 neighbours. 
+			adj_list[i] = new ArrayList<Integer>(6);
 		}
 		
 		int num_iters = size - 1;
@@ -89,26 +91,36 @@ public class Model {
 	
 	public void placePiece(int cell) {
 		cells[cell] = nextPlayer();
-		calcConnectedAreaSize(cell, 0);
+		calcConnectedAreaSize(cell);
 	}
 	
-	private int calcConnectedAreaSize(int cell, int cnt) {
+	private int calcConnectedAreaSize(int cell) {
 		int cnt_ngb_color = 0;
 		
+		ArrayList<Integer> group = null;
 		for (int neighbor : adj_list[cell]) {
 			if (cells[cell] == cells[neighbor]) {
 				cnt_ngb_color++;
-				System.out.println(cell_group_map_2[neighbor].size());
+				if (group == null) { // first connected group found
+					group = cell_group_map[neighbor];
+					group.add(cell); //modify group list by adding current cell
+				} else { // there has been a group found. merge group
+					group.addAll(cell_group_map[neighbor]);
+					cell_group_map[neighbor] = group;
+				}
+				cell_group_map[cell] = group; //update reference to group
+				
 			}
-//			return cnt;
 		}
 		if (cnt_ngb_color == 0) { // no neighbor of same color, area consisting of this piece alone
-			//TODO: add number of stuff
-			ArrayList<Integer> res = new ArrayList<Integer>(cells.length); // create a new list containing current cell
-			res.add(cell);
+			System.out.println("adding intial list");
+			group = new ArrayList<Integer>(cells.length); // create a new list containing current cell
+			group.add(cell);
 //			cell_group_map.put(cell, res);
-			cell_group_map_2[cell] = res;
+			cell_group_map[cell] = group;
 		}
+
+		System.out.println(cell_group_map[cell].size());
 		return 0;
 	}
 	
