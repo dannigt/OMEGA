@@ -38,6 +38,7 @@ public class View
 	private static int t;	// short side of 30o triangle outside of each hex
 	private static int r;	// radius of inscribed circle (centre to middle of each side). r= h/2
 	private static int a;
+	private DrawingPanel panel;
 	
 	public View(Controller c, int board_size) {
 		this.c = c;
@@ -54,11 +55,8 @@ public class View
 		t=0;	// short side of 30o triangle outside of each hex
 		r=h/2;	// radius of inscribed circle (centre to middle of each side). r= h/2
 		a=(int) (Math.sqrt(3)*(h/2.0));
-	}
-	
-	public void createAndShowGUI()
-	{
-		DrawingPanel panel = new DrawingPanel();
+
+		panel = new DrawingPanel();
 
 		//JFrame.setDefaultLookAndFeelDecorated(true);
 		JFrame frame = new JFrame("Hex Testing 4");
@@ -84,9 +82,6 @@ public class View
 		public void paintComponent(Graphics g)
 		{
 			Graphics2D g2 = (Graphics2D)g;
-//			g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-//			g.setFont(new Font("TimesRoman", Font.PLAIN, 20));
-//			super.paintComponent(g2);
 			drawBoard(BSIZE, g2, SCRSIZE/8, SCRSIZE/8);
 		}
 		
@@ -99,32 +94,28 @@ public class View
 				if (flag == -1){
 					System.out.println("----------------Illegal!----------------");
 				}
-				
 				repaint();
 			}		 
 		}
 	} 
-	
+
+	public void repaint() {
+	    panel.repaint();
+	}
+
 //	public static void setXYasVertex(boolean b) {
 //		XYVertex=b;
 //	}
 //	public static void setBorders(int b){
 //		BORDERS=b;
 //	}
-
-	public static void setHeight(int height) {
-		h = height;			// h = basic dimension: height (distance between two adj centresr aka size)
-//		r = h/2;			// r = radius of inscribed circle
-		
-		s = height;
-		a = (int) (Math.sqrt(3)*(height/2.0));
-	}
+//	public static void setHeight(int height) {
+//		h = height;			// h = basic dimension: height (distance between two adj centresr aka size)
+//		s = height;
+//		a = (int) (Math.sqrt(3)*(height/2.0));
+//	}
 
 	public static void drawBoard(int size, Graphics2D g2, int x0, int y0) {
-//		g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-//		g.setFont(new Font("TimesRoman", Font.PLAIN, 20));
-//		super.paintComponent(g2);
-		
 		//draw grid
 		short cnt = 0;
 		int num_rows = 2 * size - 1;
@@ -156,10 +147,8 @@ public class View
 				drawHex(x, y, g2, PALETTE[c.getCellColor(cnt)]);  
 				cnt++;
 				cellCenters.add(new Point(x, y));
-				
 			}
 		}
-//		System.out.println(cellCenters.toString());
 	}
 	
 /*********************************************************
@@ -196,7 +185,6 @@ The hexagon is drawn in the colour specified in hexgame.COLOURELL.
 		Polygon poly = hex(x,y);
 		g2.setColor(cell_color);
 		g2.fillPolygon(poly);
-//		System.out.println(cell_color);
 		g2.setColor(Color.BLACK);
 		g2.drawPolygon(poly);
 	}
@@ -213,39 +201,4 @@ The hexagon is drawn in the colour specified in hexgame.COLOURELL.
 		//Ensure that the point is within the board
 		return (short)((nearest.distance(given) < a) ? cellCenters.indexOf(nearest) : -1);
 	}
-	
-/***************************************************************************
-* Name: fillHex()
-* Parameters: (i,j) : the x,y coordinates of the initial point of the hexagon
-		n   : an integer number to indicate a letter to draw in the hex
-		g2  : the graphics context to draw on
-* Return: void
-* Called from:
-* Calls: hex()
-*Purpose: This draws a filled in polygon based on the coordinates of the hexagon.
-	  The colour depends on whether n is negative or positive.
-	  The colour is set by hexgame.COLOURONE and hexgame.COLOURTWO.
-	  The value of n is converted to letter and drawn in the hexagon.
-*****************************************************************************/
-//	public static void fillHex(int i, int j, int n, Graphics2D g2) {
-//		char c='o'; 
-//		int x = i * (s+t);
-//		int y = j * h + (i%2) * h/2;
-//		if (n < 0) {
-//			g2.setColor(COLOURONE);
-//			g2.fillPolygon(hex(x,y));
-//			g2.setColor(COLOURONETXT);
-//			c = (char)(-n);
-//			g2.drawString(""+c, x+r+BORDERS, y+r+BORDERS+4); //FIXME: handle XYVertex
-//			//g2.drawString(x+","+y, x+r+BORDERS, y+r+BORDERS+4);
-//		}
-//		if (n > 0) {
-//			g2.setColor(COLOURTWO);
-//			g2.fillPolygon(hex(x,y));
-//			g2.setColor(COLOURTWOTXT);
-//			c = (char)n;
-//			g2.drawString(""+c, x+r+BORDERS, y+r+BORDERS+4); //FIXME handle XYVertex
-//			//g2.drawString(i+","+j, x+r+BORDERS, y+r+BORDERS+4);
-//		}
-//	}
 }

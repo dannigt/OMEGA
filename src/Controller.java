@@ -2,13 +2,17 @@ import javax.swing.SwingUtilities;
 
 public class Controller
 {
-	private Model model;
+	private State state;
+	private View view;
+
 	private Controller() {
 		byte size = 10;
 		byte num_player = 2;
-		View view = new View(this, size);
-		view.createAndShowGUI();
-		model = new Model(size, num_player);
+		view = new View(this, size);
+//		view.createAndShowGUI();
+		state = new State(this, size, num_player);
+		Search search = new Search();
+		search.alphaBeta(state, state.numMoves(), Integer.MAX_VALUE, Integer.MIN_VALUE);
   	}
 
 	public static void main(String[] args)
@@ -21,7 +25,7 @@ public class Controller
 	}
 	
 	public short getCellColor(short cell_index) {
-		return model.getCellContent(cell_index);
+		return state.getCellContent(cell_index);
 	}
 	
 	public short processCellClick(short cell_index) {
@@ -29,11 +33,15 @@ public class Controller
 
 		// if click is outside board, or cell is already occupied 
 		// illegal, return -1
-		if (cell_index < 0 || model.getCellContent(cell_index) != 0) { 
+		if (cell_index < 0 || state.getCellContent(cell_index) != 0) {
 			return -1;
-		} else { // If legal, update model, return the player index
-			model.placePiece(cell_index);
-			return model.getCellContent(cell_index);
+		} else { // If legal, update state, return the player index
+			state.placePiece(cell_index);
+			return state.getCellContent(cell_index);
 		}
 	}
+
+	public void notifyChange() {
+        view.repaint();
+    }
 }

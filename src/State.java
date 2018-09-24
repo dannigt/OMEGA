@@ -3,7 +3,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Model {
+public class State {
     //	private int board_size;
     private byte[] cells; // Color placed in the cell. Empty is 0
     private ArrayList<Short>[] adj_list;  // neighbor indices
@@ -12,21 +12,26 @@ public class Model {
     private ArrayList<Short>[] cell_group_map; // index: cell index, value: groups
     private HashMap<Short, Byte> group_size_counter = new HashMap<Short, Byte>(); // key: group size, value: number of occurrences
 //    private ArrayList<ArrayList<Short>> groups = new ArrayList<ArrayList<Short>>();
+    private short total_cells;
+    private short empty_cells;
+    private Controller c;
 
-    public Model(short size, byte num_player) {
+    public State(Controller c, short size, byte num_player) {
+        this.c = c;
         this.num_player = num_player;
         init(size);
     }
 
     private void init(short size) {
 //		this.board_size = size;
-        short num_cells = (short) ((size*2+size-1)*size - size*2 + 1);
-        cells = new byte[num_cells];
-//		adj_mat = new boolean[num_cells][num_cells];
-        System.out.println(num_cells + " cells, ");
+        total_cells = (short) ((size*2+size-1)*size - size*2 + 1);
+        empty_cells = total_cells;
+        cells = new byte[total_cells];
+//		adj_mat = new boolean[total_cells][total_cells];
+        System.out.println(total_cells + " cells, ");
 
-        adj_list = new ArrayList[num_cells];
-        cell_group_map = new ArrayList[num_cells];
+        adj_list = new ArrayList[total_cells];
+        cell_group_map = new ArrayList[total_cells];
 
         for (short i=0; i < adj_list.length; i++) {
             //at most 6 neighbours.
@@ -46,7 +51,7 @@ public class Model {
                     adj_list[cur_idx + num_cells_per_row].add(cur_idx);
                     adj_list[cur_idx + num_cells_per_row + 1].add(cur_idx);
 
-                    short mirror_idx = (short) (num_cells - cur_idx - 1);
+                    short mirror_idx = (short) (total_cells - cur_idx - 1);
 
                     adj_list[mirror_idx].add((short) (mirror_idx - num_cells_per_row));
                     adj_list[mirror_idx].add((short) (mirror_idx - num_cells_per_row - 1));
@@ -76,15 +81,16 @@ public class Model {
 
     public void placePiece(short cell) {
         cells[cell] = nextColor();
+        empty_cells--;
         calcConnectedAreaSize(cell);
-        calcPoint();
+        calcScores();
+        c.notifyChange();
     }
 
     private int calcConnectedAreaSize(short cell) {
         byte cur_player = cells[cell];
         byte cnt_ngb_color = 0;
         ArrayList<Short> group = null;
-        System.out.println(adj_list[cell]);
         for (int neighbor : adj_list[cell]) {
 
             if (cells[cell] == cells[neighbor]) {
@@ -121,12 +127,6 @@ public class Model {
         return cell_group_map[cell].size();
     }
 
-    public boolean isTermination() {
-        //TODO: check for termination status
-        // If true, also calc points
-        return false;
-    }
-
     private byte nextColor() {
         short cnt = 0;
         for (short cell : cells) {
@@ -135,7 +135,7 @@ public class Model {
         return (byte) (cnt % num_player + 1);
     }
 
-    private long[] calcPoint() {
+    private long[] calcScores() {
         long[] points = new long[num_player];
         Arrays.fill(points, 1);
         for (Map.Entry<Short, Byte> entry : group_size_counter.entrySet()) {
@@ -143,11 +143,36 @@ public class Model {
 //                    " Count : " + entry.getValue());
             points[ entry.getKey() / 1000 - 1] *= Math.pow(entry.getKey() % 1000, entry.getValue());
         }
-        System.out.println(Arrays.toString(points));
+        System.out.println("Points: " + Arrays.toString(points));
         return points;
     }
 
-    public void moveGen() {
-        //TODO: given
+    // number of moves given current state
+    public int numMoves() {
+        return empty_cells * (empty_cells - 1);
+    }
+
+    public short[][] moveGen() { // TODO: currently it's a naive enumeration of all possible movements
+        short[][] moves = new short[numMoves()][num_player]; // return cell index for each color
+
+        int cnt = 0;
+        for (short idx_a=0; idx_a < total_cells; idx_a++) {
+
+            if (cells[idx_a] == 0) {
+                for (short idx_b=0; idx_b < total_cells; idx_b++) {
+                    if (cells[idx_b] == 0 && idx_b != idx_a) {
+                        moves[cnt][0] = idx_a;
+                        moves[cnt][1] = idx_b;
+                        cnt++;
+                        return moves;
+                    }
+                }
+            }
+        }
+        return moves;
+    }
+
+    public boolean isTerminal() {
+        return (empty_cells <= num_player * num_player);
     }
 }
