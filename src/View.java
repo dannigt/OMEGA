@@ -42,6 +42,7 @@ public class View
 	
 	public View(Controller c, int board_size) {
 		this.c = c;
+		c.setView(this);
 		this.BSIZE = board_size;
 //		this.player_colors = Arrays.copyOfRange(PALETTE, 0, num_player + 1);
 		
@@ -59,12 +60,15 @@ public class View
 		panel = new DrawingPanel();
 
 		//JFrame.setDefaultLookAndFeelDecorated(true);
-		JFrame frame = new JFrame("Hex Testing 4");
+
+	}
+
+	public void initShowUI() {
+		JFrame frame = new JFrame("Omega");
 		frame.setDefaultCloseOperation( JFrame.EXIT_ON_CLOSE );
 		Container content = frame.getContentPane();
 		content.add(panel);
 		//this.add(panel);  -- cannot be done in a static context
-		//for hexes in the FLAT orientation, the height of a 10x10 grid is 1.1764 * the width. (from h / (s+t))
 		frame.setSize( SCRSIZE, SCRSIZE);
 		frame.setResizable(false);
 		frame.setLocationRelativeTo( null );
@@ -90,9 +94,11 @@ public class View
 				int x = e.getX(); 
 				int y = e.getY(); 
 
-				int flag = c.processCellClick(pointToCellIndex(x, y));
-				if (flag == -1){
-					System.out.println("----------------Illegal!----------------");
+				try {
+					c.processCellClick(pointToCellIndex(x, y));
+				}
+				catch (IllegalArgumentException e1) {
+					System.out.println("SHOW ON UI: " + e1.getMessage());
 				}
 				repaint();
 			}		 

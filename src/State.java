@@ -14,7 +14,9 @@ public class State {
 //    private ArrayList<ArrayList<Short>> groups = new ArrayList<ArrayList<Short>>();
     private short total_cells;
     private short empty_cells;
+    private short usable_cells;
     private Controller c;
+    private boolean sim = false;
 
     public State(Controller c, short size, byte num_player) {
         this.c = c;
@@ -30,14 +32,17 @@ public class State {
         cell_group_map = s.cell_group_map.clone();
         group_size_counter = new HashMap<>(s.group_size_counter);
         total_cells = s.total_cells;
-        empty_cells = s.total_cells;
-        c = s.c;
+        empty_cells = s.empty_cells;
+        sim = true;
+//        c = s.c;
     }
 
     private void init(short size) {
 //		this.board_size = size;
         total_cells = (short) ((size*2+size-1)*size - size*2 + 1);
         empty_cells = total_cells;
+//        usable_cells = ;
+
         cells = new byte[total_cells];
 //		adj_mat = new boolean[total_cells][total_cells];
         System.out.println(total_cells + " cells, ");
@@ -95,9 +100,10 @@ public class State {
         cells[cell] = nextColor();
         empty_cells--;
         calcConnectedAreaSize(cell);
-        calcScores();
+//        calcScores();
         //TODO: in search step, don't notify change
-        c.notifyChange();
+        if (!sim)
+            c.notifyChange();
     }
 
     private int calcConnectedAreaSize(short cell) {
@@ -114,7 +120,7 @@ public class State {
                             (k, v) -> (byte) (v - 1));
                     group.add(cell); //modify group list by adding current cell
                 } else if (!group.equals(cell_group_map[neighbor])){// there has been a new group found. merge group
-                    System.out.println("------------------------NEW GROUP------------------------");
+//                    System.out.println("------------------------NEW GROUP------------------------");
                     group_size_counter.computeIfPresent((short) (cur_player * 1000 + cell_group_map[neighbor].size()),
                             (k, v) -> (byte) (v - 1));
 //                    groups.remove(cell_group_map[neighbor]);
@@ -125,7 +131,7 @@ public class State {
             }
         }
         if (cnt_ngb_color == 0) {// no neighbor of same color, area consisting of this piece alone
-            System.out.println("--------------------adding intial list-----------------");
+//            System.out.println("--------------------adding intial list-----------------");
             group = new ArrayList<Short>(cells.length); // create a new list containing current cell
             group.add(cell);
             cell_group_map[cell] = group;
@@ -140,12 +146,16 @@ public class State {
         return cell_group_map[cell].size();
     }
 
-    private byte nextColor() {
-        short cnt = 0;
-        for (short cell : cells) {
-            cnt = (cell == 0) ? cnt : (short)(cnt + 1);
-        }
-        return (byte) (cnt % num_player + 1);
+
+    public byte nextColor() {
+//        short cnt = 0;
+//        for (short cell : cells) {
+//            cnt = (cell == 0) ? cnt : (short)(cnt + 1);
+//        }
+//        System.out.println( (total_cells - empty_cells) % 2 + " | " + (cnt % num_player + 1));
+//        System.out.println((total_cells - empty_cells) % 2 + 1);
+        return (byte) ((total_cells - empty_cells) % num_player + 1);
+
     }
 
     private long[] calcScores() {
@@ -156,11 +166,11 @@ public class State {
 //                    " Count : " + entry.getValue());
             points[ entry.getKey() / 1000 - 1] *= Math.pow(entry.getKey() % 1000, entry.getValue());
         }
-        System.out.println("Points: " + Arrays.toString(points));
+//        System.out.println("Points: " + Arrays.toString(points));
         return points;
     }
 
-    // number of moves given current state
+    // number of possible moves given current state
     public int numMoves() {
         return empty_cells * (empty_cells - 1);
     }
@@ -171,7 +181,6 @@ public class State {
 
         int cnt = 0;
         for (short idx_a=0; idx_a < total_cells; idx_a++) {
-
             if (cells[idx_a] == 0) {
                 for (short idx_b=0; idx_b < total_cells; idx_b++) {
                     if (cells[idx_b] == 0 && idx_b != idx_a) {
@@ -186,7 +195,37 @@ public class State {
         return moves;
     }
 
+    // Check termination condition
     public boolean isTerminal() {
-        return (empty_cells <= num_player * num_player);
+        return (total_cells - empty_cells) == (totalRounds() * num_player * num_player);
+//        return (empty_cells <= num_player * num_player);
+    }
+
+    //TODO: implement evaluation function
+    public int value() {
+        return (int) Math.random() * 100;
+    }
+
+    // number of total rounds
+    public int totalRounds() {
+        return total_cells / (num_player * num_player);
+    }
+
+//    public int currentRound() {
+//        return (int) Math.ceil((total_cells - empty_cells) / (num_player * num_player));
+//    }
+
+    public int totalTurns() {
+        return totalRounds() * num_player;
+    }
+
+    // which player's turn it is currently
+    public byte currentTurn() {
+//        System.out.println((total_cells - empty_cells) / num_player % num_player + 1);
+        return (byte) ((total_cells - empty_cells) / num_player % num_player + 1);
+    }
+
+    public int turnsLeft() {
+        return totalTurns() - currentTurn();
     }
 }
