@@ -165,6 +165,7 @@ public class State {
         return empty_cells * (empty_cells - 1);
     }
 
+    // Generate all legal moves
     public short[][] moveGen() { // TODO: currently it's a naive enumeration of all possible movements
         short[][] moves = new short[numMoves()][num_player]; // return cell index for each color
 
@@ -177,7 +178,7 @@ public class State {
                         moves[cnt][0] = idx_a;
                         moves[cnt][1] = idx_b;
                         cnt++;
-                        return moves;
+//                        return moves;
                     }
                 }
             }

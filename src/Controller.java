@@ -17,11 +17,11 @@ public class Controller
 
 	public static void main(String[] args)
 	{
-		SwingUtilities.invokeLater(new Runnable() {
-			public void run() {	
+//		SwingUtilities.invokeLater(new Runnable() {
+//			public void run() {
 				new Controller();
-			}
-		});
+//			}
+//		});
 	}
 	
 	public short getCellColor(short cell_index) {

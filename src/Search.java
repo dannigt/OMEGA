@@ -15,10 +15,20 @@ public class Search {
         //TODO: choose random child
         int child_chosen = (int) (Math.random() * all_moves.length);
         System.out.println(child_chosen);
-        for (int child = 0; child < 1; child++) { //all_moves.length
+        for (int child = child_chosen; child < child_chosen+1; child++) { //all_moves.length
+
             short[] move = all_moves[child];
             s.placePiece(move[0]);
             s.placePiece(move[1]);
+
+            try
+            {
+                Thread.sleep(2000);
+            }
+            catch(InterruptedException ex)
+            {
+                Thread.currentThread().interrupt();
+            }
 
             int value = alphaBeta(s, depth - 1, -beta, -alpha);
             if (value > score) {
@@ -28,7 +38,7 @@ public class Search {
                 alpha = score;
             }
             if (score >= beta) {
-               break;
+                break;
             }
         }
         return score;
