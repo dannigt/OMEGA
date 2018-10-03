@@ -22,6 +22,18 @@ public class State {
         init(size);
     }
 
+    // overloaded constructor for copying
+    public State(State s) {
+        cells = s.cells.clone();
+        adj_list = s.adj_list;
+        num_player = s.num_player;
+        cell_group_map = s.cell_group_map.clone();
+        group_size_counter = new HashMap<>(s.group_size_counter);
+        total_cells = s.total_cells;
+        empty_cells = s.total_cells;
+        c = s.c;
+    }
+
     private void init(short size) {
 //		this.board_size = size;
         total_cells = (short) ((size*2+size-1)*size - size*2 + 1);
@@ -84,6 +96,7 @@ public class State {
         empty_cells--;
         calcConnectedAreaSize(cell);
         calcScores();
+        //TODO: in search step, don't notify change
         c.notifyChange();
     }
 

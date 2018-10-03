@@ -1,6 +1,8 @@
 public class Search {
 
-    public int alphaBeta(State s, int depth, int alpha, int beta) {
+    public int alphaBeta(State s_in, int depth, int alpha, int beta) {
+//        State s = new State(s_in);
+        State s = s_in;
         if (s.isTerminal() || depth == 0) {
             System.out.println("-----------------Terminal, eval score");
             return 0;
@@ -10,6 +12,9 @@ public class Search {
         short[][] all_moves = s.moveGen();
 //        State[] successors = new State[all_moves.length];
         System.out.println("successor count " + all_moves.length);
+        //TODO: choose random child
+        int child_chosen = (int) (Math.random() * all_moves.length);
+        System.out.println(child_chosen);
         for (int child = 0; child < 1; child++) { //all_moves.length
             short[] move = all_moves[child];
             s.placePiece(move[0]);
@@ -23,7 +28,7 @@ public class Search {
                 alpha = score;
             }
             if (score >= beta) {
-                break;
+               break;
             }
         }
         return score;
