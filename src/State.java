@@ -9,8 +9,8 @@ public class State {
     private ArrayList<Short>[] adj_list;  // neighbor indices
     private byte num_player;
     // cell index --> group represented by array list
-    private ArrayList<Short>[] cell_group_map; // index: cell index, value: groups
-    private HashMap<Short, Byte> group_size_counter = new HashMap<Short, Byte>(); // key: group size, value: number of occurrences
+//    private ArrayList<Short>[] cell_group_map; // index: cell index, value: groups
+//    private HashMap<Short, Byte> group_size_counter = new HashMap<Short, Byte>(); // key: group size, value: number of occurrences
 //    private ArrayList<ArrayList<Short>> groups = new ArrayList<ArrayList<Short>>();
     private short total_cells;
     public short used_cells = 0;
@@ -33,8 +33,8 @@ public class State {
         cells = s.cells.clone();
         adj_list = s.adj_list;
         num_player = s.num_player;
-        cell_group_map = s.cell_group_map.clone();
-        group_size_counter = new HashMap<>(s.group_size_counter);
+//        cell_group_map = s.cell_group_map.clone();
+//        group_size_counter = new HashMap<>(s.group_size_counter);
         total_cells = s.total_cells;
         used_cells = s.used_cells;
 //        empty_cells = s.empty_cells;
@@ -45,6 +45,7 @@ public class State {
     private void init(byte size) {
 //		this.board_size = size;
         total_cells = (short) ((size*2+size-1)*size - size*2 + 1);
+        used_cells = 0;
 //        empty_cells = total_cells;
 //        usable_cells = ;
 
@@ -53,7 +54,7 @@ public class State {
         System.out.println(total_cells + " cells, ");
 
         adj_list = new ArrayList[total_cells];
-        cell_group_map = new ArrayList[total_cells];
+//        cell_group_map = new ArrayList[total_cells];
 
         for (short i=0; i < adj_list.length; i++) {
             //at most 6 neighbours.
@@ -155,15 +156,15 @@ public class State {
 
 
     private long[] calcScores() {
-        long[] points = new long[num_player];
-        Arrays.fill(points, 1);
-        for (Map.Entry<Short, Byte> entry : group_size_counter.entrySet()) {
-//            System.out.println("Player : " + entry.getKey() / 1000 + ", Group size: " + entry.getKey() % 1000 +
-//                    " Count : " + entry.getValue());
-            points[ entry.getKey() / 1000 - 1] *= Math.pow(entry.getKey() % 1000, entry.getValue());
-        }
+//        long[] points = new long[num_player];
+//        Arrays.fill(points, 1);
+//        for (Map.Entry<Short, Byte> entry : group_size_counter.entrySet()) {
+////            System.out.println("Player : " + entry.getKey() / 1000 + ", Group size: " + entry.getKey() % 1000 +
+////                    " Count : " + entry.getValue());
+//            points[ entry.getKey() / 1000 - 1] *= Math.pow(entry.getKey() % 1000, entry.getValue());
+//        }
 //        System.out.println("Points: " + Arrays.toString(points));
-        return points;
+        return new long[]{1, 1};
     }
 
     // number of possible moves given current state

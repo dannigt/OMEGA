@@ -18,15 +18,15 @@ public class View
 	private static final int SCR_H = (int) Toolkit.getDefaultToolkit().getScreenSize().getHeight();
 	private static final int SCR_W = (int) Toolkit.getDefaultToolkit().getScreenSize().getWidth();
 	private static final int SCRSIZE = Math.min(SCR_H, SCR_W);
-	static int BORDERS;
+	static int boarder_pxl;
 //	static int HEXSIZE;	//hex size in pixels
 	
 	//canvas x and y coordinates of all cells
 //	static ArrayList<Integer> xs = new ArrayList<Integer>();
 //	static ArrayList<Integer> ys = new ArrayList<Integer>();
-	static ArrayList<Point> cellCenters = new ArrayList<Point>();
+	static ArrayList<Point> cellCenters = new ArrayList<>();
 	
-//	private static int BORDERS;	//default number of pixels for the border.
+//	private static int boarder_pxl;	//default number of pixels for the border.
 	
 	private static int h;	// height. Distance between centres of two adjacent hexes. Distance between two opposite sides in a hex.
 	private static int s;	// length of one side
@@ -44,10 +44,10 @@ public class View
 
 	public void reset() {
 		NUM_ROWS = 2 * c.getBoardSize() - 1;
-		BORDERS = SCRSIZE / NUM_ROWS / 2;
-//		HEXSIZE = BORDERS;	//hex size in pixels
-		h=BORDERS;	// height. Distance between centres of two adjacent hexes. Distance between two opposite sides in a hex.
-		s=BORDERS;	// length of one side
+		boarder_pxl = SCRSIZE / NUM_ROWS / 2;
+//		HEXSIZE = boarder_pxl;	//hex size in pixels
+		h= boarder_pxl;	// height. Distance between centres of two adjacent hexes. Distance between two opposite sides in a hex.
+		s= boarder_pxl;	// length of one side
 //		t=0;	// short side of 30o triangle outside of each hex
 		r=h/2;	// radius of inscribed circle (centre to middle of each side). r= h/2
 		a=(int) (Math.sqrt(3)*(h/2.0));
@@ -55,8 +55,7 @@ public class View
 	}
 
 	private static void initShowUI(Controller c) {
-		View view = new View(c);
-
+		new View(c);
 		JFrame frame = new JFrame("Omega");
 		panel = new DrawingPanel();
 //		content.add(panel);
@@ -166,7 +165,7 @@ public class View
 	{
 		public DrawingPanel()
 		{
-			setBackground(Color.WHITE);
+			setBackground(Color.LIGHT_GRAY);
 			addMouseListener(new MyMouseListener());
 		}
 
@@ -201,7 +200,7 @@ public class View
 //		XYVertex=b;
 //	}
 //	public static void setBorders(int b){
-//		BORDERS=b;
+//		boarder_pxl=b;
 //	}
 //	public static void setHeight(int height) {
 //		h = height;			// h = basic dimension: height (distance between two adj centresr aka size)
@@ -261,8 +260,8 @@ and calculates all six of the points in the hexagon.
 *********************************************************/
 	public static Polygon hex (int x0, int y0) {
 		int[] cornerXs,cornerYs;
-		int y = y0;// + BORDERS;
-		int x = x0;// + BORDERS; // + (XYVertex ? t : 0); //Fix added for XYVertex = true. 
+		int y = y0;// + boarder_pxl;
+		int x = x0;// + boarder_pxl; // + (XYVertex ? t : 0); //Fix added for XYVertex = true.
 //		  *for POINTY ORIENTATION:
 		cornerXs = new int[] {x,x+a,x+a,x,x-a,x-a};
 		cornerYs = new int[] {y-s, y-s/2, y+s/2, y+s, y+s/2, y-s/2};
