@@ -8,7 +8,7 @@ public class Controller
 	private View view;
 	private byte computer_player;
 	private Search search;
-	public byte size;
+	private byte size;
 	private byte num_player;
 	// TODO: also track past movements here
 
@@ -70,7 +70,17 @@ public class Controller
 		return MIN_SIZE;
 	}
 
+	public void setBoardSize(byte size) {
+		this.size = size;
+		state.reset(size);
+		view.reset();
+	}
+
 	public byte getMaxSize() {
 		return MAX_SIZE;
+	}
+
+	public byte getBoardSize() {
+		return size;
 	}
 }

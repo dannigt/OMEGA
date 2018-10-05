@@ -17,10 +17,15 @@ public class State {
     private Controller c;
     private boolean sim = false;
 
-    public State(Controller c, short size, byte num_player) {
+    public State(Controller c, byte size, byte num_player) {
         this.c = c;
         this.num_player = num_player;
         init(size);
+    }
+
+    public void reset(byte size) {
+        init(size);
+        c.notifyChange();
     }
 
     // overloaded constructor for copying
@@ -37,7 +42,7 @@ public class State {
 //        c = s.c;
     }
 
-    private void init(short size) {
+    private void init(byte size) {
 //		this.board_size = size;
         total_cells = (short) ((size*2+size-1)*size - size*2 + 1);
 //        empty_cells = total_cells;
