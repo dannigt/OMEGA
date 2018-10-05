@@ -7,29 +7,16 @@ import javax.swing.*;
 public class View
 {
 	private static Controller c;
-	//constants and global variables
-
-
-//	static int BSIZE; //board size.
-	static int NUM_ROWS;
+	private static int NUM_ROWS;
 
 	private static final Color[] PALETTE = new Color[]{Color.GRAY, Color.WHITE, Color.BLACK, Color.RED, Color.BLUE};
 	private static final int SCR_H = (int) Toolkit.getDefaultToolkit().getScreenSize().getHeight();
 	private static final int SCR_W = (int) Toolkit.getDefaultToolkit().getScreenSize().getWidth();
 	private static final int SCRSIZE = Math.min(SCR_H, SCR_W);
 	static int boarder_pxl;
-//	static int HEXSIZE;	//hex size in pixels
-	
-	//canvas x and y coordinates of all cells
-//	static ArrayList<Integer> xs = new ArrayList<Integer>();
-//	static ArrayList<Integer> ys = new ArrayList<Integer>();
 	static ArrayList<Point> cellCenters = new ArrayList<>();
-	
-//	private static int boarder_pxl;	//default number of pixels for the border.
-	
 	private static int h;	// height. Distance between centres of two adjacent hexes. Distance between two opposite sides in a hex.
 	private static int s;	// length of one side
-//	private static int t = 0;	// short side of 30o triangle outside of each hex
 	private static int r;	// radius of inscribed circle (centre to middle of each side). r= h/2
 	private static int a;
 	private static DrawingPanel panel;// = new DrawingPanel();
@@ -37,17 +24,14 @@ public class View
 	public View(Controller c) {
 		this.c = c;
 		c.setView(this);
-
 		reset();
 	}
 
 	public void reset() {
 		NUM_ROWS = 2 * c.getBoardSize() - 1;
 		boarder_pxl = SCRSIZE / NUM_ROWS / 2;
-//		HEXSIZE = boarder_pxl;	//hex size in pixels
 		h= boarder_pxl;	// height. Distance between centres of two adjacent hexes. Distance between two opposite sides in a hex.
 		s= boarder_pxl;	// length of one side
-//		t=0;	// short side of 30o triangle outside of each hex
 		r=h/2;	// radius of inscribed circle (centre to middle of each side). r= h/2
 		a=(int) (Math.sqrt(3)*(h/2.0));
 		cellCenters.clear();
@@ -184,7 +168,6 @@ public class View
 				catch (IllegalArgumentException e1) {
 					System.out.println("SHOW ON UI: " + e1.getMessage());
 				}
-//				repaint();
 			}
 		}
 	} 
@@ -192,18 +175,6 @@ public class View
 	public void repaint() {
 	    panel.repaint();
 	}
-
-//	public static void setXYasVertex(boolean b) {
-//		XYVertex=b;
-//	}
-//	public static void setBorders(int b){
-//		boarder_pxl=b;
-//	}
-//	public static void setHeight(int height) {
-//		h = height;			// h = basic dimension: height (distance between two adj centresr aka size)
-//		s = height;
-//		a = (int) (Math.sqrt(3)*(height/2.0));
-//	}
 
 	public static void drawBoard(int size, Graphics2D g2, int x0, int y0) {
 		boolean add = cellCenters.isEmpty();
@@ -243,13 +214,13 @@ public class View
 			}
 		}
 	}
-	
+
 /*********************************************************
 Name: hex()
-Parameters: (x0,y0) This point is normally the top left corner 
-    of the rectangle enclosing the hexagon. 
-    However, if XYVertex is true then (x0,y0) is the vertex of the 
-    top left corner of the hexagon. 
+Parameters: (x0,y0) This point is normally the top left corner
+    of the rectangle enclosing the hexagon.
+    However, if XYVertex is true then (x0,y0) is the vertex of the
+    top left corner of the hexagon.
 Returns: a polygon containing the six points.
 Called from: drawHex(), fillhex()
 Purpose: This function takes two points that describe a hexagon
@@ -299,10 +270,8 @@ The hexagon is drawn in the colour specified in hexgame.COLOURELL.
 	{
 		Controller c = new Controller();
 
-		SwingUtilities.invokeLater(new Runnable() {
-			public void run() {
-				initShowUI(c);  //just take the idea of this line
-			}
+		SwingUtilities.invokeLater(() -> {
+			initShowUI(c);
 		});
 	}
 }

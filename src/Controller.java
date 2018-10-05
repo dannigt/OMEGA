@@ -1,5 +1,3 @@
-import javax.swing.SwingUtilities;
-
 public class Controller
 {
 	private final byte MIN_SIZE = 5;
@@ -27,10 +25,8 @@ public class Controller
 	}
 	
 	public void processCellClick(short cell_index) throws IllegalArgumentException{
-//		System.out.println(state.used_cells);
 		System.out.println("Human player placed cell " + cell_index);
 
-//        System.out.println("Player " + state.nextPlayer() + "'s turn");
 
 		// TODO: check termination
         if (state.isTerminal()) {

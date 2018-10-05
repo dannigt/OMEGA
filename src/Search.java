@@ -17,7 +17,6 @@ public class Search {
         int score = Integer.MIN_VALUE;
 
         short[][] all_moves = s.moveGen();
-//        System.out.println("successor count: " + all_moves.length);
 
         short[] chosen_move = all_moves[0];
 

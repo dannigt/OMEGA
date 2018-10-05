@@ -10,11 +10,6 @@ public class State {
     private short[] uf_size;
     private ArrayList<Short>[] adj_list;  // neighbor indices
     private byte num_player;
-
-    // cell index --> group represented by array list
-//    private ArrayList<Short>[] cell_group_map; // index: cell index, value: groups
-//    private HashMap<Short, Byte> group_size_counter = new HashMap<Short, Byte>(); // key: group size, value: number of occurrences
-//    private ArrayList<ArrayList<Short>> groups = new ArrayList<ArrayList<Short>>();
     private short total_cells;
     private short used_cells = 0;
     private Controller c;
@@ -36,8 +31,6 @@ public class State {
         cells = s.cells.clone();
         adj_list = s.adj_list;
         num_player = s.num_player;
-//        cell_group_map = s.cell_group_map.clone();
-//        group_size_counter = new HashMap<>(s.group_size_counter);
         total_cells = s.total_cells;
         used_cells = s.used_cells;
         uf_parent = s.uf_parent.clone();
@@ -56,8 +49,6 @@ public class State {
         System.out.println(total_cells + " cells, ");
 
         adj_list = new ArrayList[total_cells];
-//        cell_group_map = new ArrayList[total_cells];
-
         for (short i=0; i < adj_list.length; i++) {
             //at most 6 neighbours.
             adj_list[i] = new ArrayList<Short>(6);
@@ -114,6 +105,7 @@ public class State {
             c.notifyChange();
     }
 
+    //For union find
     private int findRoot(int p) {
         while (p != uf_parent[p]) {
             uf_parent[p] = uf_parent[uf_parent[p]];    // path compression by halving
