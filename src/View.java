@@ -2,7 +2,6 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
 import java.util.stream.IntStream;
-
 import javax.swing.*;
 
 public class View
@@ -58,14 +57,12 @@ public class View
 		new View(c);
 		JFrame frame = new JFrame("Omega");
 		panel = new DrawingPanel();
-//		content.add(panel);
 		frame.getContentPane().add(panel);
 		frame.setJMenuBar(makeMenu(frame));
-		frame.setSize( SCRSIZE, SCRSIZE);
+		frame.setSize(SCRSIZE, SCRSIZE);
 		frame.setResizable(false);
-		frame.setLocationRelativeTo( null );
-
-		frame.setDefaultCloseOperation( JFrame.EXIT_ON_CLOSE );
+		frame.setLocationRelativeTo(null);
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setVisible(true);
 
 	}

@@ -6,14 +6,17 @@ import java.util.Map;
 public class State {
     //	private int board_size;
     private byte[] cells; // Color placed in the cell. Empty is 0
+    private short[] uf_parent;
+    private short[] uf_size;
     private ArrayList<Short>[] adj_list;  // neighbor indices
     private byte num_player;
+
     // cell index --> group represented by array list
 //    private ArrayList<Short>[] cell_group_map; // index: cell index, value: groups
 //    private HashMap<Short, Byte> group_size_counter = new HashMap<Short, Byte>(); // key: group size, value: number of occurrences
 //    private ArrayList<ArrayList<Short>> groups = new ArrayList<ArrayList<Short>>();
     private short total_cells;
-    public short used_cells = 0;
+    private short used_cells = 0;
     private Controller c;
     private boolean sim = false;
 
@@ -37,20 +40,19 @@ public class State {
 //        group_size_counter = new HashMap<>(s.group_size_counter);
         total_cells = s.total_cells;
         used_cells = s.used_cells;
-//        empty_cells = s.empty_cells;
+        uf_parent = s.uf_parent.clone();
+        uf_size = s.uf_size.clone();
         sim = true;
 //        c = s.c;
     }
 
     private void init(byte size) {
-//		this.board_size = size;
         total_cells = (short) ((size*2+size-1)*size - size*2 + 1);
         used_cells = 0;
-//        empty_cells = total_cells;
-//        usable_cells = ;
-
         cells = new byte[total_cells];
-//		adj_mat = new boolean[total_cells][total_cells];
+        uf_parent = new short[total_cells];
+        Arrays.fill(uf_parent, (short) -1);
+        uf_size = new short[total_cells];
         System.out.println(total_cells + " cells, ");
 
         adj_list = new ArrayList[total_cells];
@@ -104,7 +106,6 @@ public class State {
 
     public void placePiece(short cell) {
         cells[cell] = nextColor();
-//        empty_cells--;
         used_cells++;
         calcConnectedAreaSize(cell);
 //        calcScores();
@@ -113,8 +114,32 @@ public class State {
             c.notifyChange();
     }
 
+    private int findRoot(int p) {
+        while (p != uf_parent[p]) {
+            uf_parent[p] = uf_parent[uf_parent[p]];    // path compression by halving
+            p = uf_parent[p];
+        }
+        return p;
+    }
+
     private int calcConnectedAreaSize(short cell) {
-        return 0;
+        // Set parent of this cell to itself
+        uf_parent[cell] = cell;
+        uf_size[cell] = 1;
+
+        for (int neighbor : adj_list[cell]) {
+            if (cells[cell] == cells[neighbor]) {
+                int nbg_root = findRoot(neighbor);
+                if (nbg_root != cell) {
+                    uf_parent[nbg_root] = cell; // The newly added cell becomes parent of the neighbor
+                    uf_size[cell] +=  uf_size[nbg_root];
+                }
+            }
+        }
+
+        if (!sim)
+            System.out.println("==========================" + uf_size[cell]);
+        return uf_size[cell];
 //        byte cur_player = cells[cell];
 //        byte cnt_ngb_color = 0;
 //        ArrayList<Short> group = null;
@@ -122,7 +147,7 @@ public class State {
 //
 //            if (cells[cell] == cells[neighbor]) {
 //                cnt_ngb_color++;
-//                if (group == null) { // first connected group found. //TODO: enforce size ordering here
+//                if (group == null) { // first connected group found.
 //                    group = cell_group_map[neighbor];
 //                    group_size_counter.computeIfPresent((short) (cur_player * 1000 + cell_group_map[neighbor].size()),
 //                            (k, v) -> (byte) (v - 1));
