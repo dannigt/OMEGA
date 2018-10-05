@@ -7,12 +7,13 @@ public class Controller
 	private byte computer_player;
 	private Search search;
 	private byte size;
+	private byte num_player;
 	// TODO: also track past movements here
 
 	private Controller() {
 		this.size = 6;
-		byte num_player = 2;
-        computer_player = 2;
+		this.num_player = 2;
+        byte computer_player = 2;
 //		view = new View(this, size);
 //		view.initShowUI();
 		state = new State(this, size, num_player);
@@ -63,6 +64,10 @@ public class Controller
             System.out.println("Entering a-b with " + state.turnsLeft() + " turns left");
             search.alphaBeta(state, state.turnsLeft(), Integer.MAX_VALUE, Integer.MIN_VALUE);
         }
+	}
+
+	public byte numPlayers() {
+		return num_player;
 	}
 
 	public void setView(View v) {

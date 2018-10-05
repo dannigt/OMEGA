@@ -7,10 +7,10 @@ import java.awt.Polygon;
 import java.awt.Toolkit;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.MenuBar;
 import java.util.ArrayList;
 
-import javax.swing.JFrame;
-import javax.swing.JPanel;
+import javax.swing.*;
 
 public class View
 {
@@ -73,6 +73,68 @@ public class View
 		frame.setResizable(false);
 		frame.setLocationRelativeTo( null );
 		frame.setVisible(true);
+		frame.setJMenuBar(makeMenu());
+	}
+
+	private JMenuBar makeMenu() {
+		//Create the menu bar.
+		JMenu menu, submenu;
+		JMenuItem menuItem;
+		JRadioButtonMenuItem rbMenuItem;
+		JCheckBoxMenuItem cbMenuItem;
+
+		JMenuBar menuBar = new JMenuBar();
+
+		//Build the first menu.
+		menu = new JMenu("Start");
+
+		menuBar.add(menu);
+
+		//Set board size
+		menuItem = new JMenuItem("Set Board Size");
+		menu.add(menuItem);
+
+		//Choose computer player index
+		submenu = new JMenu("Computer Player... ");
+
+		ButtonGroup group = new ButtonGroup();
+
+		for (byte i=1; i <= c.numPlayers(); i++) {
+			System.out.println(i);
+			rbMenuItem = new JRadioButtonMenuItem("Player " + i);
+			rbMenuItem.setSelected(false);
+			group.add(rbMenuItem);
+			submenu.add(rbMenuItem);
+		}
+
+		menuItem = new JMenuItem("An item in the submenu");
+		submenu.add(menuItem);
+
+		menuItem = new JMenuItem("Another item");
+		submenu.add(menuItem);
+		menu.add(submenu);
+
+//		menuItem = new JMenuItem("Both text and icon",
+//				new ImageIcon("images/middle.gif"));
+//		menu.add(menuItem);
+//		menuItem = new JMenuItem(new ImageIcon("images/middle.gif"));
+//		menu.add(menuItem);
+
+		//a group of check box menu items
+		menu.addSeparator();
+		cbMenuItem = new JCheckBoxMenuItem("Keep time");
+		menu.add(cbMenuItem);
+
+		cbMenuItem = new JCheckBoxMenuItem("Another one");
+		menu.add(cbMenuItem);
+
+
+//Build second menu in the menu bar.
+		menu = new JMenu("Another Menu");
+		menu.getAccessibleContext().setAccessibleDescription(
+				"This menu does nothing");
+		menuBar.add(menu);
+		return menuBar;
 	}
 
 	class DrawingPanel extends JPanel
