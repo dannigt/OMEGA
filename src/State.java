@@ -13,8 +13,7 @@ public class State {
     private HashMap<Short, Byte> group_size_counter = new HashMap<Short, Byte>(); // key: group size, value: number of occurrences
 //    private ArrayList<ArrayList<Short>> groups = new ArrayList<ArrayList<Short>>();
     private short total_cells;
-    private short empty_cells;
-    private short usable_cells;
+    public short used_cells = 0;
     private Controller c;
     private boolean sim = false;
 
@@ -32,7 +31,8 @@ public class State {
         cell_group_map = s.cell_group_map.clone();
         group_size_counter = new HashMap<>(s.group_size_counter);
         total_cells = s.total_cells;
-        empty_cells = s.empty_cells;
+        used_cells = s.used_cells;
+//        empty_cells = s.empty_cells;
         sim = true;
 //        c = s.c;
     }
@@ -40,7 +40,7 @@ public class State {
     private void init(short size) {
 //		this.board_size = size;
         total_cells = (short) ((size*2+size-1)*size - size*2 + 1);
-        empty_cells = total_cells;
+//        empty_cells = total_cells;
 //        usable_cells = ;
 
         cells = new byte[total_cells];
@@ -98,7 +98,8 @@ public class State {
 
     public void placePiece(short cell) {
         cells[cell] = nextColor();
-        empty_cells--;
+//        empty_cells--;
+        used_cells++;
         calcConnectedAreaSize(cell);
 //        calcScores();
         //TODO: in search step, don't notify change
@@ -107,56 +108,46 @@ public class State {
     }
 
     private int calcConnectedAreaSize(short cell) {
-        byte cur_player = cells[cell];
-        byte cnt_ngb_color = 0;
-        ArrayList<Short> group = null;
-        for (int neighbor : adj_list[cell]) {
-
-            if (cells[cell] == cells[neighbor]) {
-                cnt_ngb_color++;
-                if (group == null) { // first connected group found. //TODO: enforce size ordering here
-                    group = cell_group_map[neighbor];
-                    group_size_counter.computeIfPresent((short) (cur_player * 1000 + cell_group_map[neighbor].size()),
-                            (k, v) -> (byte) (v - 1));
-                    group.add(cell); //modify group list by adding current cell
-                } else if (!group.equals(cell_group_map[neighbor])){// there has been a new group found. merge group
-//                    System.out.println("------------------------NEW GROUP------------------------");
-                    group_size_counter.computeIfPresent((short) (cur_player * 1000 + cell_group_map[neighbor].size()),
-                            (k, v) -> (byte) (v - 1));
-//                    groups.remove(cell_group_map[neighbor]);
-                    group.addAll(cell_group_map[neighbor]);
-                    cell_group_map[neighbor] = group;
-                }
-                cell_group_map[cell] = group; //update reference to group
-            }
-        }
-        if (cnt_ngb_color == 0) {// no neighbor of same color, area consisting of this piece alone
-//            System.out.println("--------------------adding intial list-----------------");
-            group = new ArrayList<Short>(cells.length); // create a new list containing current cell
-            group.add(cell);
-            cell_group_map[cell] = group;
-//            groups.add(group);
-        } else {
-            group_size_counter.merge((short) (cur_player * 1000 + group.size()), (byte) 1, (a, b) -> (byte) (a + b));
-        }
-            //        for (ArrayList<Short> g : cell_group_map) {
-//            if (g!=null)
-//                System.out.println(g);
+        return 0;
+//        byte cur_player = cells[cell];
+//        byte cnt_ngb_color = 0;
+//        ArrayList<Short> group = null;
+//        for (int neighbor : adj_list[cell]) {
+//
+//            if (cells[cell] == cells[neighbor]) {
+//                cnt_ngb_color++;
+//                if (group == null) { // first connected group found. //TODO: enforce size ordering here
+//                    group = cell_group_map[neighbor];
+//                    group_size_counter.computeIfPresent((short) (cur_player * 1000 + cell_group_map[neighbor].size()),
+//                            (k, v) -> (byte) (v - 1));
+//                    group.add(cell); //modify group list by adding current cell
+//                } else if (!group.equals(cell_group_map[neighbor])){// there has been a new group found. merge group
+////                    System.out.println("------------------------NEW GROUP------------------------");
+//                    group_size_counter.computeIfPresent((short) (cur_player * 1000 + cell_group_map[neighbor].size()),
+//                            (k, v) -> (byte) (v - 1));
+////                    groups.remove(cell_group_map[neighbor]);
+//                    group.addAll(cell_group_map[neighbor]);
+//                    cell_group_map[neighbor] = group;
+//                }
+//                cell_group_map[cell] = group; //update reference to group
+//            }
 //        }
-        return cell_group_map[cell].size();
+//        if (cnt_ngb_color == 0) {// no neighbor of same color, area consisting of this piece alone
+////            System.out.println("--------------------adding intial list-----------------");
+//            group = new ArrayList<Short>(cells.length); // create a new list containing current cell
+//            group.add(cell);
+//            cell_group_map[cell] = group;
+////            groups.add(group);
+//        } else {
+//            group_size_counter.merge((short) (cur_player * 1000 + group.size()), (byte) 1, (a, b) -> (byte) (a + b));
+//        }
+//            //        for (ArrayList<Short> g : cell_group_map) {
+////            if (g!=null)
+////                System.out.println(g);
+////        }
+//        return cell_group_map[cell].size();
     }
 
-
-    public byte nextColor() {
-//        short cnt = 0;
-//        for (short cell : cells) {
-//            cnt = (cell == 0) ? cnt : (short)(cnt + 1);
-//        }
-//        System.out.println( (total_cells - empty_cells) % 2 + " | " + (cnt % num_player + 1));
-//        System.out.println((total_cells - empty_cells) % 2 + 1);
-        return (byte) ((total_cells - empty_cells) % num_player + 1);
-
-    }
 
     private long[] calcScores() {
         long[] points = new long[num_player];
@@ -172,7 +163,7 @@ public class State {
 
     // number of possible moves given current state
     public int numMoves() {
-        return empty_cells * (empty_cells - 1);
+        return (total_cells - used_cells) * (total_cells - used_cells - 1);
     }
 
     // Generate all legal moves
@@ -197,8 +188,7 @@ public class State {
 
     // Check termination condition
     public boolean isTerminal() {
-        return (total_cells - empty_cells) == (totalRounds() * num_player * num_player);
-//        return (empty_cells <= num_player * num_player);
+        return used_cells == (totalRounds() * num_player * num_player);
     }
 
     //TODO: implement evaluation function
@@ -211,18 +201,26 @@ public class State {
         return total_cells / (num_player * num_player);
     }
 
-//    public int currentRound() {
-//        return (int) Math.ceil((total_cells - empty_cells) / (num_player * num_player));
-//    }
-
     public int totalTurns() {
         return totalRounds() * num_player;
     }
 
-    // which player's turn it is currently
-    public byte currentTurn() {
-//        System.out.println((total_cells - empty_cells) / num_player % num_player + 1);
-        return (byte) ((total_cells - empty_cells) / num_player % num_player + 1);
+    // which player's turn it is
+    public byte nextPlayer() {
+        return (byte) (used_cells % (num_player * num_player) / num_player + 1);
+    }
+    // next color
+    public byte nextColor() {
+        return (byte) (used_cells % num_player + 1);
+
+    }
+
+    public int currentRound() {
+        return used_cells / (num_player * num_player) + 1;
+    }
+
+    public int currentTurn() {
+        return (currentRound() - 1) * num_player + 1;
     }
 
     public int turnsLeft() {

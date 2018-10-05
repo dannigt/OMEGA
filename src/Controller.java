@@ -38,13 +38,12 @@ public class Controller
 	}
 	
 	public void processCellClick(short cell_index) throws IllegalArgumentException{
+//		System.out.println(state.used_cells);
 		System.out.println("Human player placed cell " + cell_index);
 
-//        System.out.println("Player " + state.currentTurn() + "'s turn");
+//        System.out.println("Player " + state.nextPlayer() + "'s turn");
 
-        System.out.println(state.turnsLeft() + " turns left");
-
-        // TODO: check termination
+		// TODO: check termination
         if (state.isTerminal()) {
             throw new IllegalArgumentException("Game has terminated");
         }
@@ -52,14 +51,16 @@ public class Controller
 		// if click is outside board, or cell is already occupied --> illegal
 		if (cell_index < 0 || state.getCellContent(cell_index) != 0) {
 			throw new IllegalArgumentException("Cell index out of bound");
-		} else if (computer_player == state.currentTurn()) {
-            throw new IllegalArgumentException("========It is computer player (player " + state.currentTurn() + ")'s turn. ========");
+		} else if (computer_player == state.nextPlayer()) {
+            throw new IllegalArgumentException("========It is computer player (player " + state.nextPlayer() + ")'s turn. ========");
         } else { // If legal, update state, return the player index
 			state.placePiece(cell_index);
 		}
 
-        if (state.currentTurn() == computer_player) { // when it's computer's turn
-            System.out.println("Entering a-b with " + state.turnsLeft() + " left");
+//		System.out.println(state.totalRounds() + ", " + state.totalTurns() + ", " + state.currentRound() + ", " + state.currentTurn() + ", " + state.turnsLeft());
+
+        if (state.nextPlayer() == computer_player) { // when it's computer's turn
+            System.out.println("Entering a-b with " + state.turnsLeft() + " turns left");
             search.alphaBeta(state, state.turnsLeft(), Integer.MAX_VALUE, Integer.MIN_VALUE);
         }
 	}

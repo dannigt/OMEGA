@@ -13,11 +13,11 @@ public class Search {
         if (s.isTerminal() || depth == 0) {
             return s;
         }
+
         int score = Integer.MIN_VALUE;
 
         short[][] all_moves = s.moveGen();
-//        System.out.println(Arrays.toString(all_moves));
-        System.out.println("successor count: " + all_moves.length);
+//        System.out.println("successor count: " + all_moves.length);
 
         short[] chosen_move = all_moves[0];
 
