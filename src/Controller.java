@@ -2,37 +2,25 @@ import javax.swing.SwingUtilities;
 
 public class Controller
 {
+	private final byte MIN_SIZE = 5;
+	private final byte MAX_SIZE = 10;
 	private State state;
 	private View view;
 	private byte computer_player;
 	private Search search;
-	private byte size;
+	public byte size;
 	private byte num_player;
 	// TODO: also track past movements here
 
-	private Controller() {
+	public Controller() {
 		this.size = 6;
 		this.num_player = 2;
-        byte computer_player = 2;
-//		view = new View(this, size);
-//		view.initShowUI();
+        this.computer_player = 2;
 		state = new State(this, size, num_player);
-
 		search = new Search(computer_player);
 //		search.alphaBeta(state, state.numMoves(), Integer.MAX_VALUE, Integer.MIN_VALUE);
   	}
 
-	public static void main(String[] args)
-	{
-	    Controller c = new Controller();
-
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                new View(c, c.size).initShowUI();  //just take the idea of this line
-            }
-        });
-
-	}
 	
 	public short getCellColor(short cell_index) {
 		return state.getCellContent(cell_index);
@@ -77,4 +65,12 @@ public class Controller
 	public void notifyChange() {
         view.repaint();
     }
+
+    public byte getMinSize() {
+		return MIN_SIZE;
+	}
+
+	public byte getMaxSize() {
+		return MAX_SIZE;
+	}
 }

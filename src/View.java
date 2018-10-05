@@ -1,27 +1,26 @@
-import java.awt.Color;
-import java.awt.Container;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Point;
-import java.awt.Polygon;
-import java.awt.Toolkit;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.MenuBar;
+import com.sun.xml.internal.messaging.saaj.util.ByteInputStream;
+
+import java.awt.*;
+import java.awt.event.*;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
+import java.util.stream.IntStream;
 
 import javax.swing.*;
 
 public class View
 {
-	static Controller c;
+	private static Controller c;
 	//constants and global variables
 	final static Color[] PALETTE = new Color[]{Color.GRAY, Color.WHITE, Color.BLACK, Color.RED, Color.BLUE};
 
 	static int BSIZE; //board size.
 	static int NUM_ROWS;
 
-	final static int SCRSIZE = (int) Toolkit.getDefaultToolkit().getScreenSize().getHeight();
+	static int scr_height = (int) Toolkit.getDefaultToolkit().getScreenSize().getHeight();
+	static int scr_width = (int) Toolkit.getDefaultToolkit().getScreenSize().getWidth();
+	static int SCRSIZE = Math.min(scr_height, scr_width);
 //	final static int SCRSIZE = height; //HEXSIZE * (BSIZE + 1) + BORDERS*3; //screen size (vertical dimension).
 	static int BORDERS;
 	static int HEXSIZE;	//hex size in pixels
@@ -38,16 +37,14 @@ public class View
 	private static int t;	// short side of 30o triangle outside of each hex
 	private static int r;	// radius of inscribed circle (centre to middle of each side). r= h/2
 	private static int a;
-	private DrawingPanel panel;
+	private static DrawingPanel panel;// = new DrawingPanel();
 	
-	public View(Controller c, int board_size) {
+	public View(Controller c) {
 		this.c = c;
 		c.setView(this);
-		this.BSIZE = board_size;
-//		this.player_colors = Arrays.copyOfRange(PALETTE, 0, num_player + 1);
-		
+		this.BSIZE = c.size;
+
 		NUM_ROWS = 2 * BSIZE - 1;
-//		final static int SCRSIZE = height; //HEXSIZE * (BSIZE + 1) + BORDERS*3; //screen size (vertical dimension).
 		BORDERS = SCRSIZE / NUM_ROWS / 2;
 		HEXSIZE = BORDERS;	//hex size in pixels
 		
@@ -56,63 +53,91 @@ public class View
 		t=0;	// short side of 30o triangle outside of each hex
 		r=h/2;	// radius of inscribed circle (centre to middle of each side). r= h/2
 		a=(int) (Math.sqrt(3)*(h/2.0));
-
-		panel = new DrawingPanel();
-
-		//JFrame.setDefaultLookAndFeelDecorated(true);
-
 	}
 
-	public void initShowUI() {
+	private static void initShowUI(Controller c) {
+		View view = new View(c);
+
 		JFrame frame = new JFrame("Omega");
-		frame.setDefaultCloseOperation( JFrame.EXIT_ON_CLOSE );
-		Container content = frame.getContentPane();
-		content.add(panel);
-		//this.add(panel);  -- cannot be done in a static context
+		panel = new DrawingPanel();
+//		content.add(panel);
+		frame.getContentPane().add(panel);
+		frame.setJMenuBar(panel.menuBar);
 		frame.setSize( SCRSIZE, SCRSIZE);
 		frame.setResizable(false);
 		frame.setLocationRelativeTo( null );
+
+		frame.setDefaultCloseOperation( JFrame.EXIT_ON_CLOSE );
 		frame.setVisible(true);
-		frame.setJMenuBar(makeMenu());
+
 	}
 
-	private JMenuBar makeMenu() {
-		//Create the menu bar.
-		JMenu menu, submenu;
-		JMenuItem menuItem;
-		JRadioButtonMenuItem rbMenuItem;
-		JCheckBoxMenuItem cbMenuItem;
+	static class DrawingPanel extends JPanel
+	{
+		private JMenuBar makeMenu() {
+			//Create the menu bar.
+			JMenu menu, submenu;
+			JMenuItem menuItem;
+			JRadioButtonMenuItem rbMenuItem;
+			JCheckBoxMenuItem cbMenuItem;
 
-		JMenuBar menuBar = new JMenuBar();
+			JMenuBar menuBar = new JMenuBar();
 
-		//Build the first menu.
-		menu = new JMenu("Start");
+			//Build the first menu.
+			menu = new JMenu("Start");
 
-		menuBar.add(menu);
+			menuBar.add(menu);
 
-		//Set board size
-		menuItem = new JMenuItem("Set Board Size");
-		menu.add(menuItem);
+			//Set board size
+			menuItem = new JMenuItem("Set Board Size");
 
-		//Choose computer player index
-		submenu = new JMenu("Computer Player... ");
+			menuItem.addActionListener(new ActionListener()
+			{
+				public void actionPerformed(ActionEvent event)
+				{
+					final JOptionPane optionPane = new JOptionPane("Choose board size:",
+							JOptionPane.QUESTION_MESSAGE,
+							JOptionPane.DEFAULT_OPTION);
 
-		ButtonGroup group = new ButtonGroup();
+					Object[] options = IntStream.range(c.getMinSize(), c.getMaxSize() + 1).mapToObj(i -> i).toArray();
 
-		for (byte i=1; i <= c.numPlayers(); i++) {
-			System.out.println(i);
-			rbMenuItem = new JRadioButtonMenuItem("Player " + i);
-			rbMenuItem.setSelected(false);
-			group.add(rbMenuItem);
-			submenu.add(rbMenuItem);
-		}
+					JOptionPane.showInputDialog(
+							menuBar,
+							"Choose board size:",
+							"Choose Board Size",
+							JOptionPane.PLAIN_MESSAGE,
+							null,
+							options,
+							null);
 
-		menuItem = new JMenuItem("An item in the submenu");
-		submenu.add(menuItem);
+					int value = (Integer)optionPane.getValue();
+					if (value == JOptionPane.YES_OPTION) {
+						System.out.println("New board size");
+					}
+				}
+			});
+			menu.add(menuItem);
 
-		menuItem = new JMenuItem("Another item");
-		submenu.add(menuItem);
-		menu.add(submenu);
+			//Choose computer player index
+			submenu = new JMenu("Computer Player... ");
+
+			ButtonGroup group = new ButtonGroup();
+
+//			System.out.println();
+			for (byte i=1; i <= c.numPlayers(); i++) {
+				System.out.println(i);
+				rbMenuItem = new JRadioButtonMenuItem("Player " + i);
+				rbMenuItem.setSelected(false);
+				group.add(rbMenuItem);
+				submenu.add(rbMenuItem);
+			}
+
+			menuItem = new JMenuItem("An item in the submenu");
+			submenu.add(menuItem);
+
+			menuItem = new JMenuItem("Another item");
+			submenu.add(menuItem);
+			menu.add(submenu);
 
 //		menuItem = new JMenuItem("Both text and icon",
 //				new ImageIcon("images/middle.gif"));
@@ -120,33 +145,35 @@ public class View
 //		menuItem = new JMenuItem(new ImageIcon("images/middle.gif"));
 //		menu.add(menuItem);
 
-		//a group of check box menu items
-		menu.addSeparator();
-		cbMenuItem = new JCheckBoxMenuItem("Keep time");
-		menu.add(cbMenuItem);
+			//a group of check box menu items
+			menu.addSeparator();
+			cbMenuItem = new JCheckBoxMenuItem("Keep time");
+			menu.add(cbMenuItem);
 
-		cbMenuItem = new JCheckBoxMenuItem("Another one");
-		menu.add(cbMenuItem);
+			cbMenuItem = new JCheckBoxMenuItem("Another one");
+			menu.add(cbMenuItem);
 
 
 //Build second menu in the menu bar.
-		menu = new JMenu("Another Menu");
-		menu.getAccessibleContext().setAccessibleDescription(
-				"This menu does nothing");
-		menuBar.add(menu);
-		return menuBar;
-	}
+			menu = new JMenu("Another Menu");
+			menu.getAccessibleContext().setAccessibleDescription(
+					"This menu does nothing");
+			menuBar.add(menu);
+			return menuBar;
+		}
 
-	class DrawingPanel extends JPanel
-	{		
+		private JMenuBar menuBar;
+
 		public DrawingPanel()
-		{	
+		{
 			setBackground(Color.WHITE);
+			menuBar = makeMenu();
 			addMouseListener(new MyMouseListener());
 		}
 
 		public void paintComponent(Graphics g)
 		{
+			super.paintComponent(g);
 			Graphics2D g2 = (Graphics2D)g;
 			drawBoard(BSIZE, g2, SCRSIZE/8, SCRSIZE/8);
 		}
@@ -162,8 +189,8 @@ public class View
 				catch (IllegalArgumentException e1) {
 					System.out.println("SHOW ON UI: " + e1.getMessage());
 				}
-				repaint();
-			}		 
+//				repaint();
+			}
 		}
 	} 
 
@@ -268,5 +295,16 @@ The hexagon is drawn in the colour specified in hexgame.COLOURELL.
 		}
 		//Ensure that the point is within the board
 		return (short)((nearest.distance(given) < a) ? cellCenters.indexOf(nearest) : -1);
+	}
+
+	public static void main(String[] args)
+	{
+		Controller c = new Controller();
+
+		SwingUtilities.invokeLater(new Runnable() {
+			public void run() {
+				initShowUI(c);  //just take the idea of this line
+			}
+		});
 	}
 }
