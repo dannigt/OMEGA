@@ -1,3 +1,6 @@
+
+import org.apache.commons.lang3.time.StopWatch;
+
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
@@ -14,48 +17,54 @@ public class Controller implements Serializable
 	private byte computer_player;
 	private Search search;
 	// TODO: timer for players
-	private short[] time_left;
+	private long[] timer;
 	// TODO: also track past movements here
 	private ArrayList<Short> placementOrder;
 	private String dir;
+	private StopWatch stopwatch = new StopWatch();
 
 	public Controller() {
-//		this.size = 6;
-//		this.num_player = 2;
-        this.computer_player = 2;
+        this.computer_player = 1;
 		state = new State(this);
-		search = new Search(computer_player);
+		search = new Search(this);
 		dir = System.getProperty("user.dir") + "\\dump" + "\\" + LocalDate.now();
 //		search.alphaBeta(state, state.numMoves(), Integer.MAX_VALUE, Integer.MIN_VALUE);
   	}
 
-	
 	public short getCellColor(short cell_index) {
 		return state.getCellContent(cell_index);
 	}
 	
-	public void processCellClick(short cell_index) throws IllegalArgumentException{
-		System.out.println("Human player placed cell " + cell_index);
-
-        if (state.isTerminal()) {
+	public void processCellClick(short cell_index, boolean from_UI) throws IllegalArgumentException{
+		if (state.isTerminal()) {
             throw new IllegalArgumentException("Game has terminated");
         }
+
+		if (from_UI)
+			System.out.println("Human player placed stone on cell " + cell_index);
+		else
+			System.out.println("Computer player placed stone on cell " + cell_index);
 
 		// if click is outside board, or cell is already occupied --> illegal
 		if (cell_index < 0 || state.getCellContent(cell_index) != 0) {
 			throw new IllegalArgumentException("Cell index out of bound");
-		} else if (computer_player == state.nextPlayer()) {
+		}
+		else if (from_UI && computer_player == state.nextPlayer()) { // UI click when it's computer's turn
             throw new IllegalArgumentException("========It is computer player (player " + state.nextPlayer() + ")'s turn. ========");
         } else { // If legal, update state, return the player index
 			state.placePiece(cell_index);
 		}
 
+		// TODO: switch timer
+
 //		System.out.println(state.totalRounds() + ", " + state.totalTurns() + ", " + state.currentRound() + ", " + state.currentTurn() + ", " + state.turnsLeft());
 
-        if (state.nextPlayer() == computer_player) { // when it's computer's turn
+        if (from_UI && state.nextPlayer() == computer_player) { // Turn switches from human to computer
             System.out.println("Entering a-b with " + state.turnsLeft() + " turns left");
             search.alphaBeta(state, state.turnsLeft(), Integer.MAX_VALUE, Integer.MIN_VALUE);
+            search.getNextMove(state, state.turnsLeft());
         }
+
 	}
 
 	public byte numPlayers() {
@@ -110,5 +119,24 @@ public class Controller implements Serializable
 
 	public String progressInfo() {
 		return "Round " + state.currentRound() + ", next player " + state.nextPlayer();
+	}
+
+	public byte getComputerPlayer() {
+		return computer_player;
+	}
+
+	public void setComputer(byte i) {
+		this.computer_player = i;
+		start();
+	}
+
+	public void start() {
+		timer = new long[state.getNumPlayer()];
+
+		if (state.nextPlayer() == computer_player) {
+			search.getNextMove(state, state.turnsLeft());
+		}
+
+
 	}
 }

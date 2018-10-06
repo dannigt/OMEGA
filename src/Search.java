@@ -3,10 +3,21 @@ import java.util.Arrays;
 
 public class Search implements Serializable {
     private byte computer_player;
+    private Controller c;
+    private short[] chosen_move;
 
     //If computer is Max or Min player.
-    public Search(byte computer_player) {
-        this.computer_player = computer_player;
+    public Search(Controller c) {
+        this.c = c;
+    }
+
+    public short[] getNextMove(State state, short depth) {
+        alphaBeta(state, depth, Integer.MAX_VALUE, Integer.MIN_VALUE);
+
+        for (short i : chosen_move) {
+            c.processCellClick(i, false);
+        }
+        return chosen_move;
     }
 
     public State alphaBeta(State s_in, int depth, int alpha, int beta) {
@@ -46,10 +57,9 @@ public class Search implements Serializable {
             }
         }
 
-        // apply chosen move on current state
-//        System.out.println("Depth " + depth + "=====" + Arrays.toString(chosen_move));
-        s_in.placePiece(chosen_move[0]);
-        s_in.placePiece(chosen_move[1]);
+//        s_in.placePiece(chosen_move[0]);
+//        s_in.placePiece(chosen_move[1]);
+        this.chosen_move = chosen_move;
 
         return s;
     }

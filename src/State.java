@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class State implements Serializable {
-    //	private int board_size;
     private byte[] cells; // Color placed in the cell. Empty is 0
     private short[] uf_parent;
     private short[] uf_size;
@@ -14,8 +13,9 @@ public class State implements Serializable {
     private short total_cells;
     private short used_cells;
     private Controller c;
-    private boolean sim = false;
+    private boolean sim = false; // is simulation
     private byte size;
+    private HashMap<Short, Short> group_size_counter = new HashMap<>();
 
     //Constructors with default values
     public State(Controller c) {
@@ -38,8 +38,8 @@ public class State implements Serializable {
         used_cells = s.used_cells;
         uf_parent = s.uf_parent.clone();
         uf_size = s.uf_size.clone();
+        group_size_counter = new HashMap<>(group_size_counter);
         sim = true;
-//        c = s.c;
     }
 
     public void reset(byte size) {
@@ -55,12 +55,13 @@ public class State implements Serializable {
         uf_parent = new short[total_cells];
         Arrays.fill(uf_parent, (short) -1);
         uf_size = new short[total_cells];
+        group_size_counter = new HashMap<>();
         System.out.println(total_cells + " cells, ");
 
         adj_list = new ArrayList[total_cells];
         for (short i = 0; i < adj_list.length; i++) {
             //at most 6 neighbours.
-            adj_list[i] = new ArrayList<Short>(6);
+            adj_list[i] = new ArrayList<>(6);
         }
 
         short num_iters = (short) (size - 1);
@@ -107,10 +108,11 @@ public class State implements Serializable {
     public void placePiece(short cell) {
         cells[cell] = nextColor();
         used_cells++;
-        calcConnectedAreaSize(cell);
-//        calcScores();
+
         //TODO: in search step, don't notify change
         if (!sim) {
+            calcConnectedAreaSize(cell);
+            calcScores();
             c.notifyChange();
             c.requestCache();
         }
@@ -130,18 +132,48 @@ public class State implements Serializable {
         uf_parent[cell] = cell;
         uf_size[cell] = 1;
 
+        short key = (short) (cells[cell] * 1000 + 1);
+        if (group_size_counter.containsKey(key)) {
+            group_size_counter.put(key, (short) (group_size_counter.get(key) + 1));
+        } else {
+            group_size_counter.put(key, (short) 1);
+        }
+
+        // Go through neighbors of same color
         for (int neighbor : adj_list[cell]) {
             if (cells[cell] == cells[neighbor]) {
                 int nbg_root = findRoot(neighbor);
+
                 if (nbg_root != cell) {
+                    // Decrement count for uf_size[nbg_root]
+                    short key_nbg_root = (short) (cells[cell] * 1000 + uf_size[nbg_root]);
+                    group_size_counter.put(key_nbg_root, (short) (group_size_counter.get(key_nbg_root) - 1));
+
+                    // Update parent reference
                     uf_parent[nbg_root] = cell; // The newly added cell becomes parent of the neighbor
+
+                    // Decrement count for uf_size[cell]
+                    short key_cell = (short) (cells[cell] * 1000 + uf_size[cell]);
+                    group_size_counter.put(key_cell, (short) (group_size_counter.get(key_cell) - 1));
+
+                    // Increment counter
                     uf_size[cell] += uf_size[nbg_root];
+
+                   // Increment count for uf_size[cell]
+                    key_cell = (short) (cells[cell] * 1000 + uf_size[cell]);
+                    if (group_size_counter.containsKey(key_cell)) {
+                        group_size_counter.put(key_cell, (short) (group_size_counter.get(key_cell) + 1));
+                    } else {
+                        group_size_counter.put(key_cell, (short) 1);
+                    }
                 }
             }
         }
 
-        if (!sim)
+        if (!sim) {
             System.out.println("==========================" + uf_size[cell]);
+            System.out.println(group_size_counter.toString());
+        }
         return uf_size[cell];
 //        byte cur_player = cells[cell];
 //        byte cnt_ngb_color = 0;
@@ -182,16 +214,15 @@ public class State implements Serializable {
 //        return cell_group_map[cell].size();
     }
 
-
     private long[] calcScores() {
-//        long[] points = new long[num_player];
-//        Arrays.fill(points, 1);
-//        for (Map.Entry<Short, Byte> entry : group_size_counter.entrySet()) {
-////            System.out.println("Player : " + entry.getKey() / 1000 + ", Group size: " + entry.getKey() % 1000 +
-////                    " Count : " + entry.getValue());
-//            points[ entry.getKey() / 1000 - 1] *= Math.pow(entry.getKey() % 1000, entry.getValue());
-//        }
-//        System.out.println("Points: " + Arrays.toString(points));
+        long[] points = new long[num_player];
+        Arrays.fill(points, 1);
+        for (Map.Entry<Short, Short> entry : group_size_counter.entrySet()) {
+//            System.out.println("Player : " + entry.getKey() / 1000 + ", Group size: " + entry.getKey() % 1000 +
+//                    " Count : " + entry.getValue());
+            points[ entry.getKey() / 1000 - 1] *= Math.pow(entry.getKey() % 1000, entry.getValue());
+        }
+        System.out.println("Points: " + Arrays.toString(points));
         return new long[]{1, 1};
     }
 
@@ -258,8 +289,9 @@ public class State implements Serializable {
         return (currentRound() - 1) * num_player + 1;
     }
 
-    public int turnsLeft() {
-        return totalTurns() - currentTurn();
+    public short turnsLeft() {
+//        System.out.println("TURNS LEFT " + (totalTurns() - currentTurn()));
+        return (short) (totalTurns() - currentTurn());
     }
 
     public byte getSize() {

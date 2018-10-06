@@ -16,8 +16,8 @@ public class View implements Serializable
 	private static final int SCR_H = (int) Toolkit.getDefaultToolkit().getScreenSize().getHeight();
 	private static final int SCR_W = (int) Toolkit.getDefaultToolkit().getScreenSize().getWidth();
 	private static final int SCRSIZE = Math.min(SCR_H, SCR_W);
-	static int boarder_pxl;
-	static ArrayList<Point> cellCenters = new ArrayList<>();
+	private static int boarder_pxl;
+	private static ArrayList<Point> cellCenters = new ArrayList<>();
 	private static int h;	// height. Distance between centres of two adjacent hexes. Distance between two opposite sides in a hex.
 	private static int s;	// length of one side
 	private static int r;	// radius of inscribed circle (centre to middle of each side). r= h/2
@@ -68,35 +68,38 @@ public class View implements Serializable
 
 		menuBar.add(menu);
 
+		menuItem = new JMenuItem("Start");
+		menuItem.addActionListener(e -> {
+			c.start();
+		});
+		menu.add(menuItem);
+		menu.addSeparator();
+
 		//Set board size
 		menuItem = new JMenuItem("Set Board Size");
 
-		menuItem.addActionListener(new ActionListener()
-		{
-			public void actionPerformed(ActionEvent event)
-			{
-				final JOptionPane optionPane = new JOptionPane("Choose board size:",
-						JOptionPane.PLAIN_MESSAGE,
-						JOptionPane.DEFAULT_OPTION);
+		menuItem.addActionListener(e -> {
+			final JOptionPane optionPane = new JOptionPane("Choose board size:",
+					JOptionPane.PLAIN_MESSAGE,
+					JOptionPane.DEFAULT_OPTION);
 
-				Object[] options = IntStream.range(c.getMinSize(), c.getMaxSize() + 1).mapToObj(i -> i).toArray();
+			Object[] options = IntStream.range(c.getMinSize(), c.getMaxSize() + 1).mapToObj(i -> i).toArray();
 
-				Object res = JOptionPane.showInputDialog(
-						frame,
-						"Choose board size:",
-						"Choose Board Size",
-						JOptionPane.PLAIN_MESSAGE,
-						null,
-						options,
-						null);
+			Object res = JOptionPane.showInputDialog(
+					frame,
+					"Choose board size:",
+					"Choose Board Size",
+					JOptionPane.PLAIN_MESSAGE,
+					null,
+					options,
+					null);
 
-				if (res != null) {
-					c.setBoardSize((byte) (int) res);
-					System.out.println("New board size " + res);
-				}
+			if (res != null) {
+				c.setBoardSize((byte) (int) res);
+				System.out.println("New board size " + res);
+			}
 
 //				}
-			}
 		});
 		menu.add(menuItem);
 
@@ -105,11 +108,16 @@ public class View implements Serializable
 
 		ButtonGroup group = new ButtonGroup();
 
-//			System.out.println();
 		for (byte i=1; i <= c.numPlayers(); i++) {
 			System.out.println(i);
 			rbMenuItem = new JRadioButtonMenuItem("Player " + i);
-			rbMenuItem.setSelected(false);
+			final byte computer_player = i;
+			if (computer_player == c.getComputerPlayer())
+				rbMenuItem.setSelected(true);
+			rbMenuItem.addActionListener(e -> {
+				c.setComputer(computer_player); // Requires a final/effectively final var
+			});
+//			rbMenuItem.setEnabled(false);
 			group.add(rbMenuItem);
 			submenu.add(rbMenuItem);
 		}
@@ -139,7 +147,6 @@ public class View implements Serializable
 		return menuBar;
 	}
 
-
 	static class DrawingPanel extends JPanel
 	{
 	    private JLabel progress_info;
@@ -167,7 +174,7 @@ public class View implements Serializable
 				int y = e.getY(); 
 
 				try {
-					c.processCellClick(pointToCellIndex(x, y));
+					c.processCellClick(pointToCellIndex(x, y), true);
 				}
 				catch (IllegalArgumentException e1) {
 					System.out.println("SHOW ON UI: " + e1.getMessage());
