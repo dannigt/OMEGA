@@ -117,6 +117,12 @@ public class State implements Serializable {
             c.requestCache();
         }
     }
+    //TODO: also remove points
+    public void unplacePiece(short cell) {
+        cells[cell] = 0;
+        used_cells--;
+        c.notifyChange();
+    }
 
     //For union find
     private int findRoot(int p) {
@@ -278,7 +284,6 @@ public class State implements Serializable {
     // next color
     public byte nextColor() {
         return (byte) (used_cells % num_player + 1);
-
     }
 
     public int currentRound() {
@@ -290,7 +295,6 @@ public class State implements Serializable {
     }
 
     public short turnsLeft() {
-//        System.out.println("TURNS LEFT " + (totalTurns() - currentTurn()));
         return (short) (totalTurns() - currentTurn());
     }
 
@@ -301,5 +305,8 @@ public class State implements Serializable {
     public byte getNumPlayer() {
         return num_player;
     }
-//    public byte
+
+    public short getTotalCells() {
+        return total_cells;
+    }
 }

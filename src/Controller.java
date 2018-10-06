@@ -7,6 +7,7 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Stack;
 
 public class Controller implements Serializable
 {
@@ -20,6 +21,7 @@ public class Controller implements Serializable
 	private long[] timer;
 	// TODO: also track past movements here
 	private ArrayList<Short> placementOrder;
+	private Stack<Short> pastPlacements;
 	private String dir;
 	private StopWatch stopwatch = new StopWatch();
 
@@ -28,6 +30,7 @@ public class Controller implements Serializable
 		state = new State(this);
 		search = new Search(this);
 		dir = System.getProperty("user.dir") + "\\dump" + "\\" + LocalDate.now();
+
 //		search.alphaBeta(state, state.numMoves(), Integer.MAX_VALUE, Integer.MIN_VALUE);
   	}
 
@@ -58,13 +61,13 @@ public class Controller implements Serializable
 		// TODO: switch timer
 
 //		System.out.println(state.totalRounds() + ", " + state.totalTurns() + ", " + state.currentRound() + ", " + state.currentTurn() + ", " + state.turnsLeft());
+		pastPlacements.push(cell_index);
 
         if (from_UI && state.nextPlayer() == computer_player) { // Turn switches from human to computer
             System.out.println("Entering a-b with " + state.turnsLeft() + " turns left");
             search.alphaBeta(state, state.turnsLeft(), Integer.MAX_VALUE, Integer.MIN_VALUE);
-            search.getNextMove(state, state.turnsLeft());
+            search.getNextMove(state, state.turnsLeft()); // TODO: send a copy to search to mess up
         }
-
 	}
 
 	public byte numPlayers() {
@@ -79,13 +82,14 @@ public class Controller implements Serializable
         view.repaint();
     }
 
+    // TODO: only need to dump past movements and timer
     public void requestCache() {
 		ObjectOutputStream oos = null;
 		FileOutputStream fout = null;
 		try{
 			fout = new FileOutputStream(dir, true);
 			oos = new ObjectOutputStream(fout);
-			oos.writeObject(placementOrder);
+			oos.writeObject(pastPlacements);
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		} finally {
@@ -130,13 +134,19 @@ public class Controller implements Serializable
 		start();
 	}
 
+	public void reverseMove() {
+		short cell = pastPlacements.pop();
+		state.unplacePiece(cell);
+	}
+
 	public void start() {
 		timer = new long[state.getNumPlayer()];
+		placementOrder = new ArrayList<>(state.getTotalCells());
+		pastPlacements = new Stack<>();
 
 		if (state.nextPlayer() == computer_player) {
 			search.getNextMove(state, state.turnsLeft());
 		}
-
-
+		//TODO: disable all kinds of configuration shits
 	}
 }

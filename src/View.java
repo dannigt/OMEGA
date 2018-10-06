@@ -139,11 +139,19 @@ public class View implements Serializable
 
 
 //Build second menu in the menu bar.
-		menu = new JMenu("Open");
+		menu = new JMenu("Oops...");
 		menuItem = new JMenuItem("Load Game Status From...");
 		menu.add(menuItem);
 
+		menuItem = new JMenuItem("Reverse");
+		menuItem.addActionListener(e -> {
+			c.reverseMove();
+		});
+		menu.add(menuItem);
+
+
 		menuBar.add(menu);
+
 		return menuBar;
 	}
 
