@@ -1,4 +1,11 @@
-public class Controller
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
+import java.time.LocalDate;
+import java.util.ArrayList;
+
+public class Controller implements Serializable
 {
 	private final byte MIN_SIZE = 5;
 	private final byte MAX_SIZE = 10;
@@ -6,16 +13,19 @@ public class Controller
 	private View view;
 	private byte computer_player;
 	private Search search;
-	private byte size;
-	private byte num_player;
+	// TODO: timer for players
+	private short[] time_left;
 	// TODO: also track past movements here
+	private ArrayList<Short> placementOrder;
+	private String dir;
 
 	public Controller() {
-		this.size = 6;
-		this.num_player = 2;
+//		this.size = 6;
+//		this.num_player = 2;
         this.computer_player = 2;
-		state = new State(this, size, num_player);
+		state = new State(this);
 		search = new Search(computer_player);
+		dir = System.getProperty("user.dir") + "\\dump" + "\\" + LocalDate.now();
 //		search.alphaBeta(state, state.numMoves(), Integer.MAX_VALUE, Integer.MIN_VALUE);
   	}
 
@@ -27,8 +37,6 @@ public class Controller
 	public void processCellClick(short cell_index) throws IllegalArgumentException{
 		System.out.println("Human player placed cell " + cell_index);
 
-
-		// TODO: check termination
         if (state.isTerminal()) {
             throw new IllegalArgumentException("Game has terminated");
         }
@@ -51,7 +59,7 @@ public class Controller
 	}
 
 	public byte numPlayers() {
-		return num_player;
+		return state.getNumPlayer();
 	}
 
 	public void setView(View v) {
@@ -62,12 +70,32 @@ public class Controller
         view.repaint();
     }
 
+    public void requestCache() {
+		ObjectOutputStream oos = null;
+		FileOutputStream fout = null;
+		try{
+			fout = new FileOutputStream(dir, true);
+			oos = new ObjectOutputStream(fout);
+			oos.writeObject(placementOrder);
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		} finally {
+			try {
+				if (oos != null) {
+					oos.close();
+				}
+			} catch (IOException ex) {
+				ex.printStackTrace();
+			}
+		}
+	}
+
     public byte getMinSize() {
 		return MIN_SIZE;
 	}
 
 	public void setBoardSize(byte size) {
-		this.size = size;
+//		this.size = size;
 		state.reset(size);
 		view.reset();
 	}
@@ -77,6 +105,10 @@ public class Controller
 	}
 
 	public byte getBoardSize() {
-		return size;
+		return state.getSize();
+	}
+
+	public String progressInfo() {
+		return "Round " + state.currentRound() + ", next player " + state.nextPlayer();
 	}
 }

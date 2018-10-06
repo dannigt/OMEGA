@@ -1,10 +1,13 @@
 import java.awt.*;
 import java.awt.event.*;
+import java.io.Serializable;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.stream.IntStream;
 import javax.swing.*;
 
-public class View
+public class View implements Serializable
 {
 	private static Controller c;
 	private static int NUM_ROWS;
@@ -118,12 +121,6 @@ public class View
 		submenu.add(menuItem);
 		menu.add(submenu);
 
-//		menuItem = new JMenuItem("Both text and icon",
-//				new ImageIcon("images/middle.gif"));
-//		menu.add(menuItem);
-//		menuItem = new JMenuItem(new ImageIcon("images/middle.gif"));
-//		menu.add(menuItem);
-
 		//a group of check box menu items
 		menu.addSeparator();
 		cbMenuItem = new JCheckBoxMenuItem("Keep time");
@@ -134,9 +131,10 @@ public class View
 
 
 //Build second menu in the menu bar.
-		menu = new JMenu("Another Menu");
-		menu.getAccessibleContext().setAccessibleDescription(
-				"This menu does nothing");
+		menu = new JMenu("Open");
+		menuItem = new JMenuItem("Load Game Status From...");
+		menu.add(menuItem);
+
 		menuBar.add(menu);
 		return menuBar;
 	}
@@ -144,10 +142,15 @@ public class View
 
 	static class DrawingPanel extends JPanel
 	{
-		public DrawingPanel()
+	    private JLabel progress_info;
+
+        public DrawingPanel()
 		{
 			setBackground(Color.LIGHT_GRAY);
 			addMouseListener(new MyMouseListener());
+
+			progress_info = new JLabel(c.progressInfo());
+			this.add(progress_info);
 		}
 
 		public void paintComponent(Graphics g)
@@ -155,6 +158,7 @@ public class View
 			super.paintComponent(g);
 			Graphics2D g2 = (Graphics2D)g;
 			drawBoard(c.getBoardSize(), g2, SCRSIZE/8, SCRSIZE/8);
+			progress_info.setText(c.progressInfo());
 		}
 		
 		class MyMouseListener extends MouseAdapter	{

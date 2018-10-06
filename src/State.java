@@ -1,9 +1,10 @@
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-public class State {
+public class State implements Serializable {
     //	private int board_size;
     private byte[] cells; // Color placed in the cell. Empty is 0
     private short[] uf_parent;
@@ -11,9 +12,15 @@ public class State {
     private ArrayList<Short>[] adj_list;  // neighbor indices
     private byte num_player;
     private short total_cells;
-    private short used_cells = 0;
+    private short used_cells;
     private Controller c;
     private boolean sim = false;
+    private byte size;
+
+    //Constructors with default values
+    public State(Controller c) {
+        this(c, (byte) 8, (byte) 2);
+    }
 
     public State(Controller c, byte size, byte num_player) {
         this.c = c;
@@ -21,13 +28,9 @@ public class State {
         init(size);
     }
 
-    public void reset(byte size) {
-        init(size);
-        c.notifyChange();
-    }
-
-    // overloaded constructor for copying
+    // overloaded constructor for copying states
     public State(State s) {
+        size = s.size;
         cells = s.cells.clone();
         adj_list = s.adj_list;
         num_player = s.num_player;
@@ -39,8 +42,14 @@ public class State {
 //        c = s.c;
     }
 
+    public void reset(byte size) {
+        init(size);
+        c.notifyChange();
+    }
+
     private void init(byte size) {
-        total_cells = (short) ((size*2+size-1)*size - size*2 + 1);
+        this.size = size;
+        total_cells = (short) ((size * 2 + size - 1) * size - size * 2 + 1);
         used_cells = 0;
         cells = new byte[total_cells];
         uf_parent = new short[total_cells];
@@ -49,7 +58,7 @@ public class State {
         System.out.println(total_cells + " cells, ");
 
         adj_list = new ArrayList[total_cells];
-        for (short i=0; i < adj_list.length; i++) {
+        for (short i = 0; i < adj_list.length; i++) {
             //at most 6 neighbours.
             adj_list[i] = new ArrayList<Short>(6);
         }
@@ -57,9 +66,9 @@ public class State {
         short num_iters = (short) (size - 1);
         short cur_idx = 0;
         // build adjacency matrix
-        for (short i=0 ; i <= num_iters; i++) {
+        for (short i = 0; i <= num_iters; i++) {
             int num_cells_per_row = size + i;
-            for (byte j=0; j < num_cells_per_row; j++) {
+            for (byte j = 0; j < num_cells_per_row; j++) {
                 if (i != num_iters) {
                     // cross-row
                     adj_list[cur_idx].add((short) (cur_idx + num_cells_per_row));
@@ -101,8 +110,10 @@ public class State {
         calcConnectedAreaSize(cell);
 //        calcScores();
         //TODO: in search step, don't notify change
-        if (!sim)
+        if (!sim) {
             c.notifyChange();
+            c.requestCache();
+        }
     }
 
     //For union find
@@ -124,7 +135,7 @@ public class State {
                 int nbg_root = findRoot(neighbor);
                 if (nbg_root != cell) {
                     uf_parent[nbg_root] = cell; // The newly added cell becomes parent of the neighbor
-                    uf_size[cell] +=  uf_size[nbg_root];
+                    uf_size[cell] += uf_size[nbg_root];
                 }
             }
         }
@@ -194,9 +205,9 @@ public class State {
         short[][] moves = new short[numMoves()][num_player]; // return cell index for each color
 
         int cnt = 0;
-        for (short idx_a=0; idx_a < total_cells; idx_a++) {
+        for (short idx_a = 0; idx_a < total_cells; idx_a++) {
             if (cells[idx_a] == 0) {
-                for (short idx_b=0; idx_b < total_cells; idx_b++) {
+                for (short idx_b = 0; idx_b < total_cells; idx_b++) {
                     if (cells[idx_b] == 0 && idx_b != idx_a) {
                         moves[cnt][0] = idx_a;
                         moves[cnt][1] = idx_b;
@@ -232,6 +243,7 @@ public class State {
     public byte nextPlayer() {
         return (byte) (used_cells % (num_player * num_player) / num_player + 1);
     }
+
     // next color
     public byte nextColor() {
         return (byte) (used_cells % num_player + 1);
@@ -249,4 +261,13 @@ public class State {
     public int turnsLeft() {
         return totalTurns() - currentTurn();
     }
+
+    public byte getSize() {
+        return size;
+    }
+
+    public byte getNumPlayer() {
+        return num_player;
+    }
+//    public byte
 }

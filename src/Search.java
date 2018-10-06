@@ -1,8 +1,10 @@
+import java.io.Serializable;
 import java.util.Arrays;
 
-public class Search {
+public class Search implements Serializable {
     private byte computer_player;
 
+    //If computer is Max or Min player.
     public Search(byte computer_player) {
         this.computer_player = computer_player;
     }
