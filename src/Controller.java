@@ -1,4 +1,5 @@
 
+import com.google.gson.Gson;
 import org.apache.commons.lang3.time.StopWatch;
 
 import java.io.FileOutputStream;
@@ -55,13 +56,14 @@ public class Controller implements Serializable
 		else if (from_UI && computer_player == state.nextPlayer()) { // UI click when it's computer's turn
             throw new IllegalArgumentException("========It is computer player (player " + state.nextPlayer() + ")'s turn. ========");
         } else { // If legal, update state, return the player index
+			pastPlacements.push(cell_index);
 			state.placePiece(cell_index);
 		}
 
 		// TODO: switch timer
 
 //		System.out.println(state.totalRounds() + ", " + state.totalTurns() + ", " + state.currentRound() + ", " + state.currentTurn() + ", " + state.turnsLeft());
-		pastPlacements.push(cell_index);
+
 
         if (from_UI && state.nextPlayer() == computer_player) { // Turn switches from human to computer
             System.out.println("Entering a-b with " + state.turnsLeft() + " turns left");
@@ -80,10 +82,15 @@ public class Controller implements Serializable
 
 	public void notifyChange() {
         view.repaint();
+//		pastPlacements.push(cell_index);
     }
 
     // TODO: only need to dump past movements and timer
     public void requestCache() {
+		Gson gson = new Gson();
+		String json = gson.toJson(pastPlacements);
+		System.out.println(json);
+
 		ObjectOutputStream oos = null;
 		FileOutputStream fout = null;
 		try{

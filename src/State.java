@@ -176,10 +176,10 @@ public class State implements Serializable {
             }
         }
 
-        if (!sim) {
-            System.out.println("==========================" + uf_size[cell]);
-            System.out.println(group_size_counter.toString());
-        }
+//        if (!sim) {
+//            System.out.println("==========================" + uf_size[cell]);
+//            System.out.println(group_size_counter.toString());
+//        }
         return uf_size[cell];
 //        byte cur_player = cells[cell];
 //        byte cnt_ngb_color = 0;
