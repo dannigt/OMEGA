@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.stream.IntStream;
 import javax.swing.*;
 
-public class View implements Serializable
+public class View
 {
 	private static Controller c;
 	private static int NUM_ROWS;
@@ -40,7 +40,7 @@ public class View implements Serializable
 		cellCenters.clear();
 	}
 
-	private static void initShowUI(Controller c) {
+	public static void createAndShowGUI(Controller c) {
 		new View(c);
 		JFrame frame = new JFrame("Omega");
 		panel = new DrawingPanel();
@@ -104,12 +104,12 @@ public class View implements Serializable
 		menu.add(menuItem);
 
 		//Choose computer player index
-		submenu = new JMenu("Computer Player... ");
+		submenu = new JMenu("Configure Players... ");
 
 		ButtonGroup group = new ButtonGroup();
 
 		for (byte i=1; i <= c.numPlayers(); i++) {
-			System.out.println(i);
+			System.out.println("Player " + i);
 			rbMenuItem = new JRadioButtonMenuItem("Player " + i);
 			final byte computer_player = i;
 			if (computer_player == c.getComputerPlayer())
@@ -121,12 +121,6 @@ public class View implements Serializable
 			group.add(rbMenuItem);
 			submenu.add(rbMenuItem);
 		}
-
-		menuItem = new JMenuItem("An item in the submenu");
-		submenu.add(menuItem);
-
-		menuItem = new JMenuItem("Another item");
-		submenu.add(menuItem);
 		menu.add(submenu);
 
 		//a group of check box menu items
@@ -154,6 +148,12 @@ public class View implements Serializable
 
 		return menuBar;
 	}
+
+//	@Override
+//	public void run() {
+//		Controller c = new Controller();
+//		createAndShowGUI(c);
+//	}
 
 	static class DrawingPanel extends JPanel
 	{
@@ -285,12 +285,14 @@ The hexagon is drawn in the colour specified in hexgame.COLOURELL.
 		return (short)((nearest.distance(given) < a) ? cellCenters.indexOf(nearest) : -1);
 	}
 
-	public static void main(String[] args)
-	{
-		Controller c = new Controller();
-
-		SwingUtilities.invokeLater(() -> {
-			initShowUI(c);
-		});
-	}
+//	public static void main(String[] args)
+//{
+//	Controller c = new Controller();
+//
+//	SwingUtilities.invokeLater(new Runnable() {
+//		public void run() {
+//			createAndShowGUI(c);
+//		}
+//	});
+//}
 }

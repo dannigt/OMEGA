@@ -228,7 +228,7 @@ public class State implements Serializable {
 //                    " Count : " + entry.getValue());
             points[ entry.getKey() / 1000 - 1] *= Math.pow(entry.getKey() % 1000, entry.getValue());
         }
-        System.out.println("Points: " + Arrays.toString(points));
+//        System.out.println("Points: " + Arrays.toString(points));
         return new long[]{1, 1};
     }
 

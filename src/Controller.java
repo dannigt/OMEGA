@@ -1,6 +1,7 @@
 
 import org.apache.commons.lang3.time.StopWatch;
 
+import javax.swing.*;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
@@ -11,7 +12,7 @@ import java.util.Arrays;
 import java.util.Queue;
 import java.util.Stack;
 
-public class Controller implements Serializable
+public class Controller // implements Serializable
 {
 	private final byte MIN_SIZE = 5;
 	private final byte MAX_SIZE = 10;
@@ -19,8 +20,7 @@ public class Controller implements Serializable
 	private View view;
 	private byte computer_player;
 	private SearchRandom search;
-	// TODO: timer for players
-	private long[] timer;
+
 	// TODO: also track past movements here
 	private ArrayList<Short> placementOrder;
 	private Stack<Short> pastPlacements;
@@ -28,13 +28,19 @@ public class Controller implements Serializable
 	private StopWatch stopwatch = new StopWatch();
 	private String timestamp;
 	private SearchStrategy[] strategies;
+	private byte[] player_strategy = new byte[] {0, 1};
+	// TODO: timer for players
+	private long[] timer;
 
 	public Controller() {
         this.computer_player = 1;
 		state = new State(this);
-		search = new SearchRandom(this, "Random");
+
 		log_dir = System.getProperty("user.dir") + "\\log";
-		strategies = new SearchStrategy[]{search};
+
+		search = new SearchRandom(this, "Random");
+		strategies = new SearchStrategy[]{search, new ManualStrategy(this, "Human play")};
+		getStrategies();
   	}
 
 	public short getCellColor(short cell_index) {
@@ -43,8 +49,8 @@ public class Controller implements Serializable
 	
 	public void processCellClick(short cell_index, boolean from_UI) throws IllegalArgumentException{
 		if (state.isTerminal()) {
-            throw new IllegalArgumentException("Game has terminated");
-        }
+			throw new IllegalArgumentException("Game has terminated");
+		}
 
 		if (from_UI)
 			System.out.println("Human player placed stone on cell " + cell_index);
@@ -67,11 +73,12 @@ public class Controller implements Serializable
 //		System.out.println(state.totalRounds() + ", " + state.totalTurns() + ", " + state.currentRound() + ", " + state.currentTurn() + ", " + state.turnsLeft());
 
 
-        if (from_UI && state.nextPlayer() == computer_player) { // Turn switches from human to computer
-            System.out.println("Entering a-b with " + state.turnsLeft() + " turns left");
-            search.alphaBeta(state, state.turnsLeft(), Integer.MAX_VALUE, Integer.MIN_VALUE);
-            search.getNextMove(state); // TODO: send a copy to search to mess up
-        }
+//        if (from_UI && state.nextPlayer() == computer_player) { // Turn switches from human to computer
+
+//            System.out.println("Entering a-b with " + state.turnsLeft() + " turns left");
+//            search.alphaBeta(state, state.turnsLeft(), Integer.MAX_VALUE, Integer.MIN_VALUE);
+//            search.getNextMove(state); // TODO: send a copy to search to mess up
+//        }
 	}
 
 	public byte numPlayers() {
@@ -83,6 +90,13 @@ public class Controller implements Serializable
     }
 
 	public void notifyChange() {
+		System.out.println("REPAINT SHOULD HAPPEN!!!!!!!!");
+//		Thread thread = new Thread() {
+//			public void run() {
+//				view.repaint();
+//			}
+//		};
+//		thread.start();
         view.repaint();
 //		pastPlacements.push(cell_index);
     }
@@ -154,25 +168,90 @@ public class Controller implements Serializable
 	}
 
 	public void start() {
-		timer = new long[state.getNumPlayer()];
-		placementOrder = new ArrayList<>(state.getTotalCells());
-		pastPlacements = new Stack<>();
-		timestamp = LocalDateTime.now().toString().replace( ":" , "-" );
 
-		if (state.nextPlayer() == computer_player) {
-			search.getNextMove(state);
-		}
-		//TODO: disable all kinds of configuration shits
+		Thread thread = new Thread(){
+			public void run(){
+				String threadName = Thread.currentThread().getName();
+				System.out.println("Thread -----------------------------------> " + threadName);
+
+				timer = new long[state.getNumPlayer()];
+//		placementOrder = new ArrayList<>(state.getTotalCells());
+				pastPlacements = new Stack<>();
+				timestamp = LocalDateTime.now().toString().replace( ":" , "-" );
+
+				// while game not terminated
+				// Alternate between players to get next move
+				while (!state.isTerminal()) {
+					for (byte p : player_strategy) {
+						System.out.println(strategies[p].getStrategyName());
+						short[] movements = strategies[p].getNextMove(state);
+
+						if (movements != null) {
+							for (short stone_placement : strategies[p].getNextMove(state)) {
+								System.out.println("====================strategy " + p + " move " + stone_placement);
+								processCellClick(stone_placement, false);
+							}
+							//				break;
+						} else {
+							System.out.println("ELSE");
+							// wait for ui stuff
+							while (state.nextPlayer() != computer_player) {
+								System.out.println("waiting for UI....");
+							}
+						}
+					}
+				}
+			}
+		};
+
+
+		thread.start();
+//		timer = new long[state.getNumPlayer()];
+////		placementOrder = new ArrayList<>(state.getTotalCells());
+//		pastPlacements = new Stack<>();
+//		timestamp = LocalDateTime.now().toString().replace( ":" , "-" );
+//
+//		// while game not terminated
+//		// Alternate between players to get next move
+//		while (!state.isTerminal()) {
+//			for (byte p : player_strategy) {
+//				System.out.println(strategies[p].getStrategyName());
+//				short[] movements = strategies[p].getNextMove(state);
+//
+//				if (movements != null) {
+//					for (short stone_placement : strategies[p].getNextMove(state)) {
+//						System.out.println("====================strategy " + p + " move " + stone_placement);
+//						processCellClick(stone_placement, false);
+//					}
+//					//				break;
+//				} else {
+//					System.out.println("ELSE");
+//					// wait for ui stuff
+//					while (state.nextPlayer() != computer_player) {
+//						System.out.println("waiting for UI....");
+//					}
+//				}
+//			}
+//		}
 	}
 
-	public String[] getStrategies() {
-//		for (SearchStrategy s : strategies) {
-//
-//		}
-		return (String[]) Arrays.stream(strategies).map(s -> s.strategy_name).toArray();
+	public String getStrategies() {
+		String[] names = new String[strategies.length];
+		for (byte i = 0; i < strategies.length; i++) {
+			names[i] = strategies[i].getStrategyName();
+		}
+		System.out.println(Arrays.toString(names));
+		return Arrays.toString(names);
+//		return Arrays.stream(strategies).map(s -> (String)s.strategy_name).toArray();
 //		return null;
 //				.filter(obj -> obj instanceof ScheduleIntervalContainer)
 //				.map(obj -> (ScheduleIntervalContainer) obj)
+	}
+
+	public void storeHumanMovement() {
+		//check current player index
+
+		//moves are full --> confirm --> process into state
 	}
 
 	public void turnFinished() {

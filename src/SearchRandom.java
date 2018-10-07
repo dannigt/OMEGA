@@ -14,9 +14,9 @@ public class SearchRandom extends SearchStrategy {
     public short[] getNextMove(State state) {
         alphaBeta(state, state.turnsLeft(), Integer.MAX_VALUE, Integer.MIN_VALUE);
 
-        for (short i : chosen_move) {
-            c.processCellClick(i, false);
-        }
+//        for (short i : chosen_move) {
+//            c.processCellClick(i, false);
+//        }
         return chosen_move;
     }
 
