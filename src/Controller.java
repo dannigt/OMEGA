@@ -30,8 +30,6 @@ public class Controller // implements Serializable
 	private boolean paused;
 
 	public Controller() {
-//        this.computer_player = 1;
-		System.out.println("----------------------------------");
 		state = new State(this);
 
 		log_dir = System.getProperty("user.dir") + "\\log";
@@ -199,8 +197,8 @@ public class Controller // implements Serializable
 	}
 
 	public void start() {
-//		view.setEnabled(true);
 		paused = false;
+		randGen();
 
 		Thread thread = new Thread(() -> {
 //			String threadName = Thread.currentThread().getName();
