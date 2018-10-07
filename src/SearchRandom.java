@@ -1,10 +1,7 @@
-import java.io.Serializable;
-import java.util.Arrays;
-
 public class SearchRandom extends SearchStrategy {
     private byte computer_player;
 //    private Controller c;
-    private short[] chosen_move;
+    private short[] chosen_move; // store the most recent chosen move
 
     SearchRandom(Controller c, String name) {
         super(c, name);
@@ -14,9 +11,6 @@ public class SearchRandom extends SearchStrategy {
     public short[] getNextMove(State state) {
         alphaBeta(state, state.turnsLeft(), Integer.MAX_VALUE, Integer.MIN_VALUE);
 
-//        for (short i : chosen_move) {
-//            c.processCellClick(i, false);
-//        }
         return chosen_move;
     }
 

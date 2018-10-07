@@ -1,16 +1,8 @@
-
 import org.apache.commons.lang3.time.StopWatch;
 
-import javax.swing.*;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
+import java.io.*;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Queue;
-import java.util.Stack;
+import java.util.*;
 
 public class Controller // implements Serializable
 {
@@ -18,30 +10,73 @@ public class Controller // implements Serializable
 	private final byte MAX_SIZE = 10;
 	private State state;
 	private View view;
-	private byte computer_player;
+//	private byte computer_player;
 	private SearchRandom search;
 
 	// TODO: also track past movements here
 	private ArrayList<Short> placementOrder;
 	private Stack<Short> pastPlacements;
 	private String log_dir;
+	private String hash_dir;
 	private StopWatch stopwatch = new StopWatch();
 	private String timestamp;
 	private SearchStrategy[] strategies;
 	private byte[] player_strategy = new byte[] {0, 1};
+
+	// TODO: for hashing
+	private long[][] rands;
 	// TODO: timer for players
 	private long[] timer;
+	private boolean paused;
 
 	public Controller() {
-        this.computer_player = 1;
+//        this.computer_player = 1;
+		System.out.println("----------------------------------");
 		state = new State(this);
 
 		log_dir = System.getProperty("user.dir") + "\\log";
+		hash_dir = System.getProperty("user.dir") + "\\hash";
 
 		search = new SearchRandom(this, "Random");
 		strategies = new SearchStrategy[]{search, new ManualStrategy(this, "Human Player")};
-		getStrategies();
+
+		paused = true;
   	}
+
+  	private void randGen() {
+		String path = hash_dir + "\\board_size_" + state.getSize() + ".dat";
+
+		File f = new File(path);
+		if(f.exists() && !f.isDirectory()) {
+			try {
+				FileInputStream fis = new FileInputStream(path);
+				ObjectInputStream iis = new ObjectInputStream(fis);
+				rands = (long[][]) iis.readObject();
+			} catch (Exception e) {
+
+			}
+		} else {
+			// If not exist
+			Random randomLong = new Random();
+			long[][] rands = new long[state.getTotalCells()][numPlayers()+1];
+
+			for (short cell = 0; cell < state.getTotalCells(); cell++) {
+				for (byte value = 0; value <= numPlayers(); value++) {
+					rands[cell][value] = randomLong.nextLong();
+				}
+			}
+
+			try {
+				FileOutputStream fos = new FileOutputStream(path);
+				ObjectOutputStream oos = new ObjectOutputStream(fos);
+				oos.writeObject(rands);
+
+			} catch (Exception e) {
+
+			}
+		}
+	}
+
 
 	public short getCellColor(short cell_index) {
 		return state.getCellContent(cell_index);
@@ -50,6 +85,8 @@ public class Controller // implements Serializable
 	public void processCellClick(short cell_index, boolean from_UI) throws IllegalArgumentException{
 		if (state.isTerminal()) {
 			throw new IllegalArgumentException("Game has terminated");
+		} else if (paused) {
+			throw new IllegalArgumentException("gamed paused");
 		}
 
 		if (from_UI)
@@ -64,7 +101,8 @@ public class Controller // implements Serializable
 //		else if (from_UI && computer_player == state.nextPlayer()) { // UI click when it's computer's turn
 //            throw new IllegalArgumentException("========It is computer player (player " + state.nextPlayer() + ")'s turn. ========");
         } else { // If legal, update state, return the player index
-			pastPlacements.push(cell_index);
+//			pastPlacements.push(cell_index);
+//			System.out.println(state==null);
 			state.placePiece(cell_index);
 		}
 
@@ -129,6 +167,7 @@ public class Controller // implements Serializable
 
 	public void setBoardSize(byte size) {
 //		this.size = size;
+		this.paused = true;
 		state.reset(size);
 		view.reset();
 	}
@@ -145,14 +184,14 @@ public class Controller // implements Serializable
 		return "Round " + state.currentRound() + ", next player " + state.nextPlayer();
 	}
 
-	public byte getComputerPlayer() {
-		return computer_player;
-	}
-
-	public void setComputer(byte i) {
-		this.computer_player = i;
-		start();
-	}
+//	public byte getComputerPlayer() {
+//		return computer_player;
+//	}
+//
+//	public void setComputer(byte i) {
+//		this.computer_player = i;
+//		start();
+//	}
 
 	public void reverseMove() {
 		short cell = pastPlacements.pop();
@@ -160,6 +199,8 @@ public class Controller // implements Serializable
 	}
 
 	public void start() {
+//		view.setEnabled(true);
+		paused = false;
 
 		Thread thread = new Thread(() -> {
 //			String threadName = Thread.currentThread().getName();
@@ -245,9 +286,5 @@ public class Controller // implements Serializable
 		//check current player index
 
 		//moves are full --> confirm --> process into state
-	}
-
-	public void turnFinished() {
-
 	}
 }

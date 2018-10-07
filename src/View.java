@@ -1,11 +1,9 @@
+import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*;
-import java.io.Serializable;
-import java.time.Duration;
-import java.time.LocalDateTime;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.stream.IntStream;
-import javax.swing.*;
 
 public class View
 {
@@ -40,6 +38,10 @@ public class View
 		cellCenters.clear();
 	}
 
+	public void setEnabled(boolean enabled) {
+		panel.setEnabled(enabled);
+	}
+
 	public static void createAndShowGUI(Controller c) {
 		new View(c);
 		JFrame frame = new JFrame("Omega");
@@ -51,7 +53,6 @@ public class View
 		frame.setLocationRelativeTo(null);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setVisible(true);
-
 	}
 
 	private static JMenuBar makeMenu(JFrame frame) {
@@ -176,6 +177,8 @@ public class View
 
 			progress_info = new JLabel(c.progressInfo());
 			this.add(progress_info);
+
+			this.setEnabled(false);
 		}
 
 		public void paintComponent(Graphics g)

@@ -5,10 +5,6 @@ public class Main {
     {
         Controller c = new Controller();
 
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                View.createAndShowGUI(c);
-            }
-        });
+        SwingUtilities.invokeLater(() -> View.createAndShowGUI(c));
     }
 }
