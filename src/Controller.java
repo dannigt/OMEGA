@@ -1,13 +1,14 @@
 
-import com.google.gson.Gson;
 import org.apache.commons.lang3.time.StopWatch;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Queue;
 import java.util.Stack;
 
 public class Controller implements Serializable
@@ -17,22 +18,23 @@ public class Controller implements Serializable
 	private State state;
 	private View view;
 	private byte computer_player;
-	private Search search;
+	private SearchRandom search;
 	// TODO: timer for players
 	private long[] timer;
 	// TODO: also track past movements here
 	private ArrayList<Short> placementOrder;
 	private Stack<Short> pastPlacements;
-	private String dir;
+	private String log_dir;
 	private StopWatch stopwatch = new StopWatch();
+	private String timestamp;
+	private SearchStrategy[] strategies;
 
 	public Controller() {
         this.computer_player = 1;
 		state = new State(this);
-		search = new Search(this);
-		dir = System.getProperty("user.dir") + "\\dump" + "\\" + LocalDate.now();
-
-//		search.alphaBeta(state, state.numMoves(), Integer.MAX_VALUE, Integer.MIN_VALUE);
+		search = new SearchRandom(this, "Random");
+		log_dir = System.getProperty("user.dir") + "\\log";
+		strategies = new SearchStrategy[]{search};
   	}
 
 	public short getCellColor(short cell_index) {
@@ -68,7 +70,7 @@ public class Controller implements Serializable
         if (from_UI && state.nextPlayer() == computer_player) { // Turn switches from human to computer
             System.out.println("Entering a-b with " + state.turnsLeft() + " turns left");
             search.alphaBeta(state, state.turnsLeft(), Integer.MAX_VALUE, Integer.MIN_VALUE);
-            search.getNextMove(state, state.turnsLeft()); // TODO: send a copy to search to mess up
+            search.getNextMove(state); // TODO: send a copy to search to mess up
         }
 	}
 
@@ -87,14 +89,14 @@ public class Controller implements Serializable
 
     // TODO: only need to dump past movements and timer
     public void requestCache() {
-		Gson gson = new Gson();
-		String json = gson.toJson(pastPlacements);
-		System.out.println(json);
+//		Gson gson = new Gson();
+//		String json = gson.toJson(pastPlacements);
+//		System.out.println(json);
 
 		ObjectOutputStream oos = null;
 		FileOutputStream fout = null;
 		try{
-			fout = new FileOutputStream(dir, true);
+			fout = new FileOutputStream(log_dir + "\\" + timestamp, true);
 			oos = new ObjectOutputStream(fout);
 			oos.writeObject(pastPlacements);
 		} catch (Exception ex) {
@@ -108,6 +110,11 @@ public class Controller implements Serializable
 				ex.printStackTrace();
 			}
 		}
+	}
+
+	public void applyCache(Queue<Short> log) {
+		//Apply cache
+
 	}
 
     public byte getMinSize() {
@@ -150,10 +157,25 @@ public class Controller implements Serializable
 		timer = new long[state.getNumPlayer()];
 		placementOrder = new ArrayList<>(state.getTotalCells());
 		pastPlacements = new Stack<>();
+		timestamp = LocalDateTime.now().toString().replace( ":" , "-" );
 
 		if (state.nextPlayer() == computer_player) {
-			search.getNextMove(state, state.turnsLeft());
+			search.getNextMove(state);
 		}
 		//TODO: disable all kinds of configuration shits
+	}
+
+	public String[] getStrategies() {
+//		for (SearchStrategy s : strategies) {
+//
+//		}
+		return (String[]) Arrays.stream(strategies).map(s -> s.strategy_name).toArray();
+//		return null;
+//				.filter(obj -> obj instanceof ScheduleIntervalContainer)
+//				.map(obj -> (ScheduleIntervalContainer) obj)
+	}
+
+	public void turnFinished() {
+
 	}
 }

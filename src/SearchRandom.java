@@ -1,24 +1,26 @@
 import java.io.Serializable;
 import java.util.Arrays;
 
-public class Search implements Serializable {
+public class SearchRandom extends SearchStrategy {
     private byte computer_player;
-    private Controller c;
+//    private Controller c;
     private short[] chosen_move;
 
-    //If computer is Max or Min player.
-    public Search(Controller c) {
-        this.c = c;
+    SearchRandom(Controller c, String name) {
+        super(c, name);
     }
 
-    public short[] getNextMove(State state, short depth) {
-        alphaBeta(state, depth, Integer.MAX_VALUE, Integer.MIN_VALUE);
+    @Override
+    public short[] getNextMove(State state) {
+        alphaBeta(state, state.turnsLeft(), Integer.MAX_VALUE, Integer.MIN_VALUE);
 
         for (short i : chosen_move) {
             c.processCellClick(i, false);
         }
         return chosen_move;
     }
+
+    //TODO: getNextMove according to strategies: random; a-b; a-b with move ordering etc.
 
     public State alphaBeta(State s_in, int depth, int alpha, int beta) {
         State s = new State(s_in);
