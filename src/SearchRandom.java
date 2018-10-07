@@ -20,6 +20,11 @@ public class SearchRandom extends SearchStrategy {
         return chosen_move;
     }
 
+    @Override
+    boolean waitsForUI() {
+        return false;
+    }
+
     //TODO: getNextMove according to strategies: random; a-b; a-b with move ordering etc.
 
     public State alphaBeta(State s_in, int depth, int alpha, int beta) {

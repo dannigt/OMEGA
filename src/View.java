@@ -104,24 +104,34 @@ public class View
 		menu.add(menuItem);
 
 		//Choose computer player index
-		submenu = new JMenu("Configure Players... ");
 
-		ButtonGroup group = new ButtonGroup();
+		for (byte p=0; p < c.numPlayers(); p++) {
+			submenu = new JMenu("Configure Player " + (p+1));
+			ButtonGroup group = new ButtonGroup();
 
-		for (byte i=1; i <= c.numPlayers(); i++) {
-			System.out.println("Player " + i);
-			rbMenuItem = new JRadioButtonMenuItem("Player " + i);
-			final byte computer_player = i;
-			if (computer_player == c.getComputerPlayer())
-				rbMenuItem.setSelected(true);
-			rbMenuItem.addActionListener(e -> {
-				c.setComputer(computer_player); // Requires a final/effectively final var
-			});
+			for (byte s=0; s < c.getStrategies().length; s++) {
+				rbMenuItem = new JRadioButtonMenuItem(c.getStrategies()[s]);
+				if (s == c.getPlayerStrategy(p)) {
+					rbMenuItem.setSelected(s == c.getPlayerStrategy(p));
+				}
+//				final byte computer_player = i;
+//				if (computer_player == c.getComputerPlayer())
+//					rbMenuItem.setSelected(true);
+				byte p_final = p;
+				byte s_final = s;
+				rbMenuItem.addActionListener(e -> {
+
+					c.setPlayerStrategy(p_final, s_final); // Requires a final/effectively final var
+				});
 //			rbMenuItem.setEnabled(false);
-			group.add(rbMenuItem);
-			submenu.add(rbMenuItem);
+				group.add(rbMenuItem);
+				submenu.add(rbMenuItem);
+			}
+			menu.add(submenu);
 		}
-		menu.add(submenu);
+
+
+
 
 		//a group of check box menu items
 		menu.addSeparator();

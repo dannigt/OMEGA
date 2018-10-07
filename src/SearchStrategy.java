@@ -9,8 +9,9 @@ public abstract class SearchStrategy {
 
     abstract short[] getNextMove(State state);
 
-
     String getStrategyName() {
         return strategy_name;
     }
+
+    abstract boolean waitsForUI();
 }

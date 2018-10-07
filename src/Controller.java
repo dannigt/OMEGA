@@ -39,7 +39,7 @@ public class Controller // implements Serializable
 		log_dir = System.getProperty("user.dir") + "\\log";
 
 		search = new SearchRandom(this, "Random");
-		strategies = new SearchStrategy[]{search, new ManualStrategy(this, "Human play")};
+		strategies = new SearchStrategy[]{search, new ManualStrategy(this, "Human Player")};
 		getStrategies();
   	}
 
@@ -60,9 +60,9 @@ public class Controller // implements Serializable
 		// if click is outside board, or cell is already occupied --> illegal
 		if (cell_index < 0 || state.getCellContent(cell_index) != 0) {
 			throw new IllegalArgumentException("Cell index out of bound");
-		}
-		else if (from_UI && computer_player == state.nextPlayer()) { // UI click when it's computer's turn
-            throw new IllegalArgumentException("========It is computer player (player " + state.nextPlayer() + ")'s turn. ========");
+//		}
+//		else if (from_UI && computer_player == state.nextPlayer()) { // UI click when it's computer's turn
+//            throw new IllegalArgumentException("========It is computer player (player " + state.nextPlayer() + ")'s turn. ========");
         } else { // If legal, update state, return the player index
 			pastPlacements.push(cell_index);
 			state.placePiece(cell_index);
@@ -90,15 +90,7 @@ public class Controller // implements Serializable
     }
 
 	public void notifyChange() {
-		System.out.println("REPAINT SHOULD HAPPEN!!!!!!!!");
-//		Thread thread = new Thread() {
-//			public void run() {
-//				view.repaint();
-//			}
-//		};
-//		thread.start();
         view.repaint();
-//		pastPlacements.push(cell_index);
     }
 
     // TODO: only need to dump past movements and timer
@@ -169,40 +161,36 @@ public class Controller // implements Serializable
 
 	public void start() {
 
-		Thread thread = new Thread(){
-			public void run(){
-				String threadName = Thread.currentThread().getName();
-				System.out.println("Thread -----------------------------------> " + threadName);
+		Thread thread = new Thread(() -> {
+//			String threadName = Thread.currentThread().getName();
+//			System.out.println("Thread -----------------------------------> " + threadName);
+			System.out.println(" " + state.nextPlayer());
+//			timer = new long[state.getNumPlayer()];
+//			placementOrder = new ArrayList<>(state.getTotalCells());
+			pastPlacements = new Stack<>();
+			timestamp = LocalDateTime.now().toString().replace( ":" , "-" );
 
-				timer = new long[state.getNumPlayer()];
-//		placementOrder = new ArrayList<>(state.getTotalCells());
-				pastPlacements = new Stack<>();
-				timestamp = LocalDateTime.now().toString().replace( ":" , "-" );
+			// while game not terminated, alternate between players to get next move
+			while (!state.isTerminal()) {
+				// every round
+				for (byte p_idx = 1; p_idx <= numPlayers(); p_idx++) {
 
-				// while game not terminated
-				// Alternate between players to get next move
-				while (!state.isTerminal()) {
-					for (byte p : player_strategy) {
-						System.out.println(strategies[p].getStrategyName());
-						short[] movements = strategies[p].getNextMove(state);
+					SearchStrategy s = strategies[player_strategy[p_idx-1]];
 
-						if (movements != null) {
-							for (short stone_placement : strategies[p].getNextMove(state)) {
-								System.out.println("====================strategy " + p + " move " + stone_placement);
-								processCellClick(stone_placement, false);
-							}
-							//				break;
-						} else {
-							System.out.println("ELSE");
-							// wait for ui stuff
-							while (state.nextPlayer() != computer_player) {
-								System.out.println("waiting for UI....");
-							}
+					if (s.waitsForUI()) {
+						// wait for UI input
+						while (state.nextPlayer() == p_idx) {
+							System.out.println(s.strategy_name + ", waiting for player " + state.nextPlayer());
+						}
+					} else {
+						for (short stone_placement : s.getNextMove(state)) {
+							System.out.println("====================strategy " + s.strategy_name + " move " + stone_placement);
+							processCellClick(stone_placement, false);
 						}
 					}
 				}
 			}
-		};
+		});
 
 
 		thread.start();
@@ -235,17 +223,22 @@ public class Controller // implements Serializable
 //		}
 	}
 
-	public String getStrategies() {
+	public String[] getStrategies() {
 		String[] names = new String[strategies.length];
 		for (byte i = 0; i < strategies.length; i++) {
 			names[i] = strategies[i].getStrategyName();
 		}
-		System.out.println(Arrays.toString(names));
-		return Arrays.toString(names);
-//		return Arrays.stream(strategies).map(s -> (String)s.strategy_name).toArray();
-//		return null;
-//				.filter(obj -> obj instanceof ScheduleIntervalContainer)
-//				.map(obj -> (ScheduleIntervalContainer) obj)
+		return names;
+	}
+
+	public byte getPlayerStrategy(byte p) {
+		return player_strategy[p];
+	}
+
+	public void setPlayerStrategy(byte p, byte s) {
+		player_strategy[p] = s;
+		System.out.println(Arrays.toString(player_strategy));
+//		start();
 	}
 
 	public void storeHumanMovement() {
