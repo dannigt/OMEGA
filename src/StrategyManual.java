@@ -1,5 +1,5 @@
-public class ManualStrategy extends SearchStrategy {
-    ManualStrategy(Controller c, String name) {
+public class StrategyManual extends SearchStrategy {
+    StrategyManual(Controller c, String name) {
         super(c, name);
     }
 

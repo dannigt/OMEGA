@@ -11,7 +11,7 @@ public class Controller // implements Serializable
 	private State state;
 	private View view;
 //	private byte computer_player;
-	private SearchRandom search;
+//	private StrategyRandom search;
 
 	// TODO: also track past movements here
 	private ArrayList<Short> placementOrder;
@@ -35,8 +35,9 @@ public class Controller // implements Serializable
 		log_dir = System.getProperty("user.dir") + "\\log";
 		hash_dir = System.getProperty("user.dir") + "\\hash";
 
-		search = new SearchRandom(this, "Random");
-		strategies = new SearchStrategy[]{search, new ManualStrategy(this, "Human Player")};
+//		search = new StrategyRandom(this, "Random");
+		strategies = new SearchStrategy[]{new StrategyRandom(this, "Random"),
+				new StrategyManual(this, "Human Player"), new StrategyAlphaBeta(this, "A-B")};
 
 		paused = true;
   	}

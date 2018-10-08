@@ -1,16 +1,13 @@
-public class SearchRandom extends SearchStrategy {
-    private byte computer_player;
-//    private Controller c;
+public class StrategyAlphaBeta extends SearchStrategy{
     private short[] chosen_move; // store the most recent chosen move
 
-    SearchRandom(Controller c, String name) {
+    StrategyAlphaBeta(Controller c, String name) {
         super(c, name);
     }
 
     @Override
-    public short[] getNextMove(State state) {
+    short[] getNextMove(State state) {
         alphaBeta(state, state.turnsLeft(), Integer.MAX_VALUE, Integer.MIN_VALUE);
-
         return chosen_move;
     }
 
@@ -18,8 +15,6 @@ public class SearchRandom extends SearchStrategy {
     boolean waitsForUI() {
         return false;
     }
-
-    //TODO: getNextMove according to strategies: random; a-b; a-b with move ordering etc.
 
     public State alphaBeta(State s_in, int depth, int alpha, int beta) {
         State s = new State(s_in);
@@ -57,9 +52,6 @@ public class SearchRandom extends SearchStrategy {
                 break;
             }
         }
-
-//        s_in.placePiece(chosen_move[0]);
-//        s_in.placePiece(chosen_move[1]);
         this.chosen_move = chosen_move;
 
         return s;
