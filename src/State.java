@@ -16,6 +16,8 @@ public class State implements Serializable {
     private boolean sim = false; // is simulation
     private byte size;
     private HashMap<Short, Short> group_size_counter = new HashMap<>();
+    private long[] scores;
+    private int value;
 
     //Constructors with default values
     public State(Controller c) {
@@ -40,6 +42,7 @@ public class State implements Serializable {
         uf_size = s.uf_size.clone();
         group_size_counter = new HashMap<>(group_size_counter);
         sim = true;
+        scores = s.scores.clone();
     }
 
     public void reset(byte size) {
@@ -48,6 +51,9 @@ public class State implements Serializable {
     }
 
     private void init(byte size) {
+        this.scores = new long[num_player];
+        Arrays.fill(scores, 1);
+
         this.size = size;
         total_cells = (short) ((size * 2 + size - 1) * size - size * 2 + 1);
         used_cells = 0;
@@ -108,11 +114,11 @@ public class State implements Serializable {
     public void placePiece(short cell) {
         cells[cell] = nextColor();
         used_cells++;
+        calcConnectedAreaSize(cell);
+        calcScores();
 
         //TODO: in search step, don't notify change
         if (!sim) {
-            calcConnectedAreaSize(cell);
-            calcScores();
             c.notifyChange();
             c.requestCache();
         }
@@ -153,7 +159,8 @@ public class State implements Serializable {
                 if (nbg_root != cell) {
                     // Decrement count for uf_size[nbg_root]
                     short key_nbg_root = (short) (cells[cell] * 1000 + uf_size[nbg_root]);
-                    group_size_counter.put(key_nbg_root, (short) (group_size_counter.get(key_nbg_root) - 1));
+                    if (group_size_counter.containsKey(group_size_counter.get(key_nbg_root)))
+                        group_size_counter.put(key_nbg_root, (short) (group_size_counter.get(key_nbg_root) - 1));
 
                     // Update parent reference
                     uf_parent[nbg_root] = cell; // The newly added cell becomes parent of the neighbor
@@ -220,16 +227,14 @@ public class State implements Serializable {
 //        return cell_group_map[cell].size();
     }
 
-    private long[] calcScores() {
-        long[] points = new long[num_player];
-        Arrays.fill(points, 1);
+    private void calcScores() {
+        Arrays.fill(scores, 1);
         for (Map.Entry<Short, Short> entry : group_size_counter.entrySet()) {
 //            System.out.println("Player : " + entry.getKey() / 1000 + ", Group size: " + entry.getKey() % 1000 +
 //                    " Count : " + entry.getValue());
-            points[ entry.getKey() / 1000 - 1] *= Math.pow(entry.getKey() % 1000, entry.getValue());
+            scores[ entry.getKey() / 1000 - 1] *= Math.pow(entry.getKey() % 1000, entry.getValue());
         }
-//        System.out.println("Points: " + Arrays.toString(points));
-        return new long[]{1, 1};
+//        System.out.println("Points: " + Arrays.toString(scores));
     }
 
     // number of possible moves given current state
@@ -247,6 +252,7 @@ public class State implements Serializable {
             if (cells[idx_a] == 0) {
                 for (short idx_b = 0; idx_b < total_cells; idx_b++) {
                     if (cells[idx_b] == 0 && idx_b != idx_a) {
+//                        System.out.println("has " + moves.length + ", but accessing " + cnt);
                         moves[cnt][0] = idx_a;
                         moves[cnt][1] = idx_b;
                         cnt++;
@@ -263,8 +269,13 @@ public class State implements Serializable {
     }
 
     //TODO: implement evaluation function
+    //TODO: would this overflow?
     public int value() {
-        return (int) Math.random() * 100;
+        return (int) (scores[0] - scores[1]);
+    }
+
+    public void setValue(int v) {
+        value = v;
     }
 
     // number of total rounds
@@ -308,5 +319,9 @@ public class State implements Serializable {
 
     public short getTotalCells() {
         return total_cells;
+    }
+
+    public String getScore() {
+        return Arrays.toString(scores);
     }
 }

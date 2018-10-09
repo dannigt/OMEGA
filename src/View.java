@@ -177,7 +177,7 @@ public class View
 			super.paintComponent(g);
 			Graphics2D g2 = (Graphics2D)g;
 			drawBoard(c.getBoardSize(), g2, SCRSIZE/8, SCRSIZE/8);
-			progress_info.setText(formatHTML(new String[] {c.getProgressInfo(), c.getWarningInfo()}));
+			progress_info.setText(formatHTML(new String[] {c.getProgressInfo(), c.getScore(), c.getWarningInfo()}));
 		}
 		
 		class MyMouseListener extends MouseAdapter	{
@@ -202,7 +202,7 @@ public class View
 			for (String arg : args) {
 				res += arg + "<br/>";
 			}
-			System.out.println(res);
+//			System.out.println(res);
 			return res + "</html>";
 		}
 	} 

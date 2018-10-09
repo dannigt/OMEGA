@@ -6,7 +6,7 @@ import java.util.*;
 
 public class Controller // implements Serializable
 {
-	private final byte MIN_SIZE = 5;
+	private final byte MIN_SIZE = 2;
 	private final byte MAX_SIZE = 10;
 	private State state;
 	private View view;
@@ -21,7 +21,7 @@ public class Controller // implements Serializable
 	private StopWatch stopwatch = new StopWatch();
 	private String timestamp;
 	private SearchStrategy[] strategies;
-	private byte[] player_strategy = new byte[] {0, 1};
+	private byte[] player_strategy = new byte[] {1, 2};
 
 	// TODO: for hashing
 	private long[][] rands;
@@ -187,6 +187,10 @@ public class Controller // implements Serializable
 		warning_info = in;
 	}
 
+	public String getScore() {
+		return state.getScore();
+	}
+
 //	public byte getComputerPlayer() {
 //		return computer_player;
 //	}
@@ -223,9 +227,11 @@ public class Controller // implements Serializable
 
 					if (s.waitsForUI()) {
 						// wait for UI input
-						while (state.nextPlayer() == p_idx) {
-							System.out.println(s.strategy_name + ", waiting for player " + state.nextPlayer());
-						}
+						do {} while
+						(state.nextPlayer() != p_idx);
+//						while (state.nextPlayer() == p_idx) {
+//							System.out.println(s.strategy_name + ", waiting for player " + state.nextPlayer());
+//						}
 					} else {
 						for (short stone_placement : s.getNextMove(state)) {
 							System.out.println("====================strategy " + s.strategy_name + " move " + stone_placement);
