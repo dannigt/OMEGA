@@ -238,6 +238,7 @@ public class State implements Serializable {
     }
 
     // Generate all legal moves
+    //TODO: move to search strategy
     public short[][] moveGen() { // TODO: currently it's a naive enumeration of all possible movements
         short[][] moves = new short[numMoves()][num_player]; // return cell index for each color
 
@@ -249,7 +250,6 @@ public class State implements Serializable {
                         moves[cnt][0] = idx_a;
                         moves[cnt][1] = idx_b;
                         cnt++;
-//                        return moves;
                     }
                 }
             }

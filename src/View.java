@@ -38,9 +38,9 @@ public class View
 		cellCenters.clear();
 	}
 
-	public void setEnabled(boolean enabled) {
-		panel.setEnabled(enabled);
-	}
+//	public void setEnabled(boolean enabled) {
+//		panel.setEnabled(enabled);
+//	}
 
 	public static void createAndShowGUI(Controller c) {
 		new View(c);
@@ -115,16 +115,11 @@ public class View
 				if (s == c.getPlayerStrategy(p)) {
 					rbMenuItem.setSelected(s == c.getPlayerStrategy(p));
 				}
-//				final byte computer_player = i;
-//				if (computer_player == c.getComputerPlayer())
-//					rbMenuItem.setSelected(true);
 				byte p_final = p;
 				byte s_final = s;
 				rbMenuItem.addActionListener(e -> {
-
 					c.setPlayerStrategy(p_final, s_final); // Requires a final/effectively final var
 				});
-//			rbMenuItem.setEnabled(false);
 				group.add(rbMenuItem);
 				submenu.add(rbMenuItem);
 			}
@@ -132,18 +127,15 @@ public class View
 		}
 
 
-
-
 		//a group of check box menu items
 		menu.addSeparator();
 		cbMenuItem = new JCheckBoxMenuItem("Keep time");
 		menu.add(cbMenuItem);
 
-		cbMenuItem = new JCheckBoxMenuItem("Another one");
-		menu.add(cbMenuItem);
+//		cbMenuItem = new JCheckBoxMenuItem("Another one");
+//		menu.add(cbMenuItem);
 
-
-//Build second menu in the menu bar.
+		//Build second menu in the menu bar.
 		menu = new JMenu("Oops...");
 		menuItem = new JMenuItem("Load Game Status From...");
 		menu.add(menuItem);
@@ -160,23 +152,22 @@ public class View
 		return menuBar;
 	}
 
-//	@Override
-//	public void run() {
-//		Controller c = new Controller();
-//		createAndShowGUI(c);
-//	}
-
 	static class DrawingPanel extends JPanel
 	{
 	    private JLabel progress_info;
+	    private JLabel warning_info;
 
         public DrawingPanel()
 		{
+//			super(new GridBagLayout());
 			setBackground(Color.LIGHT_GRAY);
 			addMouseListener(new MyMouseListener());
 
-			progress_info = new JLabel(c.progressInfo());
+			progress_info = new JLabel(c.getProgressInfo());
 			this.add(progress_info);
+
+//			warning_info = new JLabel();
+//			this.add(warning_info);
 
 			this.setEnabled(false);
 		}
@@ -186,7 +177,7 @@ public class View
 			super.paintComponent(g);
 			Graphics2D g2 = (Graphics2D)g;
 			drawBoard(c.getBoardSize(), g2, SCRSIZE/8, SCRSIZE/8);
-			progress_info.setText(c.progressInfo());
+			progress_info.setText(formatHTML(new String[] {c.getProgressInfo(), c.getWarningInfo()}));
 		}
 		
 		class MyMouseListener extends MouseAdapter	{
@@ -199,8 +190,20 @@ public class View
 				}
 				catch (IllegalArgumentException e1) {
 					System.out.println("SHOW ON UI: " + e1.getMessage());
+					c.setWarningInfo(e1.getMessage());
+					repaint();
 				}
 			}
+		}
+
+		// Format stuff with line breaks
+		private String formatHTML(String... args) {
+			String res = "<html>";
+			for (String arg : args) {
+				res += arg + "<br/>";
+			}
+			System.out.println(res);
+			return res + "</html>";
 		}
 	} 
 
@@ -297,6 +300,9 @@ The hexagon is drawn in the colour specified in hexgame.COLOURELL.
 		//Ensure that the point is within the board
 		return (short)((nearest.distance(given) < a) ? cellCenters.indexOf(nearest) : -1);
 	}
+
+
+
 
 //	public static void main(String[] args)
 //{

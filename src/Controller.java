@@ -29,13 +29,14 @@ public class Controller // implements Serializable
 	private long[] timer;
 	private boolean paused;
 
+	private String warning_info = "";
+
 	public Controller() {
 		state = new State(this);
 
 		log_dir = System.getProperty("user.dir") + "\\log";
 		hash_dir = System.getProperty("user.dir") + "\\hash";
 
-//		search = new StrategyRandom(this, "Random");
 		strategies = new SearchStrategy[]{new StrategyRandom(this, "Random"),
 				new StrategyManual(this, "Human Player"), new StrategyAlphaBeta(this, "A-B")};
 
@@ -81,11 +82,11 @@ public class Controller // implements Serializable
 		return state.getCellContent(cell_index);
 	}
 	
-	public void processCellClick(short cell_index, boolean from_UI) throws IllegalArgumentException{
+	public void processCellClick(short cell_index, boolean from_UI) {
 		if (state.isTerminal()) {
-			throw new IllegalArgumentException("Game has terminated");
+			throw new IllegalArgumentException("Game has terminated. Not possible to place stone.");
 		} else if (paused) {
-			throw new IllegalArgumentException("gamed paused");
+			throw new IllegalArgumentException("Game has paused. Not possible to place stone. (Re)start game.");
 		}
 
 		if (from_UI)
@@ -96,12 +97,7 @@ public class Controller // implements Serializable
 		// if click is outside board, or cell is already occupied --> illegal
 		if (cell_index < 0 || state.getCellContent(cell_index) != 0) {
 			throw new IllegalArgumentException("Cell index out of bound");
-//		}
-//		else if (from_UI && computer_player == state.nextPlayer()) { // UI click when it's computer's turn
-//            throw new IllegalArgumentException("========It is computer player (player " + state.nextPlayer() + ")'s turn. ========");
         } else { // If legal, update state, return the player index
-//			pastPlacements.push(cell_index);
-//			System.out.println(state==null);
 			state.placePiece(cell_index);
 		}
 
@@ -179,8 +175,16 @@ public class Controller // implements Serializable
 		return state.getSize();
 	}
 
-	public String progressInfo() {
+	public String getProgressInfo() {
 		return "Round " + state.currentRound() + ", next player " + state.nextPlayer();
+	}
+
+	public String getWarningInfo(){
+		return warning_info;
+	}
+
+	public void setWarningInfo(String in) {
+		warning_info = in;
 	}
 
 //	public byte getComputerPlayer() {
