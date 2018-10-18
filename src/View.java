@@ -1,7 +1,10 @@
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.stream.IntStream;
 
@@ -138,6 +141,14 @@ public class View
 		//Build second menu in the menu bar.
 		menu = new JMenu("Oops...");
 		menuItem = new JMenuItem("Load Game Status From...");
+		menuItem.addActionListener(e -> {
+			JFileChooser c = new JFileChooser();
+			// Demonstrate "Save" dialog:
+			int rVal = c.showSaveDialog(panel);
+			if (rVal == JFileChooser.APPROVE_OPTION) {
+				System.out.println(Paths.get(c.getCurrentDirectory().toString(), c.getSelectedFile().getName()));
+			}
+		});
 		menu.add(menuItem);
 
 		menuItem = new JMenuItem("Reverse");
@@ -145,7 +156,6 @@ public class View
 			c.reverseMove();
 		});
 		menu.add(menuItem);
-
 
 		menuBar.add(menu);
 

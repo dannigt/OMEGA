@@ -1,8 +1,10 @@
 import org.apache.commons.lang3.time.StopWatch;
 
 import java.io.*;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.*;
 
 public class Controller // implements Serializable
 {
@@ -21,7 +23,7 @@ public class Controller // implements Serializable
 	private StopWatch stopwatch = new StopWatch();
 	private String timestamp;
 	private SearchStrategy[] strategies;
-	private byte[] player_strategy = new byte[] {1, 2};
+	private byte[] player_strategy = new byte[] {1, 0};
 
 	// TODO: for hashing
 	private long[][] rands;
@@ -34,8 +36,8 @@ public class Controller // implements Serializable
 	public Controller() {
 		state = new State(this);
 
-		log_dir = System.getProperty("user.dir") + "\\log";
-		hash_dir = System.getProperty("user.dir") + "\\hash";
+		log_dir = Paths.get(System.getProperty("user.dir"), "log").toString();
+		hash_dir = Paths.get(System.getProperty("user.dir") , "hash").toString();
 
 		strategies = new SearchStrategy[]{new StrategyRandom(this, "Random"),
 				new StrategyManual(this, "Human Player"), new StrategyAlphaBeta(this, "A-B")};
@@ -99,19 +101,12 @@ public class Controller // implements Serializable
 			throw new IllegalArgumentException("Cell index out of bound");
         } else { // If legal, update state, return the player index
 			state.placePiece(cell_index);
+
+			placementOrder.add(cell_index);
+			makeCache();
 		}
-
 		// TODO: switch timer
-
-//		System.out.println(state.totalRounds() + ", " + state.totalTurns() + ", " + state.currentRound() + ", " + state.currentTurn() + ", " + state.turnsLeft());
-
-
-//        if (from_UI && state.nextPlayer() == computer_player) { // Turn switches from human to computer
-
-//            System.out.println("Entering a-b with " + state.turnsLeft() + " turns left");
-//            search.alphaBeta(state, state.turnsLeft(), Integer.MAX_VALUE, Integer.MIN_VALUE);
-//            search.getNextMove(state); // TODO: send a copy to search to mess up
-//        }
+		// TODO: send a copy to search to mess up
 	}
 
 	public byte numPlayers() {
@@ -127,17 +122,18 @@ public class Controller // implements Serializable
     }
 
     // TODO: only need to dump past movements and timer
-    public void requestCache() {
+	// save past moves and timer to file
+    public void makeCache() {
 //		Gson gson = new Gson();
 //		String json = gson.toJson(pastPlacements);
 //		System.out.println(json);
-
 		ObjectOutputStream oos = null;
 		FileOutputStream fout = null;
 		try{
-			fout = new FileOutputStream(log_dir + "\\" + timestamp, true);
+			fout = new FileOutputStream(Paths.get(log_dir , timestamp).toString(), false);
 			oos = new ObjectOutputStream(fout);
-			oos.writeObject(pastPlacements);
+			System.out.println("placement order: " + placementOrder);
+			oos.writeObject(placementOrder);
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		} finally {
@@ -151,9 +147,18 @@ public class Controller // implements Serializable
 		}
 	}
 
-	public void applyCache(Queue<Short> log) {
+	public void applyCache(String path) {
 		//Apply cache
-
+		FileInputStream fin = null;
+		ObjectInputStream ois = null;
+		try{
+			fin = new FileInputStream(path);
+			ois = new ObjectInputStream(fin);
+			Object foo = ois.readObject();
+			System.out.println("==========================read object" + foo);
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
 	}
 
     public byte getMinSize() {
@@ -205,38 +210,73 @@ public class Controller // implements Serializable
 		state.unplacePiece(cell);
 	}
 
+	class SayHello extends TimerTask {
+		public void run() {
+			System.out.println("Remaining time: " + timer);
+		}
+	}
+
+
+
 	public void start() {
 		paused = false;
 		randGen();
 		// separate thread for running the game
 		Thread thread = new Thread(() -> {
-			System.out.println(" " + state.nextPlayer());
-//			timer = new long[state.getNumPlayer()];
-//			placementOrder = new ArrayList<>(state.getTotalCells());
-			pastPlacements = new Stack<>();
+			//			timer = new long[state.getNumPlayer()];
+			placementOrder = new ArrayList<>(state.getTotalCells());
+//			pastPlacements = new Stack<>();
 			timestamp = LocalDateTime.now().toString().replace( ":" , "-" );
 
 			// while game not terminated, alternate between players to get next move
 			while (!state.isTerminal()) {
+//				Timer timer = new Timer();
+//				timer.schedule(new SayHello(), 0, 1000);
 				// every round
 				for (byte p_idx = 1; p_idx <= numPlayers(); p_idx++) {
-
 					SearchStrategy s = strategies[player_strategy[p_idx-1]];
 
 					if (s.waitsForUI()) {
 						// wait for UI input
 						do {
 							System.out.println(s.strategy_name + ", waiting for UI input");
+							// And From your main() method or any other method
 						} while
 						(state.nextPlayer() == p_idx);
 //						while (state.nextPlayer() == p_idx) {
 //							System.out.println(s.strategy_name + ", waiting for player " + state.nextPlayer());
 //						}
 					} else {
-						for (short stone_placement : s.getNextMove(state)) {
-							System.out.println("====================strategy " + s.strategy_name + " move " + stone_placement);
-							processCellClick(stone_placement, false);
+						final ExecutorService service = Executors.newSingleThreadExecutor();
+						try {
+
+							final Future<Object> f = service.submit(() -> {
+								// Do you long running calculation here
+//								Thread.sleep(1337); // Simulate some delay
+//								moves = s.getNextMove(state);
+
+								for (short stone_placement : s.getNextMove(state)) {
+									System.out.println("====================strategy " + s.strategy_name + " move " + stone_placement);
+									processCellClick(stone_placement, false);
+								}
+								return -1;
+							});
+
+							System.out.println(f.get(3600, TimeUnit.SECONDS));
+						} catch (final TimeoutException e) {
+							System.err.println("Calculation took to long");
+							// TODO: return intermediate result
+							System.exit(0);
+						} catch (final Exception e) {
+							throw new RuntimeException(e);
+						} finally {
+							service.shutdown();
 						}
+
+//						for (short stone_placement : s.getNextMove(state)) {
+//							System.out.println("====================strategy " + s.strategy_name + " move " + stone_placement);
+//							processCellClick(stone_placement, false);
+//						}
 					}
 				}
 			}

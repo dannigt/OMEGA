@@ -21,7 +21,7 @@ public class State implements Serializable {
 
     //Constructors with default values
     public State(Controller c) {
-        this(c, (byte) 8, (byte) 2);
+        this(c, (byte) 5, (byte) 2);
     }
 
     public State(Controller c, byte size, byte num_player) {
@@ -117,12 +117,13 @@ public class State implements Serializable {
         calcConnectedAreaSize(cell);
         calcScores();
 
-        //TODO: in search step, don't notify change
+        //TODO: if in search step, don't notify change
         if (!sim) {
             c.notifyChange();
-            c.requestCache();
+//            c.makeCache();
         }
     }
+
     //TODO: also remove points
     public void unplacePiece(short cell) {
         cells[cell] = 0;
