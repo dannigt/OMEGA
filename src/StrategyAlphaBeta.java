@@ -6,6 +6,7 @@ import java.util.concurrent.*;
 public class StrategyAlphaBeta extends SearchStrategy{
     private short[] current_best_move; // store the most recent chosen move
     private int cnt;
+    private long startTime;
 
     StrategyAlphaBeta(Controller c, String name) {
         super(c, name);
@@ -13,39 +14,42 @@ public class StrategyAlphaBeta extends SearchStrategy{
 
     @Override
     short[] getNextMove(State state) {
+        startTime = System.currentTimeMillis();
         // choose something
         current_best_move = state.moveGen()[0];
 
-        ExecutorService executor = Executors.newSingleThreadExecutor();
-        Future<short[]> future = executor.submit(() -> {
-            // Do you long running calculation here
-            alphaBeta(state, state.turnsLeft(), Integer.MIN_VALUE, Integer.MAX_VALUE);
+        alphaBeta(state, state.turnsLeft(), Integer.MIN_VALUE, Integer.MAX_VALUE);
 
-            return current_best_move;
-        });
-
-        try{
-            current_best_move = future.get(1, TimeUnit.SECONDS);
-        }  catch (final TimeoutException e) {
-            System.err.println("Calculation took to long");
-        } catch (final Exception e) {
-            throw new RuntimeException(e);
-        } finally {
-            executor.shutdownNow();
-            System.out.println(Arrays.toString(current_best_move));
-        }
-//        finally {
-////            executor.shutdown();
-//            if (state.getCellContent(current_best_move[0])!=0) {
-//                System.out.println("!!!!!!!!!!!!!!!!!!!!!" + current_best_move[0]);
-//            }
-//            if (state.getCellContent(current_best_move[1])!=0) {
-//                System.out.println("!!!!!!!!!!!!!!!!!!!!!" + current_best_move[1]);
-//            }
-//            System.out.println("~~~~~~~~~~~~~~~~~~~~" + Arrays.toString(current_best_move) + "~~~~~~~~~~~~~~~~~~~~~");
+//        ExecutorService executor = Executors.newSingleThreadExecutor();
+//        Future<short[]> future = executor.submit(() -> {
+//            // Do you long running calculation here
+//            alphaBeta(state, state.turnsLeft(), Integer.MIN_VALUE, Integer.MAX_VALUE);
 //
+//            return current_best_move;
+//        });
+//
+//        try{
+//            current_best_move = future.get(1, TimeUnit.SECONDS);
+//        }  catch (final TimeoutException e) {
+//            System.err.println("Calculation took to long");
+//        } catch (final Exception e) {
+//            throw new RuntimeException(e);
+//        } finally {
+//            executor.shutdownNow();
+//            System.out.println(Arrays.toString(current_best_move));
 //        }
-        System.out.println("~~~~~~~~~~~~~~~~~~~~" + Arrays.toString(current_best_move) + "~~~~~~~~~~~~~~~~~~~~~");
+////        finally {
+//////            executor.shutdown();
+////            if (state.getCellContent(current_best_move[0])!=0) {
+////                System.out.println("!!!!!!!!!!!!!!!!!!!!!" + current_best_move[0]);
+////            }
+////            if (state.getCellContent(current_best_move[1])!=0) {
+////                System.out.println("!!!!!!!!!!!!!!!!!!!!!" + current_best_move[1]);
+////            }
+////            System.out.println("~~~~~~~~~~~~~~~~~~~~" + Arrays.toString(current_best_move) + "~~~~~~~~~~~~~~~~~~~~~");
+////
+////        }
+//        System.out.println("~~~~~~~~~~~~~~~~~~~~" + Arrays.toString(current_best_move) + "~~~~~~~~~~~~~~~~~~~~~");
 
         return current_best_move;
     }
@@ -56,6 +60,11 @@ public class StrategyAlphaBeta extends SearchStrategy{
     }
 
     private State alphaBeta(State s_in, int depth, int alpha, int beta) {
+        //TODO: if time is out. break
+        if ((System.currentTimeMillis() - startTime) > 10000) {
+            return s_in;
+        }
+
         if (s_in.isTerminal() || depth == 0) {
             return new State(s_in);
         }
