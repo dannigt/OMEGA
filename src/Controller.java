@@ -147,17 +147,23 @@ public class Controller // implements Serializable
 		}
 	}
 
-	public void applyCache(String path) {
+	public void applyCache(String path) throws Exception {
 		//Apply cache
 		FileInputStream fin = null;
 		ObjectInputStream ois = null;
 		try{
 			fin = new FileInputStream(path);
 			ois = new ObjectInputStream(fin);
-			Object foo = ois.readObject();
+			// TODO: downcasting is ugly. Another other way?
+			ArrayList<Short> foo = (ArrayList<Short>) ois.readObject();
+
 			System.out.println("==========================read object" + foo);
+			for (short move : foo) {
+				state.placePiece(move);
+			}
+
 		} catch (Exception ex) {
-			ex.printStackTrace();
+			throw ex;
 		}
 	}
 

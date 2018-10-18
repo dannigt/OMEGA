@@ -4,6 +4,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.File;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.stream.IntStream;
@@ -142,11 +143,21 @@ public class View
 		menu = new JMenu("Oops...");
 		menuItem = new JMenuItem("Load Game Status From...");
 		menuItem.addActionListener(e -> {
-			JFileChooser c = new JFileChooser();
+			JFileChooser chooser = new JFileChooser();
+			chooser.setCurrentDirectory(new File(System.getProperty("user.dir")));
 			// Demonstrate "Save" dialog:
-			int rVal = c.showSaveDialog(panel);
+			int rVal = chooser.showSaveDialog(panel);
 			if (rVal == JFileChooser.APPROVE_OPTION) {
-				System.out.println(Paths.get(c.getCurrentDirectory().toString(), c.getSelectedFile().getName()));
+				String path = Paths.get(chooser.getCurrentDirectory().toString(), chooser.getSelectedFile().getName()).toString();
+				try {
+					c.applyCache(path);
+				}
+				catch (Exception ex){
+					JOptionPane.showMessageDialog(null,
+							"Cannot load the progress dump. Make sure the correct file is chosen.",
+							"Loading failed", JOptionPane.INFORMATION_MESSAGE);
+				}
+
 			}
 		});
 		menu.add(menuItem);
