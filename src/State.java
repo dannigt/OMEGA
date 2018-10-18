@@ -159,7 +159,8 @@ public class State implements Serializable {
                 if (nbg_root != cell) {
                     // Decrement count for uf_size[nbg_root]
                     short key_nbg_root = (short) (cells[cell] * 1000 + uf_size[nbg_root]);
-                    if (group_size_counter.containsKey(group_size_counter.get(key_nbg_root)))
+                  if (group_size_counter.containsKey(key_nbg_root))
+                    // TODO: why does it break in simulation rounds?
                         group_size_counter.put(key_nbg_root, (short) (group_size_counter.get(key_nbg_root) - 1));
 
                     // Update parent reference
@@ -230,8 +231,8 @@ public class State implements Serializable {
     private void calcScores() {
         Arrays.fill(scores, 1);
         for (Map.Entry<Short, Short> entry : group_size_counter.entrySet()) {
-//            System.out.println("Player : " + entry.getKey() / 1000 + ", Group size: " + entry.getKey() % 1000 +
-//                    " Count : " + entry.getValue());
+            System.out.println("Player : " + entry.getKey() / 1000 + ", Group size: " + entry.getKey() % 1000 +
+                    " Count : " + entry.getValue());
             scores[ entry.getKey() / 1000 - 1] *= Math.pow(entry.getKey() % 1000, entry.getValue());
         }
 //        System.out.println("Points: " + Arrays.toString(scores));

@@ -43,6 +43,7 @@ public class Controller // implements Serializable
 		paused = true;
   	}
 
+  	// generate random number for hashing
   	private void randGen() {
 		String path = hash_dir + "\\board_size_" + state.getSize() + ".dat";
 
@@ -76,7 +77,6 @@ public class Controller // implements Serializable
 			}
 		}
 	}
-
 
 	public short getCellColor(short cell_index) {
 		return state.getCellContent(cell_index);
@@ -208,10 +208,8 @@ public class Controller // implements Serializable
 	public void start() {
 		paused = false;
 		randGen();
-
+		// separate thread for running the game
 		Thread thread = new Thread(() -> {
-//			String threadName = Thread.currentThread().getName();
-//			System.out.println("Thread -----------------------------------> " + threadName);
 			System.out.println(" " + state.nextPlayer());
 //			timer = new long[state.getNumPlayer()];
 //			placementOrder = new ArrayList<>(state.getTotalCells());
@@ -227,8 +225,10 @@ public class Controller // implements Serializable
 
 					if (s.waitsForUI()) {
 						// wait for UI input
-						do {} while
-						(state.nextPlayer() != p_idx);
+						do {
+							System.out.println(s.strategy_name + ", waiting for UI input");
+						} while
+						(state.nextPlayer() == p_idx);
 //						while (state.nextPlayer() == p_idx) {
 //							System.out.println(s.strategy_name + ", waiting for player " + state.nextPlayer());
 //						}
