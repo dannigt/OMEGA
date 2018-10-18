@@ -22,8 +22,10 @@ public class Controller // implements Serializable
 	private String hash_dir;
 	private StopWatch stopwatch = new StopWatch();
 	private String timestamp;
-	private SearchStrategy[] strategies;
-	private byte[] player_strategy = new byte[] {1, 0};
+//	private SearchStrategy[] strategies;
+	private byte[] player_strategy = new byte[] {0, 2};
+
+	private String[] strategyNames = new String[] {"random", "human", "a-b"};
 
 	// TODO: for hashing
 	private long[][] rands;
@@ -39,11 +41,25 @@ public class Controller // implements Serializable
 		log_dir = Paths.get(System.getProperty("user.dir"), "log").toString();
 		hash_dir = Paths.get(System.getProperty("user.dir") , "hash").toString();
 
-		strategies = new SearchStrategy[]{new StrategyRandom(this, "Random"),
-				new StrategyManual(this, "Human Player"), new StrategyAlphaBeta(this, "A-B")};
+//		strategies = new SearchStrategy[]{new StrategyRandom(this, "Random"),
+//				new StrategyManual(this, "Human Player"), new StrategyAlphaBeta(this, "A-B")};
+
 
 		paused = true;
   	}
+
+  	private SearchStrategy getStrategy(String name) {
+		switch (name.toLowerCase()) {
+			case "random":
+				return new StrategyRandom(this, name);
+			case "human player":
+				return new StrategyManual(this, name);
+			case "a-b":
+				return new StrategyAlphaBeta(this, name);
+			default:
+				return null;
+		}
+	}
 
   	// generate random number for hashing
   	private void randGen() {
@@ -90,18 +106,16 @@ public class Controller // implements Serializable
 		} else if (paused) {
 			throw new IllegalArgumentException("Game has paused. Not possible to place stone. (Re)start game.");
 		}
-
-		if (from_UI)
-			System.out.println("Human player placed stone on cell " + cell_index);
-		else
-			System.out.println("Computer player placed stone on cell " + cell_index);
+//		if (from_UI)
+//			System.out.println("Human player placed stone on cell " + cell_index);
+//		else
+//			System.out.println("Computer player placed stone on cell " + cell_index);
 
 		// if click is outside board, or cell is already occupied --> illegal
 		if (cell_index < 0 || state.getCellContent(cell_index) != 0) {
-			throw new IllegalArgumentException("Cell index out of bound");
+			throw new IllegalArgumentException("Cell index out of bound or already occupied");
         } else { // If legal, update state, return the player index
 			state.placePiece(cell_index);
-
 			placementOrder.add(cell_index);
 			makeCache();
 		}
@@ -202,15 +216,6 @@ public class Controller // implements Serializable
 		return state.getScore();
 	}
 
-//	public byte getComputerPlayer() {
-//		return computer_player;
-//	}
-//
-//	public void setComputer(byte i) {
-//		this.computer_player = i;
-//		start();
-//	}
-
 	public void reverseMove() {
 		short cell = pastPlacements.pop();
 		state.unplacePiece(cell);
@@ -223,24 +228,26 @@ public class Controller // implements Serializable
 	}
 
 
-
+	// star the game
 	public void start() {
 		paused = false;
 		randGen();
+
 		// separate thread for running the game
 		Thread thread = new Thread(() -> {
-			//			timer = new long[state.getNumPlayer()];
 			placementOrder = new ArrayList<>(state.getTotalCells());
 //			pastPlacements = new Stack<>();
 			timestamp = LocalDateTime.now().toString().replace( ":" , "-" );
 
+			SearchStrategy[] players = new SearchStrategy[numPlayers()];
+			for (byte p_idx = 1; p_idx <= numPlayers(); p_idx++) {
+				players[p_idx-1] = getStrategy(strategyNames[player_strategy[p_idx-1]]);
+			}
 			// while game not terminated, alternate between players to get next move
 			while (!state.isTerminal()) {
-//				Timer timer = new Timer();
-//				timer.schedule(new SayHello(), 0, 1000);
 				// every round
 				for (byte p_idx = 1; p_idx <= numPlayers(); p_idx++) {
-					SearchStrategy s = strategies[player_strategy[p_idx-1]];
+					SearchStrategy s = players[p_idx-1];//strategies[player_strategy[p_idx-1]];
 
 					if (s.waitsForUI()) {
 						// wait for UI input
@@ -253,36 +260,13 @@ public class Controller // implements Serializable
 //							System.out.println(s.strategy_name + ", waiting for player " + state.nextPlayer());
 //						}
 					} else {
-						final ExecutorService service = Executors.newSingleThreadExecutor();
-						try {
+						short[] moves = s.getNextMove(state);
 
-							final Future<Object> f = service.submit(() -> {
-								// Do you long running calculation here
-//								Thread.sleep(1337); // Simulate some delay
-//								moves = s.getNextMove(state);
-
-								for (short stone_placement : s.getNextMove(state)) {
-									System.out.println("====================strategy " + s.strategy_name + " move " + stone_placement);
-									processCellClick(stone_placement, false);
-								}
-								return -1;
-							});
-
-							System.out.println(f.get(3600, TimeUnit.SECONDS));
-						} catch (final TimeoutException e) {
-							System.err.println("Calculation took to long");
-							// TODO: return intermediate result
-							System.exit(0);
-						} catch (final Exception e) {
-							throw new RuntimeException(e);
-						} finally {
-							service.shutdown();
+						System.out.println("generated moves: " + Arrays.toString(moves));
+						for (short stone_placement : moves) {
+							System.out.println("===================strategy " + s.strategy_name + " move " + stone_placement);
+							processCellClick(stone_placement, false);
 						}
-
-//						for (short stone_placement : s.getNextMove(state)) {
-//							System.out.println("====================strategy " + s.strategy_name + " move " + stone_placement);
-//							processCellClick(stone_placement, false);
-//						}
 					}
 				}
 			}
@@ -320,9 +304,9 @@ public class Controller // implements Serializable
 	}
 
 	public String[] getStrategies() {
-		String[] names = new String[strategies.length];
-		for (byte i = 0; i < strategies.length; i++) {
-			names[i] = strategies[i].getStrategyName();
+		String[] names = new String[strategyNames.length];
+		for (byte i = 0; i < strategyNames.length; i++) {
+			names[i] = strategyNames[i];//.getStrategyName();
 		}
 		return names;
 	}

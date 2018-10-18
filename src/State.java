@@ -5,7 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class State implements Serializable {
-    private byte[] cells; // Color placed in the cell. Empty is 0
+    public byte[] cells; // Color placed in the cell. Empty is 0
     private short[] uf_parent;
     private short[] uf_size;
     private ArrayList<Short>[] adj_list;  // neighbor indices
@@ -33,13 +33,16 @@ public class State implements Serializable {
     // overloaded constructor for copying states
     public State(State s) {
         size = s.size;
-        cells = s.cells.clone();
-        adj_list = s.adj_list;
+        adj_list = s.adj_list.clone();
         num_player = s.num_player;
+
         total_cells = s.total_cells;
         used_cells = s.used_cells;
+        cells = s.cells.clone();
+
         uf_parent = s.uf_parent.clone();
         uf_size = s.uf_size.clone();
+
         group_size_counter = new HashMap<>(group_size_counter);
         sim = true;
         scores = s.scores.clone();
@@ -232,8 +235,8 @@ public class State implements Serializable {
     private void calcScores() {
         Arrays.fill(scores, 1);
         for (Map.Entry<Short, Short> entry : group_size_counter.entrySet()) {
-            System.out.println("Player : " + entry.getKey() / 1000 + ", Group size: " + entry.getKey() % 1000 +
-                    " Count : " + entry.getValue());
+//            System.out.println("Player : " + entry.getKey() / 1000 + ", Group size: " + entry.getKey() % 1000 +
+//                    " Count : " + entry.getValue());
             scores[ entry.getKey() / 1000 - 1] *= Math.pow(entry.getKey() % 1000, entry.getValue());
         }
 //        System.out.println("Points: " + Arrays.toString(scores));
@@ -246,7 +249,7 @@ public class State implements Serializable {
 
     // Generate all legal moves
     //TODO: move to search strategy
-    public short[][] moveGen() { // TODO: currently it's a naive enumeration of all possible movements
+    public short[][] moveGen()  { // TODO: currently it's a naive enumeration of all possible movements
         short[][] moves = new short[numMoves()][num_player]; // return cell index for each color
 
         int cnt = 0;
@@ -261,6 +264,9 @@ public class State implements Serializable {
                     }
                 }
             }
+        }
+        if (cnt != numMoves()) {
+            System.exit(0);
         }
         return moves;
     }

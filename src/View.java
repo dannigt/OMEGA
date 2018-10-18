@@ -157,7 +157,6 @@ public class View
 							"Cannot load the progress dump. Make sure the correct file is chosen.",
 							"Loading failed", JOptionPane.INFORMATION_MESSAGE);
 				}
-
 			}
 		});
 		menu.add(menuItem);

@@ -1,5 +1,10 @@
+import java.util.Arrays;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.*;
+
 public class StrategyAlphaBeta extends SearchStrategy{
-    private short[] chosen_move; // store the most recent chosen move
+    private short[] current_best_move; // store the most recent chosen move
     private int cnt;
 
     StrategyAlphaBeta(Controller c, String name) {
@@ -8,8 +13,41 @@ public class StrategyAlphaBeta extends SearchStrategy{
 
     @Override
     short[] getNextMove(State state) {
-        alphaBeta(state, state.turnsLeft(), Integer.MIN_VALUE, Integer.MAX_VALUE);
-        return chosen_move;
+        // choose something
+        current_best_move = state.moveGen()[0];
+
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        Future<short[]> future = executor.submit(() -> {
+            // Do you long running calculation here
+            alphaBeta(state, state.turnsLeft(), Integer.MIN_VALUE, Integer.MAX_VALUE);
+
+            return current_best_move;
+        });
+
+        try{
+            current_best_move = future.get(1, TimeUnit.SECONDS);
+        }  catch (final TimeoutException e) {
+            System.err.println("Calculation took to long");
+        } catch (final Exception e) {
+            throw new RuntimeException(e);
+        } finally {
+            executor.shutdownNow();
+            System.out.println(Arrays.toString(current_best_move));
+        }
+//        finally {
+////            executor.shutdown();
+//            if (state.getCellContent(current_best_move[0])!=0) {
+//                System.out.println("!!!!!!!!!!!!!!!!!!!!!" + current_best_move[0]);
+//            }
+//            if (state.getCellContent(current_best_move[1])!=0) {
+//                System.out.println("!!!!!!!!!!!!!!!!!!!!!" + current_best_move[1]);
+//            }
+//            System.out.println("~~~~~~~~~~~~~~~~~~~~" + Arrays.toString(current_best_move) + "~~~~~~~~~~~~~~~~~~~~~");
+//
+//        }
+        System.out.println("~~~~~~~~~~~~~~~~~~~~" + Arrays.toString(current_best_move) + "~~~~~~~~~~~~~~~~~~~~~");
+
+        return current_best_move;
     }
 
     @Override
@@ -17,48 +55,44 @@ public class StrategyAlphaBeta extends SearchStrategy{
         return false;
     }
 
-    public State alphaBeta(State s_in, int depth, int alpha, int beta) {
-//        System.out.println("==================================DEPTH" + depth + "==============================");
-//        State s = new State(s_in);
-
+    private State alphaBeta(State s_in, int depth, int alpha, int beta) {
         if (s_in.isTerminal() || depth == 0) {
-            return s_in;
+            return new State(s_in);
         }
 
         int score = Integer.MIN_VALUE;
 
         short[][] all_moves = s_in.moveGen();
-        System.out.println("================CHILDREN COUNT:" + all_moves.length + "================");
+//        System.out.println("================CHILDREN COUNT:" + all_moves.length + "================");
 
+        State best_child_state = null;
         for (int child = 0; child < all_moves.length; child++) { //all_moves.length
-            State s = new State(s_in);
+            State s_child = new State(s_in); // copy states
 
             short[] move = all_moves[child];
 
             //TODO: should search bypass controller and directly put piece in state???
-            s.placePiece(move[0]);
-            s.placePiece(move[1]);
+            s_child.placePiece(move[0]);
+            s_child.placePiece(move[1]);
 
-            int value = -alphaBeta(s, depth - 1, -beta, -alpha).value();
+            int value = -alphaBeta(s_child, depth - 1, -beta, -alpha).value();
 
             if (value > score) {
                 score = value;
-                chosen_move = move;
+                current_best_move = move;
+                best_child_state = s_child;
                 s_in.setValue(score);
-                System.out.println("==============New value " + score);
             }
             if (score > alpha) {
                 alpha = score;
             }
             if (score >= beta) {
-                System.out.println("======================beta pruning=================");
                 break;
             }
         }
-//        this.chosen_move = chosen_move;
-        cnt++;
-        System.out.println(cnt);
+//        cnt++;
+//        System.out.println(cnt);
 
-        return s_in;
+        return best_child_state;
     }
 }
