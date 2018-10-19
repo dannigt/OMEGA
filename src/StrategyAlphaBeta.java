@@ -7,15 +7,17 @@ public class StrategyAlphaBeta extends SearchStrategy{
     private short[] current_best_move; // store the most recent chosen move
     private int cnt;
     private long startTime;
+    private int time_limit = 0;
 
     StrategyAlphaBeta(Controller c, String name) {
         super(c, name);
     }
 
     @Override
-    short[] getNextMove(State state) {
+    short[] getNextMove(State state, int milli) {
         startTime = System.currentTimeMillis();
-        // choose something
+        time_limit = milli;
+        // choose something first
         current_best_move = state.moveGen()[0];
 
         alphaBeta(state, state.turnsLeft(), Integer.MIN_VALUE, Integer.MAX_VALUE);
@@ -60,8 +62,8 @@ public class StrategyAlphaBeta extends SearchStrategy{
     }
 
     private State alphaBeta(State s_in, int depth, int alpha, int beta) {
-        //TODO: if time is out. break
-        if ((System.currentTimeMillis() - startTime) > 10000) {
+        // stop recursion once time is out
+        if ((System.currentTimeMillis() - startTime) > time_limit) {
             return s_in;
         }
 

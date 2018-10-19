@@ -260,7 +260,7 @@ public class Controller // implements Serializable
 //							System.out.println(s.strategy_name + ", waiting for player " + state.nextPlayer());
 //						}
 					} else {
-						short[] moves = s.getNextMove(state);
+						short[] moves = s.getNextMove(state, 10000);
 
 						System.out.println("generated moves: " + Arrays.toString(moves));
 						for (short stone_placement : moves) {
