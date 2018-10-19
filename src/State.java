@@ -277,9 +277,9 @@ public class State implements Serializable {
     }
 
     //TODO: implement evaluation function
-    //TODO: would this overflow?
+    //TODO: would this overflow in larger boards?
     public int value() {
-        return (int) (scores[0] - scores[1]);
+        return (int) (scores[1] - -scores[0]);
     }
 
     public void setValue(int v) {
@@ -313,8 +313,8 @@ public class State implements Serializable {
         return (currentRound() - 1) * num_player + 1;
     }
 
-    public short turnsLeft() {
-        return (short) (totalTurns() - currentTurn());
+    public byte turnsLeft() {
+        return (byte) (totalTurns() - currentTurn());
     }
 
     public byte getSize() {

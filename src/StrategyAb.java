@@ -3,25 +3,27 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.*;
 
-public class StrategyAlphaBeta extends SearchStrategy{
-    private short[] current_best_move; // store the most recent chosen move
+public class StrategyAb extends SearchStrategy{
+    private short[] cur_best_move; // store the most recent chosen move
     private int cnt;
     private long startTime;
     private int time_limit = 0;
 
-    StrategyAlphaBeta(Controller c, String name) {
+    StrategyAb(Controller c, String name) {
         super(c, name);
     }
 
     @Override
     short[] getNextMove(State state, int milli) {
+        cnt = 0;
         startTime = System.currentTimeMillis();
         time_limit = milli;
         // choose something first
-        current_best_move = state.moveGen()[0];
+        cur_best_move = state.moveGen()[0];
 
-        alphaBeta(state, state.turnsLeft(), Integer.MIN_VALUE, Integer.MAX_VALUE);
+        alphaBeta(state, state.turnsLeft(), Integer.MIN_VALUE, Integer.MAX_VALUE, cur_best_move);
 
+        System.out.println("Evaluated " + cnt + " child.");
 //        ExecutorService executor = Executors.newSingleThreadExecutor();
 //        Future<short[]> future = executor.submit(() -> {
 //            // Do you long running calculation here
@@ -53,7 +55,7 @@ public class StrategyAlphaBeta extends SearchStrategy{
 ////        }
 //        System.out.println("~~~~~~~~~~~~~~~~~~~~" + Arrays.toString(current_best_move) + "~~~~~~~~~~~~~~~~~~~~~");
 
-        return current_best_move;
+        return cur_best_move;
     }
 
     @Override
@@ -61,7 +63,7 @@ public class StrategyAlphaBeta extends SearchStrategy{
         return false;
     }
 
-    private State alphaBeta(State s_in, int depth, int alpha, int beta) {
+    private State alphaBeta(State s_in, int depth, int alpha, int beta, short[] current_best_move) {
         // stop recursion once time is out
         if ((System.currentTimeMillis() - startTime) > time_limit) {
             return s_in;
@@ -86,13 +88,16 @@ public class StrategyAlphaBeta extends SearchStrategy{
             s_child.placePiece(move[0]);
             s_child.placePiece(move[1]);
 
-            int value = -alphaBeta(s_child, depth - 1, -beta, -alpha).value();
+            int value = -alphaBeta(s_child, depth - 1, -beta, -alpha, current_best_move).value();
 
             if (value > score) {
                 score = value;
-                current_best_move = move;
+//                current_best_move = move;
+                current_best_move[0] = move[0];
+                current_best_move[1] = move[1];
                 best_child_state = s_child;
                 s_in.setValue(score);
+                System.out.println("=============================================");
             }
             if (score > alpha) {
                 alpha = score;
@@ -101,7 +106,7 @@ public class StrategyAlphaBeta extends SearchStrategy{
                 break;
             }
         }
-//        cnt++;
+        cnt++;
 //        System.out.println(cnt);
 
         return best_child_state;

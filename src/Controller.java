@@ -4,7 +4,6 @@ import java.io.*;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.concurrent.*;
 
 public class Controller // implements Serializable
 {
@@ -25,7 +24,7 @@ public class Controller // implements Serializable
 //	private SearchStrategy[] strategies;
 	private byte[] player_strategy = new byte[] {0, 2};
 
-	private String[] strategyNames = new String[] {"random", "human", "a-b"};
+	private String[] strategyNames = new String[] {"random", "human", "a-b", "a-b with id"};
 
 	// TODO: for hashing
 	private long[][] rands;
@@ -42,7 +41,7 @@ public class Controller // implements Serializable
 		hash_dir = Paths.get(System.getProperty("user.dir") , "hash").toString();
 
 //		strategies = new SearchStrategy[]{new StrategyRandom(this, "Random"),
-//				new StrategyManual(this, "Human Player"), new StrategyAlphaBeta(this, "A-B")};
+//				new StrategyManual(this, "Human Player"), new StrategyAb(this, "A-B")};
 
 
 		paused = true;
@@ -55,9 +54,11 @@ public class Controller // implements Serializable
 			case "human player":
 				return new StrategyManual(this, name);
 			case "a-b":
-				return new StrategyAlphaBeta(this, name);
+				return new StrategyAb(this, name);
+			case "a-b with id":
+				return new StrategyAbIterativeDeepening(this, name);
 			default:
-				return null;
+				throw new IllegalArgumentException("No strategy with name " + name);
 		}
 	}
 
@@ -146,7 +147,6 @@ public class Controller // implements Serializable
 		try{
 			fout = new FileOutputStream(Paths.get(log_dir , timestamp).toString(), false);
 			oos = new ObjectOutputStream(fout);
-			System.out.println("placement order: " + placementOrder);
 			oos.writeObject(placementOrder);
 		} catch (Exception ex) {
 			ex.printStackTrace();
@@ -243,6 +243,7 @@ public class Controller // implements Serializable
 			for (byte p_idx = 1; p_idx <= numPlayers(); p_idx++) {
 				players[p_idx-1] = getStrategy(strategyNames[player_strategy[p_idx-1]]);
 			}
+
 			// while game not terminated, alternate between players to get next move
 			while (!state.isTerminal()) {
 				// every round
@@ -256,13 +257,9 @@ public class Controller // implements Serializable
 							// And From your main() method or any other method
 						} while
 						(state.nextPlayer() == p_idx);
-//						while (state.nextPlayer() == p_idx) {
-//							System.out.println(s.strategy_name + ", waiting for player " + state.nextPlayer());
-//						}
 					} else {
 						short[] moves = s.getNextMove(state, 10000);
 
-						System.out.println("generated moves: " + Arrays.toString(moves));
 						for (short stone_placement : moves) {
 							System.out.println("===================strategy " + s.strategy_name + " move " + stone_placement);
 							processCellClick(stone_placement, false);
@@ -272,35 +269,7 @@ public class Controller // implements Serializable
 			}
 		});
 
-
 		thread.start();
-//		timer = new long[state.getNumPlayer()];
-////		placementOrder = new ArrayList<>(state.getTotalCells());
-//		pastPlacements = new Stack<>();
-//		timestamp = LocalDateTime.now().toString().replace( ":" , "-" );
-//
-//		// while game not terminated
-//		// Alternate between players to get next move
-//		while (!state.isTerminal()) {
-//			for (byte p : player_strategy) {
-//				System.out.println(strategies[p].getStrategyName());
-//				short[] movements = strategies[p].getNextMove(state);
-//
-//				if (movements != null) {
-//					for (short stone_placement : strategies[p].getNextMove(state)) {
-//						System.out.println("====================strategy " + p + " move " + stone_placement);
-//						processCellClick(stone_placement, false);
-//					}
-//					//				break;
-//				} else {
-//					System.out.println("ELSE");
-//					// wait for ui stuff
-//					while (state.nextPlayer() != computer_player) {
-//						System.out.println("waiting for UI....");
-//					}
-//				}
-//			}
-//		}
 	}
 
 	public String[] getStrategies() {
