@@ -26,7 +26,7 @@ public class Controller // implements Serializable
 //	private SearchStrategy[] strategies;
 	private byte[] player_strategy = new byte[] {0, 2};
 
-	private String[] strategyNames = new String[] {"random", "human", "a-b"};
+	private String[] strategyNames = new String[] {"random", "human", "a-b", "a-b with id"};
 
 	// TODO: for hashing
 	private long[][] rands;
@@ -59,8 +59,8 @@ public class Controller // implements Serializable
 				return new StrategyManual(this, name);
 			case "a-b":
 				return new StrategyAb(this, name);
-//			case "a-b with id":
-//				return new StrategyAbIterativeDeepening(this, name);
+			case "a-b with id":
+				return new StrategyAbIterativeDeepening(this, name);
 			default:
 				throw new IllegalArgumentException("No strategy with name " + name);
 		}
@@ -226,13 +226,6 @@ public class Controller // implements Serializable
 		short cell = pastPlacements.pop();
 		state.unplacePiece(cell);
 	}
-
-	class SayHello extends TimerTask {
-		public void run() {
-			System.out.println("Remaining time: " + timer);
-		}
-	}
-
 
 	// star the game
 	public void start() {

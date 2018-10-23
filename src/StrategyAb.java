@@ -22,7 +22,8 @@ public class StrategyAb extends SearchStrategy{
         curBestMove = moves[moves.length-1];
 
         try {
-            alphaBeta(state, state.turnsLeft(), Integer.MIN_VALUE, Integer.MAX_VALUE, curBestMove, pIndex);
+            alphaBeta(state, state.turnsLeft(), -60000, 60000, curBestMove, pIndex);
+//            alphaBeta(state, state.turnsLeft(), Integer.MIN_VALUE, Integer.MAX_VALUE, curBestMove, pIndex);
         } catch (TimeoutException ex) {
             System.out.println("timeout");
         }
@@ -84,9 +85,6 @@ public class StrategyAb extends SearchStrategy{
             }
         }
         cnt++;
-//        if (cnt>100000) {
-//            System.exit(0);
-//        }
 
         return sIn;
     }
