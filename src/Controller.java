@@ -1,6 +1,8 @@
-import org.apache.commons.lang3.time.StopWatch;
+//import org.apache.commons.lang3.time.StopWatch;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -19,7 +21,7 @@ public class Controller // implements Serializable
 	private Stack<Short> pastPlacements;
 	private String log_dir;
 	private String hash_dir;
-	private StopWatch stopwatch = new StopWatch();
+//	private StopWatch stopwatch = new StopWatch();
 	private String timestamp;
 //	private SearchStrategy[] strategies;
 	private byte[] player_strategy = new byte[] {0, 2};
@@ -40,11 +42,11 @@ public class Controller // implements Serializable
 		log_dir = Paths.get(System.getProperty("user.dir"), "log").toString();
 		hash_dir = Paths.get(System.getProperty("user.dir") , "hash").toString();
 
-//		strategies = new SearchStrategy[]{new StrategyRandom(this, "Random"),
-//				new StrategyManual(this, "Human Player"), new StrategyAb(this, "A-B")};
-
-
 		paused = true;
+
+		// TODO: move to elsewhere?
+		createDirIfNotExist(Paths.get(hash_dir));
+		createDirIfNotExist(Paths.get(log_dir));
   	}
 
   	private SearchStrategy getStrategy(String name) {
@@ -64,6 +66,7 @@ public class Controller // implements Serializable
 
   	// generate random number for hashing
   	private void randGen() {
+		Paths.get(hash_dir + "board_size_", state.getSize() + ".dat");
 		String path = hash_dir + "\\board_size_" + state.getSize() + ".dat";
 
 		File f = new File(path);
@@ -145,7 +148,8 @@ public class Controller // implements Serializable
 		ObjectOutputStream oos = null;
 		FileOutputStream fout = null;
 		try{
-			fout = new FileOutputStream(Paths.get(log_dir , timestamp).toString(), false);
+			Path out = Paths.get(log_dir , timestamp);
+			fout = new FileOutputStream(out.toString(), false);
 			oos = new ObjectOutputStream(fout);
 			oos.writeObject(placementOrder);
 		} catch (Exception ex) {
@@ -294,5 +298,16 @@ public class Controller // implements Serializable
 		//check current player index
 
 		//moves are full --> confirm --> process into state
+	}
+
+	private void createDirIfNotExist(Path path) {
+		if(Files.notExists(path)){
+			try {
+				Files.createDirectory(path);
+			}
+			catch (Exception ex) {
+				System.err.println("Cannot create dir " + path.toString());
+			}
+		}
 	}
 }
