@@ -97,7 +97,7 @@ public class StrategyAb extends SearchStrategy{
                 current_best_move[1] = move[1];
                 best_child_state = s_child;
                 s_in.setValue(score);
-                System.out.println("=============================================");
+//                System.out.println("=============================================");
             }
             if (score > alpha) {
                 alpha = score;

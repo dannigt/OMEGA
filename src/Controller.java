@@ -258,7 +258,7 @@ public class Controller // implements Serializable
 						} while
 						(state.nextPlayer() == p_idx);
 					} else {
-						short[] moves = s.getNextMove(state, 10000);
+						short[] moves = s.getNextMove(state, 60000);
 
 						for (short stone_placement : moves) {
 							System.out.println("===================strategy " + s.strategy_name + " move " + stone_placement);
