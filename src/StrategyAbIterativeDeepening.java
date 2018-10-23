@@ -1,3 +1,4 @@
+import javax.management.StandardEmitterMBean;
 import java.util.Hashtable;
 
 public class StrategyAbIterativeDeepening extends SearchStrategy{
@@ -16,25 +17,23 @@ public class StrategyAbIterativeDeepening extends SearchStrategy{
         timeLimit = milli;
         short[] curBestMove = new short[]{0, 0}; // store the most recent chosen move
 
-        byte total_depth = state.turnsLeft();
-        Hashtable<Byte, Hashtable<Long, Object>> tt = new Hashtable<>(total_depth);
+        byte totalDepth = state.turnsLeft();
+        Hashtable<Byte, Hashtable<Long, State>> tt = new Hashtable<>(totalDepth);
 
 //        Hashtable<Long, Object> tt= new Hashtable<Long, Object>(); // transposition table
         // for (turns left) to 0
-        for (byte ply=1; ply < total_depth; ply++) {
+        for (byte ply=2; ply < totalDepth; ply++) {
             System.out.println("=====================PLY" + ply);
             // if out of time, break
             if ((System.currentTimeMillis() - startTime) > timeLimit) {
                 break;
             }
-            alphaBetaTT(state, ply, Integer.MIN_VALUE, Integer.MAX_VALUE, curBestMove, pIdx, tt);
+            // do a-b search with current # of ply
+            alphaBetaTT(state, ply, Integer.MIN_VALUE, Integer.MAX_VALUE, curBestMove, pIdx, tt, totalDepth);
+            // get values for all children
             // order based on values
+            // do search to next level
         }
-        // do a-b search on current level
-        // get values for all children
-        // do search to next level
-
-//        alphaBetaTT(state, state.turnsLeft(), Integer.MIN_VALUE, Integer.MAX_VALUE);
 
         System.out.println("Evaluated " + cnt + " child.");
 
@@ -48,7 +47,7 @@ public class StrategyAbIterativeDeepening extends SearchStrategy{
 
     // alpha beta with TT
     private State alphaBetaTT(State sIn, byte depth, int alpha, int beta, short[] curBestMove, int pIndex,
-                              Hashtable<Byte, Hashtable<Long, Object>> tt) {
+                              Hashtable<Byte, Hashtable<Long, State>> tt, byte totalDepth) {
 //        olda = alpha; /* save original alpha value */
 //        n =  retrieve(s) /* Transposition-table lookup */
 //        if n.depth >= d then
@@ -60,12 +59,24 @@ public class StrategyAbIterativeDeepening extends SearchStrategy{
 //          beta = min(beta, n.value);
 //        if (alpha>=beta)
 //          return n.value;
-        if (tt.containsKey(depth)) {
-            System.out.println("Blah");
-            if (tt.get(depth).containsKey(sIn.getHashKey())) {
-                System.out.println("found!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+
+//        State stateTT = null;
+        byte turn = (byte) (totalDepth-depth);
+        if (tt.containsKey(turn)) {
+            if (tt.get(turn).containsKey(sIn.getHashKey())) {
+//                System.out.println("found!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+                return tt.get(turn).get(sIn.getHashKey());
             }
         }
+        // if flag == exact
+        // return state
+        // if flag == lower bound
+//      // alpha = max(alpha, value)
+        // else if flag = upper bound
+        // beta = min(beta, value)
+        // if (alpha >= beta)
+        // state.setvalue(value)
+        // return state
 
         if (sIn.isTerminal() || depth == 0) {
             sIn.eval(pIndex);
@@ -74,6 +85,7 @@ public class StrategyAbIterativeDeepening extends SearchStrategy{
 
         int score = Integer.MIN_VALUE; // a-b always start with a max player
 
+        //TODO: at root, the moves should be generated based on values from last ply
         short[][] all_moves = sIn.moveGen();
 
 //        State bestChild = null;
@@ -85,17 +97,13 @@ public class StrategyAbIterativeDeepening extends SearchStrategy{
             sChild.placePiece(move[0]);
             sChild.placePiece(move[1]);
 
-            int value = -alphaBetaTT(sChild, (byte) (depth - 1), -beta, -alpha, curBestMove, pIndex, tt).getValue();
+            int value = -alphaBetaTT(sChild, (byte) (depth - 1), -beta, -alpha, curBestMove, pIndex, tt, totalDepth).getValue();
 
             if (value > score) {
                 score = value;
                 curBestMove[0] = move[0];
                 curBestMove[1] = move[1];
                 sIn.setValue(value);
-//                System.out.println("=============================================" + value);
-//                System.out.println(depth + " | child:" + child + " | a:" + alpha + " | b:" + beta +
-//                        " | best move:" + Arrays.toString(curBestMove) +
-//                        " | time out:" + ((System.currentTimeMillis() - startTime) > timeLimit));
             }
             if (score > alpha) {
                 alpha = score;
@@ -107,8 +115,23 @@ public class StrategyAbIterativeDeepening extends SearchStrategy{
         cnt++;
 
         // TODO: if reaching here, there was no TT entry. Need to store!
-        //        store(s, bestMove, bestValue, flag, depth);
+        //	/* Traditional transposition table storing of bounds */ 
+        //    	/* Fail-low result implies an upper bound */
+        //
+        // if (bestValue <= olda)
+            //  flag = UpperBound;
 
+        //	/* Fail-high result implies a lower bound */
+        // elseif bestValue >= beta then flag = LowerBound;
+        //	elseif  flag = Exact;
+        //
+        //	store(s, bestMove, bestValue, flag, depth);
+
+        //        store(s, bestMove, bestValue, flag, depth);
+        if (!tt.containsKey(turn)) {
+            tt.put(turn, new Hashtable<>());
+        }
+        tt.get(turn).put(sIn.getHashKey(), sIn);
 
         return sIn;
     }

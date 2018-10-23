@@ -35,7 +35,7 @@ public class State implements Serializable {
     // overloaded constructor for copying states
     public State(State s) {
         size = s.size;
-        adj_list = s.adj_list.clone();
+        adj_list = s.adj_list;
         num_player = s.num_player;
 
         total_cells = s.total_cells;
