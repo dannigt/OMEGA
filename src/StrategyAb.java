@@ -14,46 +14,16 @@ public class StrategyAb extends SearchStrategy{
     }
 
     @Override
-    short[] getNextMove(State state, int milli) {
+    short[] getNextMove(State state, int time) {
         cnt = 0;
         startTime = System.currentTimeMillis();
-        time_limit = milli;
+        time_limit = time;
         // choose something first
         cur_best_move = state.moveGen()[0];
 
         alphaBeta(state, state.turnsLeft(), Integer.MIN_VALUE, Integer.MAX_VALUE, cur_best_move);
 
-        System.out.println("Evaluated " + cnt + " child.");
-//        ExecutorService executor = Executors.newSingleThreadExecutor();
-//        Future<short[]> future = executor.submit(() -> {
-//            // Do you long running calculation here
-//            alphaBeta(state, state.turnsLeft(), Integer.MIN_VALUE, Integer.MAX_VALUE);
-//
-//            return current_best_move;
-//        });
-//
-//        try{
-//            current_best_move = future.get(1, TimeUnit.SECONDS);
-//        }  catch (final TimeoutException e) {
-//            System.err.println("Calculation took to long");
-//        } catch (final Exception e) {
-//            throw new RuntimeException(e);
-//        } finally {
-//            executor.shutdownNow();
-//            System.out.println(Arrays.toString(current_best_move));
-//        }
-////        finally {
-//////            executor.shutdown();
-////            if (state.getCellContent(current_best_move[0])!=0) {
-////                System.out.println("!!!!!!!!!!!!!!!!!!!!!" + current_best_move[0]);
-////            }
-////            if (state.getCellContent(current_best_move[1])!=0) {
-////                System.out.println("!!!!!!!!!!!!!!!!!!!!!" + current_best_move[1]);
-////            }
-////            System.out.println("~~~~~~~~~~~~~~~~~~~~" + Arrays.toString(current_best_move) + "~~~~~~~~~~~~~~~~~~~~~");
-////
-////        }
-//        System.out.println("~~~~~~~~~~~~~~~~~~~~" + Arrays.toString(current_best_move) + "~~~~~~~~~~~~~~~~~~~~~");
+        System.out.println("Evaluated " + cnt + " children.");
 
         return cur_best_move;
     }
@@ -70,7 +40,7 @@ public class StrategyAb extends SearchStrategy{
         }
 
         if (s_in.isTerminal() || depth == 0) {
-            return new State(s_in);
+            return s_in;
         }
 
         int score = Integer.MIN_VALUE;
@@ -88,7 +58,7 @@ public class StrategyAb extends SearchStrategy{
             s_child.placePiece(move[0]);
             s_child.placePiece(move[1]);
 
-            int value = -alphaBeta(s_child, depth - 1, -beta, -alpha, current_best_move).value();
+            int value = -alphaBeta(s_child, depth - 1, -beta, -alpha, current_best_move).value((byte) 1);
 
             if (value > score) {
                 score = value;
@@ -106,7 +76,6 @@ public class StrategyAb extends SearchStrategy{
             }
         }
         cnt++;
-//        System.out.println(cnt);
 
         return best_child_state;
     }

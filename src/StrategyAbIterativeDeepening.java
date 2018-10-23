@@ -66,7 +66,7 @@ public class StrategyAbIterativeDeepening extends SearchStrategy{
             s_child.placePiece(move[0]);
             s_child.placePiece(move[1]);
 
-            int value = -alphaBeta(s_child, depth - 1, -beta, -alpha).value();
+            int value = -alphaBeta(s_child, depth - 1, -beta, -alpha).value((byte) 0);
 
             if (value > score) {
                 score = value;

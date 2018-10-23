@@ -123,7 +123,6 @@ public class State implements Serializable {
         //TODO: if in search step, don't notify change
         if (!sim) {
             c.notifyChange();
-//            c.makeCache();
         }
     }
 
@@ -278,8 +277,10 @@ public class State implements Serializable {
 
     //TODO: implement evaluation function
     //TODO: would this overflow in larger boards?
-    public int value() {
-        return (int) (scores[1] - -scores[0]);
+    // value depends on player's perspective
+    public int value(byte currentPlayer) {
+        // current player's score - the opponent
+        return (int) (scores[currentPlayer] - scores[num_player - 1 - currentPlayer]);
     }
 
     public void setValue(int v) {

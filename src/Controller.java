@@ -36,7 +36,7 @@ public class Controller // implements Serializable
 
 	private String warning_info = "";
 
-	private int TIME_LIMIT = 120000;
+	private int TIME_LIMIT = 60000;
 
 	public Controller() {
 		state = new State(this);
