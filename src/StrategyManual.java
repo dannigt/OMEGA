@@ -4,7 +4,7 @@ public class StrategyManual extends SearchStrategy {
     }
 
     @Override
-    short[] getNextMove(State state , int millisec) {
+    short[] getNextMove(State state , int millisec, int pIndex) {
         // Get two moves from UI. This is an ugly workaround
         return null;
     }

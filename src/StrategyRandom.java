@@ -5,7 +5,7 @@ public class StrategyRandom extends SearchStrategy {
     }
 
     @Override
-    public short[] getNextMove(State state , int millisec) {
+    public short[] getNextMove(State state , int millisec, int pIdx) {
         short[][] moves = state.moveGen();
         return moves[(int) (Math.random() * moves.length)];
     }

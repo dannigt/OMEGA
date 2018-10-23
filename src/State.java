@@ -278,8 +278,9 @@ public class State implements Serializable {
     //TODO: implement evaluation function
     //TODO: would this overflow in larger boards?
     // value depends on player's perspective
-    public int value(byte currentPlayer) {
+    public int value(int currentPlayer) {
         // current player's score - the opponent
+//        System.out.println("value is " + currentPlayer + " - " + (num_player - 1 - currentPlayer));
         return (int) (scores[currentPlayer] - scores[num_player - 1 - currentPlayer]);
     }
 

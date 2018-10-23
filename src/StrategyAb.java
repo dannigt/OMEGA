@@ -1,31 +1,27 @@
-import java.util.Arrays;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.concurrent.*;
-
 public class StrategyAb extends SearchStrategy{
-    private short[] cur_best_move; // store the most recent chosen move
+    private short[] curBestMove; // store the most recent chosen move
     private int cnt;
     private long startTime;
-    private int time_limit = 0;
+    private int timeLimit = 0;
 
     StrategyAb(Controller c, String name) {
         super(c, name);
     }
 
     @Override
-    short[] getNextMove(State state, int time) {
+    short[] getNextMove(State state, int time, int pIndex) {
+
         cnt = 0;
         startTime = System.currentTimeMillis();
-        time_limit = time;
+        timeLimit = time;
         // choose something first
-        cur_best_move = state.moveGen()[0];
+        curBestMove = state.moveGen()[0];
 
-        alphaBeta(state, state.turnsLeft(), Integer.MIN_VALUE, Integer.MAX_VALUE, cur_best_move);
+        alphaBeta(state, state.turnsLeft(), Integer.MIN_VALUE, Integer.MAX_VALUE, curBestMove, pIndex);
 
         System.out.println("Evaluated " + cnt + " children.");
 
-        return cur_best_move;
+        return curBestMove;
     }
 
     @Override
@@ -33,9 +29,9 @@ public class StrategyAb extends SearchStrategy{
         return false;
     }
 
-    private State alphaBeta(State s_in, int depth, int alpha, int beta, short[] current_best_move) {
+    private State alphaBeta(State s_in, int depth, int alpha, int beta, short[] current_best_move, int pIndex) {
         // stop recursion once time is out
-        if ((System.currentTimeMillis() - startTime) > time_limit) {
+        if ((System.currentTimeMillis() - startTime) > timeLimit) {
             return s_in;
         }
 
@@ -58,7 +54,7 @@ public class StrategyAb extends SearchStrategy{
             s_child.placePiece(move[0]);
             s_child.placePiece(move[1]);
 
-            int value = -alphaBeta(s_child, depth - 1, -beta, -alpha, current_best_move).value((byte) 1);
+            int value = -alphaBeta(s_child, depth - 1, -beta, -alpha, current_best_move, pIndex).value(pIndex);
 
             if (value > score) {
                 score = value;

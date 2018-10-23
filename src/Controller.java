@@ -24,7 +24,7 @@ public class Controller // implements Serializable
 //	private StopWatch stopwatch = new StopWatch();
 	private String timestamp;
 //	private SearchStrategy[] strategies;
-	private byte[] player_strategy = new byte[] {0, 2};
+	private byte[] player_strategy = new byte[] {2, 0};
 
 	private String[] strategyNames = new String[] {"random", "human", "a-b", "a-b with id"};
 
@@ -36,7 +36,7 @@ public class Controller // implements Serializable
 
 	private String warning_info = "";
 
-	private int TIME_LIMIT = 60000;
+	private int TIME_LIMIT = 10000;
 
 	public Controller() {
 		state = new State(this);
@@ -253,8 +253,8 @@ public class Controller // implements Serializable
 			// while game not terminated, alternate between players to get next move
 			while (!state.isTerminal()) {
 				// every round
-				for (byte p_idx = 1; p_idx <= numPlayers(); p_idx++) {
-					SearchStrategy s = players[p_idx-1];//strategies[player_strategy[p_idx-1]];
+				for (byte pIdx = 1; pIdx <= numPlayers(); pIdx++) {
+					SearchStrategy s = players[pIdx-1];//strategies[player_strategy[p_idx-1]];
 
 					if (s.waitsForUI()) {
 						// wait for UI input
@@ -262,9 +262,9 @@ public class Controller // implements Serializable
 							System.out.println(s.strategy_name + ", waiting for UI input");
 							// And From your main() method or any other method
 						} while
-						(state.nextPlayer() == p_idx);
+						(state.nextPlayer() == pIdx);
 					} else {
-						short[] moves = s.getNextMove(state, TIME_LIMIT);
+						short[] moves = s.getNextMove(state, TIME_LIMIT, pIdx-1);
 
 						for (short stone_placement : moves) {
 							System.out.println("===================strategy " + s.strategy_name + " move " + stone_placement);

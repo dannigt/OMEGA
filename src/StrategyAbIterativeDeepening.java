@@ -9,7 +9,7 @@ public class StrategyAbIterativeDeepening extends SearchStrategy{
     }
 
     @Override
-    short[] getNextMove(State state, int milli) {
+    short[] getNextMove(State state, int milli, int pIdx) {
         cnt = 0;
         startTime = System.currentTimeMillis();
         time_limit = milli;
