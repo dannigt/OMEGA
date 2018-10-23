@@ -92,7 +92,6 @@ public class StrategyAb extends SearchStrategy{
 
             if (value > score) {
                 score = value;
-//                current_best_move = move;
                 current_best_move[0] = move[0];
                 current_best_move[1] = move[1];
                 best_child_state = s_child;

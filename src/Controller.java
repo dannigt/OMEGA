@@ -36,6 +36,8 @@ public class Controller // implements Serializable
 
 	private String warning_info = "";
 
+	private int TIME_LIMIT = 120000;
+
 	public Controller() {
 		state = new State(this);
 
@@ -262,7 +264,7 @@ public class Controller // implements Serializable
 						} while
 						(state.nextPlayer() == p_idx);
 					} else {
-						short[] moves = s.getNextMove(state, 60000);
+						short[] moves = s.getNextMove(state, TIME_LIMIT);
 
 						for (short stone_placement : moves) {
 							System.out.println("===================strategy " + s.strategy_name + " move " + stone_placement);

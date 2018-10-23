@@ -231,7 +231,7 @@ public class View
 	    panel.repaint();
 	}
 
-	public static void drawBoard(int size, Graphics2D g2, int x0, int y0) {
+	private static void drawBoard(int size, Graphics2D g2, int x0, int y0) {
 		boolean add = cellCenters.isEmpty();
 		//draw grid
 		short cnt = 0;
@@ -248,7 +248,7 @@ public class View
 				int x = startX + 2 * a * j;
 				
 				Color to_paint = PALETTE[c.getCellColor(cnt)];
-				drawHex(x, y, g2, to_paint);  
+				drawHex(x, y, g2, to_paint, cnt);
 				cnt++;
 				if (add)
 					cellCenters.add(new Point(x, y));
@@ -262,7 +262,7 @@ public class View
 			
 			for (int j=0; j < tilesPerRow; j++) {
 				int x = startX + 2 * a * j;
-				drawHex(x, y, g2, PALETTE[c.getCellColor(cnt)]);  
+				drawHex(x, y, g2, PALETTE[c.getCellColor(cnt)], cnt);
 				cnt++;
 				if (add)
 					cellCenters.add(new Point(x, y));
@@ -300,16 +300,20 @@ Calls: hex()
 Purpose: This function draws a hexagon based on the initial point (x,y).
 The hexagon is drawn in the colour specified in hexgame.COLOURELL.
 *********************************************************************/
-	public static void drawHex(int x, int y, Graphics2D g2, Color cell_color) {
+
+	private static void drawHex(int x, int y, Graphics2D g2, Color cell_color, int index) {
+
 		Polygon poly = hex(x,y);
 		g2.setColor(cell_color);
 		g2.fillPolygon(poly);
 		g2.setColor(Color.BLACK);
 		g2.drawPolygon(poly);
+
+		g2.drawString(Integer.toString(index), x, y);
 	}
 	
 	//take canvas point (x, y), convert to cell index.
-	public static short pointToCellIndex(int x, int y) {
+	private static short pointToCellIndex(int x, int y) {
 		Point given = new Point(x, y);
 		Point nearest = cellCenters.get(0);
 		for (Point p : cellCenters) {
@@ -321,17 +325,14 @@ The hexagon is drawn in the colour specified in hexgame.COLOURELL.
 		return (short)((nearest.distance(given) < a) ? cellCenters.indexOf(nearest) : -1);
 	}
 
-
-
-
 //	public static void main(String[] args)
 //{
-//	Controller c = new Controller();
+//    Controller c = new Controller();
 //
-//	SwingUtilities.invokeLater(new Runnable() {
-//		public void run() {
-//			createAndShowGUI(c);
-//		}
-//	});
+//    SwingUtilities.invokeLater(new Runnable() {
+//        public void run() {
+//            createAndShowGUI(c);
+//        }
+//    });
 //}
 }
