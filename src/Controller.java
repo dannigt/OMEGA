@@ -24,7 +24,7 @@ public class Controller // implements Serializable
 //	private StopWatch stopwatch = new StopWatch();
 	private String timestamp;
 //	private SearchStrategy[] strategies;
-	private byte[] player_strategy = new byte[] {0, 2};
+	private byte[] player_strategy = new byte[] {1, 1};
 
 	private String[] strategyNames = new String[] {"random", "human", "a-b", "a-b with id"};
 
@@ -55,7 +55,7 @@ public class Controller // implements Serializable
 		switch (name.toLowerCase()) {
 			case "random":
 				return new StrategyRandom(this, name);
-			case "human player":
+			case "human":
 				return new StrategyManual(this, name);
 			case "a-b":
 				return new StrategyAb(this, name);
@@ -252,7 +252,7 @@ public class Controller // implements Serializable
 					if (s.waitsForUI()) {
 						// wait for UI input
 						do {
-							System.out.println(s.strategy_name + ", waiting for UI input");
+//							System.out.println(s.strategy_name + ", waiting for UI input");
 							// And From your main() method or any other method
 						} while
 						(state.nextPlayer() == pIdx);
@@ -305,4 +305,11 @@ public class Controller // implements Serializable
 			}
 		}
 	}
+
+	public long[][] requestRands() {
+	    if (rands == null) {
+	        randGen();
+        }
+	    return rands;
+    }
 }

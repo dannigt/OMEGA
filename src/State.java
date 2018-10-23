@@ -18,6 +18,7 @@ public class State implements Serializable {
     private HashMap<Short, Short> group_size_counter = new HashMap<>();
     private long[] scores;
     private int value;
+    private long hashKey = 0; // hash key for transposition table
 
     //Constructors with default values
     public State(Controller c) {
@@ -28,6 +29,7 @@ public class State implements Serializable {
         this.c = c;
         this.num_player = num_player;
         init(size);
+
     }
 
     // overloaded constructor for copying states
@@ -121,18 +123,28 @@ public class State implements Serializable {
     }
 
     public void placePiece(short cell) {
-        cells[cell] = nextColor();
+        byte nextColor = nextColor();
+        cells[cell] = nextColor;
         used_cells++;
         calcConnectedAreaSize(cell);
         calcScores();
 
-        //TODO: if in search step, don't notify change
+        // Update hashkey
+        // hahKey *= rand[cell][color];
+        hashKey ^= c.requestRands()[cell][nextColor];
+        System.out.println("=============================" + hashKey);
+
+        // If in search step, don't notify change
         if (!sim) {
             c.notifyChange();
         }
     }
 
-    //TODO: also remove points
+    public long getHashKey() {
+        return hashKey;
+    }
+
+    //TODO: also remove points. Or just delete past moves and restore again...
     public void unplacePiece(short cell) {
         cells[cell] = 0;
         used_cells--;
