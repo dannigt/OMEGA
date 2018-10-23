@@ -1,3 +1,6 @@
+import java.util.Arrays;
+import java.util.concurrent.TimeoutException;
+
 public class StrategyAb extends SearchStrategy{
     private short[] curBestMove; // store the most recent chosen move
     private int cnt;
@@ -10,17 +13,23 @@ public class StrategyAb extends SearchStrategy{
 
     @Override
     short[] getNextMove(State state, int time, int pIndex) {
-
         cnt = 0;
         startTime = System.currentTimeMillis();
         timeLimit = time;
         // choose something first
-        curBestMove = state.moveGen()[0];
+        short[][] moves = state.moveGen();
 
-        alphaBeta(state, state.turnsLeft(), Integer.MIN_VALUE, Integer.MAX_VALUE, curBestMove, pIndex);
+        curBestMove = moves[moves.length-1];
 
+        try {
+            alphaBeta(state, state.turnsLeft(), Integer.MIN_VALUE, Integer.MAX_VALUE, curBestMove, pIndex);
+        } catch (TimeoutException ex) {
+            System.out.println("timeout");
+        }
+
+        System.out.println(Arrays.toString(curBestMove));
         System.out.println("Evaluated " + cnt + " children.");
-
+//        System.exit(0);
         return curBestMove;
     }
 
@@ -29,40 +38,43 @@ public class StrategyAb extends SearchStrategy{
         return false;
     }
 
-    private State alphaBeta(State s_in, int depth, int alpha, int beta, short[] current_best_move, int pIndex) {
-        // stop recursion once time is out
+    private State alphaBeta(State sIn, int depth, int alpha, int beta, short[] curBestMove, int pIndex) throws TimeoutException{
+        // stop recursion if: 1) time is out, 2) is terminal
         if ((System.currentTimeMillis() - startTime) > timeLimit) {
-            return s_in;
+//            return sIn;
+            throw new TimeoutException();
         }
 
-        if (s_in.isTerminal() || depth == 0) {
-            return s_in;
+        if (sIn.isTerminal() || depth == 0) {
+            // Only really eval here
+            sIn.eval(pIndex);
+            return sIn;
         }
 
-        int score = Integer.MIN_VALUE;
+        int score = Integer.MIN_VALUE; // a-b always start with a max player
 
-        short[][] all_moves = s_in.moveGen();
-//        System.out.println("================CHILDREN COUNT:" + all_moves.length + "================");
+        short[][] all_moves = sIn.moveGen();
 
-        State best_child_state = null;
+//        State bestChild = null;
         for (int child = 0; child < all_moves.length; child++) { //all_moves.length
-            State s_child = new State(s_in); // copy states
+            State sChild = new State(sIn); // copy states
 
             short[] move = all_moves[child];
 
-            //TODO: should search bypass controller and directly put piece in state???
-            s_child.placePiece(move[0]);
-            s_child.placePiece(move[1]);
+            sChild.placePiece(move[0]);
+            sChild.placePiece(move[1]);
 
-            int value = -alphaBeta(s_child, depth - 1, -beta, -alpha, current_best_move, pIndex).value(pIndex);
+            int value = -alphaBeta(sChild, depth - 1, -beta, -alpha, curBestMove, pIndex).getValue();
 
             if (value > score) {
                 score = value;
-                current_best_move[0] = move[0];
-                current_best_move[1] = move[1];
-                best_child_state = s_child;
-                s_in.setValue(score);
-//                System.out.println("=============================================");
+                curBestMove[0] = move[0];
+                curBestMove[1] = move[1];
+                sIn.setValue(value); //TODO: should i set the getValue of the state that came it?????
+//                System.out.println("=============================================" + value);
+//                System.out.println(depth + " | child:" + child + " | a:" + alpha + " | b:" + beta +
+//                        " | best move:" + Arrays.toString(curBestMove) +
+//                        " | time out:" + ((System.currentTimeMillis() - startTime) > timeLimit));
             }
             if (score > alpha) {
                 alpha = score;
@@ -72,7 +84,10 @@ public class StrategyAb extends SearchStrategy{
             }
         }
         cnt++;
+//        if (cnt>100000) {
+//            System.exit(0);
+//        }
 
-        return best_child_state;
+        return sIn;
     }
 }

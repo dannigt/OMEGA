@@ -45,7 +45,13 @@ public class State implements Serializable {
 
         group_size_counter = new HashMap<>(group_size_counter);
         sim = true;
+
         scores = s.scores.clone();
+//        if (value != s.value) {
+//            System.out.println(value + "<--" + s.value);
+        value = s.value;
+//        }
+
     }
 
     public void reset(byte size) {
@@ -277,11 +283,23 @@ public class State implements Serializable {
 
     //TODO: implement evaluation function
     //TODO: would this overflow in larger boards?
-    // value depends on player's perspective
-    public int value(int currentPlayer) {
+    //TODO: now this only takes diff with another play (for 2-player game only)
+    // getValue depends on player's perspective
+    public int getValue() {
         // current player's score - the opponent
-//        System.out.println("value is " + currentPlayer + " - " + (num_player - 1 - currentPlayer));
-        return (int) (scores[currentPlayer] - scores[num_player - 1 - currentPlayer]);
+//        if (isLeftNode) {// if i'm the last depth
+////            System.out.println("------------------------------" );
+//            return (int) (scores[currentPlayer] - scores[num_player - 1 - currentPlayer]);
+//        }
+//        else {// if i'm not the last depth, my value should have been updated by my child nodes
+//            return (int) (scores[currentPlayer] - scores[num_player - 1 - currentPlayer]);
+//            System.out.println("---" + value);
+        return value;
+//        }
+    }
+
+    public void eval(int currentPlayer) {
+        value = (int) (scores[currentPlayer] - scores[num_player - 1 - currentPlayer]);
     }
 
     public void setValue(int v) {

@@ -24,9 +24,9 @@ public class Controller // implements Serializable
 //	private StopWatch stopwatch = new StopWatch();
 	private String timestamp;
 //	private SearchStrategy[] strategies;
-	private byte[] player_strategy = new byte[] {2, 0};
+	private byte[] player_strategy = new byte[] {0, 2};
 
-	private String[] strategyNames = new String[] {"random", "human", "a-b", "a-b with id"};
+	private String[] strategyNames = new String[] {"random", "human", "a-b"};
 
 	// TODO: for hashing
 	private long[][] rands;
@@ -59,8 +59,8 @@ public class Controller // implements Serializable
 				return new StrategyManual(this, name);
 			case "a-b":
 				return new StrategyAb(this, name);
-			case "a-b with id":
-				return new StrategyAbIterativeDeepening(this, name);
+//			case "a-b with id":
+//				return new StrategyAbIterativeDeepening(this, name);
 			default:
 				throw new IllegalArgumentException("No strategy with name " + name);
 		}
