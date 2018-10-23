@@ -52,8 +52,11 @@ public class State implements Serializable {
 //        if (value != s.value) {
 //            System.out.println(value + "<--" + s.value);
         value = s.value;
-//        }
 
+        hashKey = s.hashKey;
+
+        //TODO: should simulation have ref to controller???
+        c = s.c;
     }
 
     public void reset(byte size) {
@@ -75,6 +78,7 @@ public class State implements Serializable {
         group_size_counter = new HashMap<>();
         System.out.println(total_cells + " cells, ");
 
+        // Make adjacency list
         adj_list = new ArrayList[total_cells];
         for (short i = 0; i < adj_list.length; i++) {
             //at most 6 neighbours.
@@ -116,6 +120,10 @@ public class State implements Serializable {
                 cur_idx++;
             }
         }
+        //TODO: no need to XOR all the empty cells. Start the same anyways
+//        for (short i=0; i<cells.length; i++) {
+//            hashKey ^= c.requestRands()[i][0];
+//        }
     }
 
     public short getCellContent(short cell) {
@@ -131,9 +139,11 @@ public class State implements Serializable {
 
         // Update hashkey
         // hahKey *= rand[cell][color];
-        hashKey ^= c.requestRands()[cell][nextColor];
-        System.out.println("=============================" + hashKey);
-
+        try {
+            hashKey ^= c.requestRands()[cell][nextColor];
+        } catch (Exception ex) {
+            System.out.println("sim " + sim);
+        }
         // If in search step, don't notify change
         if (!sim) {
             c.notifyChange();
@@ -349,7 +359,7 @@ public class State implements Serializable {
         return (byte) (totalTurns() - currentTurn());
     }
 
-    public byte getSize() {
+    public byte getBoardSize() {
         return size;
     }
 

@@ -71,7 +71,7 @@ public class StrategyAb extends SearchStrategy{
                 score = value;
                 curBestMove[0] = move[0];
                 curBestMove[1] = move[1];
-                sIn.setValue(value); //TODO: should i set the getValue of the state that came it?????
+                sIn.setValue(value);
 //                System.out.println("=============================================" + value);
 //                System.out.println(depth + " | child:" + child + " | a:" + alpha + " | b:" + beta +
 //                        " | best move:" + Arrays.toString(curBestMove) +

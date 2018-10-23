@@ -28,3 +28,5 @@ log/
 hash/
 
 src/Test\.java
+
+*.dat

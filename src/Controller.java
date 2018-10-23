@@ -24,11 +24,10 @@ public class Controller // implements Serializable
 //	private StopWatch stopwatch = new StopWatch();
 	private String timestamp;
 //	private SearchStrategy[] strategies;
-	private byte[] player_strategy = new byte[] {1, 1};
+	private byte[] player_strategy = new byte[] {0, 3};
 
 	private String[] strategyNames = new String[] {"random", "human", "a-b", "a-b with id"};
 
-	// TODO: for hashing
 	private long[][] rands;
 	// TODO: timer for players
 	private long[] timer;
@@ -66,10 +65,28 @@ public class Controller // implements Serializable
 		}
 	}
 
+
+	private Object readObject(String path) throws Exception {
+        Object res = null;
+        try {
+            FileInputStream fin = new FileInputStream(path);
+            ObjectInputStream ois = new ObjectInputStream(fin);
+            res = ois.readObject();
+        } catch (Exception ex) {
+            throw ex;
+        }
+        return res;
+    }
   	// generate random number for hashing
-  	private void randGen() {
-		Paths.get(hash_dir + "board_size_", state.getSize() + ".dat");
-		String path = hash_dir + "\\board_size_" + state.getSize() + ".dat";
+  	private void loadRand() {
+		String path = Paths.get(hash_dir + "board_size_" + state.getBoardSize() + ".dat").toString();
+
+        try {
+            rands = (long[][]) readObject(path);
+        } catch (Exception ex) {
+            System.err.println("Cannot cast");
+            // TODO: generate here
+        }
 
 		File f = new File(path);
 		if(f.exists() && !f.isDirectory()) {
@@ -174,6 +191,7 @@ public class Controller // implements Serializable
 		try{
 			fin = new FileInputStream(path);
 			ois = new ObjectInputStream(fin);
+
 			// TODO: downcasting is ugly. Another other way?
 			ArrayList<Short> foo = (ArrayList<Short>) ois.readObject();
 
@@ -203,7 +221,7 @@ public class Controller // implements Serializable
 	}
 
 	public byte getBoardSize() {
-		return state.getSize();
+		return state.getBoardSize();
 	}
 
 	public String getProgressInfo() {
@@ -230,7 +248,7 @@ public class Controller // implements Serializable
 	// star the game
 	public void start() {
 		paused = false;
-		randGen();
+		loadRand();
 
 		// separate thread for running the game
 		Thread thread = new Thread(() -> {
@@ -308,7 +326,7 @@ public class Controller // implements Serializable
 
 	public long[][] requestRands() {
 	    if (rands == null) {
-	        randGen();
+	        loadRand();
         }
 	    return rands;
     }
