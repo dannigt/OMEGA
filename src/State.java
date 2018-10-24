@@ -17,7 +17,7 @@ public class State implements Serializable {
     private byte size;
     private HashMap<Short, Short> group_size_counter = new HashMap<>();
     private long[] scores;
-    private int value;
+    private int value = Integer.MIN_VALUE;
     private long hashKey = 0; // hash key for transposition table
 
     //Constructors with default values
@@ -51,7 +51,7 @@ public class State implements Serializable {
         scores = s.scores.clone();
 //        if (value != s.value) {
 //            System.out.println(value + "<--" + s.value);
-        value = s.value;
+//        value = s.value;
 
         hashKey = s.hashKey;
 

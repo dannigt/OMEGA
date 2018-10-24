@@ -22,7 +22,7 @@ public class StrategyAb extends SearchStrategy{
         curBestMove = moves[moves.length-1];
 
         try {
-            alphaBeta(state, state.turnsLeft(), -60000, 60000, curBestMove, pIndex);
+            alphaBeta(state, 3, -60000, 60000, curBestMove, pIndex);
 //            alphaBeta(state, state.turnsLeft(), Integer.MIN_VALUE, Integer.MAX_VALUE, curBestMove, pIndex);
         } catch (TimeoutException ex) {
             System.out.println("timeout");
@@ -69,13 +69,15 @@ public class StrategyAb extends SearchStrategy{
 
             if (value > score) {
                 score = value;
+                //TODO: this is wrong. Only at root, we can get move. Otherwise it's some moves elsewhere
                 curBestMove[0] = move[0];
                 curBestMove[1] = move[1];
                 sIn.setValue(value);
 //                System.out.println("=============================================" + value);
-//                System.out.println(depth + " | child:" + child + " | a:" + alpha + " | b:" + beta +
-//                        " | best move:" + Arrays.toString(curBestMove) +
-//                        " | time out:" + ((System.currentTimeMillis() - startTime) > timeLimit));
+//                System.out.println("New best: depth " + depth + " | value:" + value + " | score:" + score +
+//                        " | child nr.:" + child +
+//                        " | a:" + alpha + " | b:" + beta +
+//                        " | best move:" + Arrays.toString(curBestMove));
             }
             if (score > alpha) {
                 alpha = score;
