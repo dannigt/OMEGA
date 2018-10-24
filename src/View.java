@@ -75,7 +75,10 @@ public class View
 
 		menuItem = new JMenuItem("Start");
 		menuItem.addActionListener(e -> {
-			c.start();
+            Thread thread = new Thread(() -> { // use a new thread to run the game
+                c.start();
+            });
+            thread.start();
 		});
 		menu.add(menuItem);
 		menu.addSeparator();

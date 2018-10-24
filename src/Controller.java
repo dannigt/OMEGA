@@ -1,5 +1,7 @@
 //import org.apache.commons.lang3.time.StopWatch;
 
+import jdk.jshell.spi.ExecutionControl;
+
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -18,9 +20,9 @@ public class Controller // implements Serializable
 
 	// TODO: also track past movements here
 	private ArrayList<Short> placementOrder;
-	private Stack<Short> pastPlacements;
-	private String log_dir;
-	private String hash_dir;
+//	private Stack<Short> pastPlacements;
+	private final String LOG_DIR;
+	private final String HASH_DIR;
 //	private StopWatch stopwatch = new StopWatch();
 	private String timestamp;
 //	private SearchStrategy[] strategies;
@@ -37,17 +39,24 @@ public class Controller // implements Serializable
 
 	private int TIME_LIMIT = 1000;
 
+	public void clear() {
+        state = new State(this);
+//        placementOrder.clear();
+        //TODO: also clear timer
+        paused = true;
+    }
+
 	public Controller() {
 		state = new State(this);
 
-		log_dir = Paths.get(System.getProperty("user.dir"), "log").toString();
-		hash_dir = Paths.get(System.getProperty("user.dir") , "hash").toString();
+		LOG_DIR = Paths.get(System.getProperty("user.dir"), "log").toString();
+		HASH_DIR = Paths.get(System.getProperty("user.dir") , "hash").toString();
 
 		paused = true;
 
 		// TODO: move to elsewhere?
-		createDirIfNotExist(Paths.get(hash_dir));
-		createDirIfNotExist(Paths.get(log_dir));
+		createDirIfNotExist(Paths.get(HASH_DIR));
+		createDirIfNotExist(Paths.get(LOG_DIR));
   	}
 
   	private SearchStrategy getStrategy(String name) {
@@ -79,7 +88,7 @@ public class Controller // implements Serializable
     }
   	// generate random number for hashing
   	private void loadRand() {
-		String path = Paths.get(hash_dir + "board_size_" + state.getBoardSize() + ".dat").toString();
+		String path = Paths.get(HASH_DIR + "board_size_" + state.getBoardSize() + ".dat").toString();
 
         try {
             rands = (long[][]) readObject(path);
@@ -168,7 +177,7 @@ public class Controller // implements Serializable
 		ObjectOutputStream oos = null;
 		FileOutputStream fout = null;
 		try{
-			Path out = Paths.get(log_dir , timestamp);
+			Path out = Paths.get(LOG_DIR, timestamp);
 			fout = new FileOutputStream(out.toString(), false);
 			oos = new ObjectOutputStream(fout);
 			oos.writeObject(placementOrder);
@@ -242,15 +251,17 @@ public class Controller // implements Serializable
 	}
 
 	public void reverseMove() {
-		short cell = pastPlacements.pop();
-		state.unplacePiece(cell);
+//	    throw ExecutionControl.NotImplementedException("delete from the move order list");
+	    //		short cell = pastPlacements.pop();
+//		state.unplacePiece(cell);
 	}
 
+	// return the move sequences
 	public void start(SearchStrategy... players) {
         paused = false;
         loadRand();
         // separate thread for running the game
-        Thread thread = new Thread(() -> {
+//        Thread thread = new Thread(() -> {
             placementOrder = new ArrayList<>(state.getTotalCells());
 //			pastPlacements = new Stack<>();
             timestamp = LocalDateTime.now().toString().replace( ":" , "-" );
@@ -277,9 +288,10 @@ public class Controller // implements Serializable
                     }
                 }
             }
-        });
+//        });
 
-        thread.start();
+//        thread.start();
+
     }
 
 	// star the game
