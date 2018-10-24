@@ -1,18 +1,33 @@
 import java.util.ArrayList;
 
 public class Experiment {
-    int repeat = 10;
-    SearchStrategy[] strategies;
+    private final int REPEAT = 10;
+    private SearchStrategy[] strategies;
+    private static Controller c;
 
-    public Experiment(SearchStrategy... strategies) {
+    private Experiment(SearchStrategy... strategies) {
         this.strategies = strategies;
     }
 
-    public void runExperiments() {
+    private void runExperiments() {
         for (int i=0; i<strategies.length; i++) {
-            for (int j=i; j<strategies.length; j++) {
-                System.out.println(strategies[i] + " v.s." + strategies[j]);
+            for (int j=i+1; j<strategies.length; j++) {
+//                for (int k=0; k<REPEAT; k++) {
+                    System.out.println("Running experiment "
+                            + strategies[i].getStrategyName() + " v.s. " + strategies[j].getStrategyName());
+                    c.start(strategies[i], strategies[j]);
+//                }
             }
         }
+    }
+
+    public static void main(String[] args) {
+        c = new Controller();
+        Experiment experiment = new Experiment(
+                new StrategyRandom(c, "random"),
+//                new StrategyAb(c, "a-b"),
+                new StrategyAbIterativeDeepening(c, "a-b with id"));
+
+        experiment.runExperiments();
     }
 }

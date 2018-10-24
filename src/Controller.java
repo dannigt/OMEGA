@@ -155,7 +155,8 @@ public class Controller // implements Serializable
     }
 
 	public void notifyChange() {
-        view.repaint();
+	    if (view != null)
+            view.repaint();
     }
 
     // TODO: only need to dump past movements and timer
@@ -245,47 +246,88 @@ public class Controller // implements Serializable
 		state.unplacePiece(cell);
 	}
 
+	public void start(SearchStrategy... players) {
+        paused = false;
+        loadRand();
+        // separate thread for running the game
+        Thread thread = new Thread(() -> {
+            placementOrder = new ArrayList<>(state.getTotalCells());
+//			pastPlacements = new Stack<>();
+            timestamp = LocalDateTime.now().toString().replace( ":" , "-" );
+
+            // while game not terminated, alternate between players to get next move
+            while (!state.isTerminal()) {
+                // every round
+                for (byte pIdx = 1; pIdx <= numPlayers(); pIdx++) {
+                    SearchStrategy s = players[pIdx-1];//strategies[player_strategy[p_idx-1]];
+
+                    if (s.waitsForUI()) {
+                        // wait for UI input
+                        do {
+//							System.out.println(s.strategy_name + ", waiting for UI input");
+                            // And From your main() method or any other method
+                        } while
+                        (state.nextPlayer() == pIdx);
+                    } else {
+                        short[] moves = s.getNextMove(state, TIME_LIMIT, pIdx-1);
+                        for (short stone_placement : moves) {
+                            System.out.println("===================strategy " + s.strategy_name + " move " + stone_placement);
+                            processCellClick(stone_placement, false);
+                        }
+                    }
+                }
+            }
+        });
+
+        thread.start();
+    }
+
 	// star the game
 	public void start() {
-		paused = false;
-		loadRand();
+        SearchStrategy[] players = new SearchStrategy[numPlayers()];
+        for (byte p_idx = 1; p_idx <= numPlayers(); p_idx++) {
+			players[p_idx-1] = getStrategy(strategyNames[player_strategy[p_idx-1]]);
+		}
+
+		start(players);
 
 		// separate thread for running the game
-		Thread thread = new Thread(() -> {
-			placementOrder = new ArrayList<>(state.getTotalCells());
-//			pastPlacements = new Stack<>();
-			timestamp = LocalDateTime.now().toString().replace( ":" , "-" );
-
-			SearchStrategy[] players = new SearchStrategy[numPlayers()];
-			for (byte p_idx = 1; p_idx <= numPlayers(); p_idx++) {
-				players[p_idx-1] = getStrategy(strategyNames[player_strategy[p_idx-1]]);
-			}
-
-			// while game not terminated, alternate between players to get next move
-			while (!state.isTerminal()) {
-				// every round
-				for (byte pIdx = 1; pIdx <= numPlayers(); pIdx++) {
-					SearchStrategy s = players[pIdx-1];//strategies[player_strategy[p_idx-1]];
-
-					if (s.waitsForUI()) {
-						// wait for UI input
-						do {
-//							System.out.println(s.strategy_name + ", waiting for UI input");
-							// And From your main() method or any other method
-						} while
-						(state.nextPlayer() == pIdx);
-					} else {
-						short[] moves = s.getNextMove(state, TIME_LIMIT, pIdx-1);
-						for (short stone_placement : moves) {
-							System.out.println("===================strategy " + s.strategy_name + " move " + stone_placement);
-							processCellClick(stone_placement, false);
-						}
-					}
-				}
-			}
-		});
-
-		thread.start();
+//		Thread thread = new Thread(() -> {
+//			placementOrder = new ArrayList<>(state.getTotalCells());
+////			pastPlacements = new Stack<>();
+//            timestamp = LocalDateTime.now().toString().replace( ":" , "-" );
+//
+//			SearchStrategy[] players = new SearchStrategy[numPlayers()];
+//
+//			for (byte p_idx = 1; p_idx <= numPlayers(); p_idx++) {
+//				players[p_idx-1] = getStrategy(strategyNames[player_strategy[p_idx-1]]);
+//			}
+//
+//			// while game not terminated, alternate between players to get next move
+//			while (!state.isTerminal()) {
+//				// every round
+//				for (byte pIdx = 1; pIdx <= numPlayers(); pIdx++) {
+//					SearchStrategy s = players[pIdx-1];//strategies[player_strategy[p_idx-1]];
+//
+//					if (s.waitsForUI()) {
+//						// wait for UI input
+//						do {
+////							System.out.println(s.strategy_name + ", waiting for UI input");
+//							// And From your main() method or any other method
+//						} while
+//						(state.nextPlayer() == pIdx);
+//					} else {
+//						short[] moves = s.getNextMove(state, TIME_LIMIT, pIdx-1);
+//						for (short stone_placement : moves) {
+//							System.out.println("===================strategy " + s.strategy_name + " move " + stone_placement);
+//							processCellClick(stone_placement, false);
+//						}
+//					}
+//				}
+//			}
+//		});
+//
+//		thread.start();
 	}
 
 	public String[] getStrategies() {
