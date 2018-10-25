@@ -270,9 +270,13 @@ public class Controller // implements Serializable
                     (state.nextPlayer() == pIdx);
                 } else {
                     short[] moves = s.getNextMove(state, TIME_LIMIT, (byte) (pIdx-1));
-                    for (short stone_placement : moves) {
-                        System.out.println("===================strategy " + s.strategy_name + " move " + stone_placement);
-                        processCellClick(stone_placement, false);
+                    try {
+                        for (short stone_placement : moves) {
+                            System.out.println("===================strategy " + s.strategy_name + " move " + stone_placement);
+                            processCellClick(stone_placement, false);
+                        }
+                    } catch (Exception ex) {
+                        s.requestFallback();
                     }
                 }
             }

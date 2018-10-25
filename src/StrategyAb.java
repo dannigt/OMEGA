@@ -95,4 +95,8 @@ public class StrategyAb extends SearchStrategy{
 
         return sIn;
     }
+
+    public short[] requestFallback(State state) {
+        return state.moveGen()[(int) (Math.random() * state.numMoves())];
+    }
 }

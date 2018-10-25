@@ -9,6 +9,8 @@ public abstract class SearchStrategy {
 
     abstract short[] getNextMove(State state, int millisec, byte pIndex);
 
+    abstract short[] requestFallback(State state);
+
     abstract State getNextState(State state, int millisec, byte pIndex);
 
     String getStrategyName() {

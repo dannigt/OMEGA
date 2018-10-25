@@ -16,6 +16,10 @@ public class StrategyRandom extends SearchStrategy {
         return moves[(int) (Math.random() * moves.length)];
     }
 
+    public short[] requestFallback(State state) {
+        return state.moveGen()[(int) (Math.random() * state.numMoves())];
+    }
+
     State getNextState(State state, int millisec, byte pIndex) {
 //        return moves[(int) (Math.random() * moves.length)];
         return null;

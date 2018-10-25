@@ -17,4 +17,8 @@ public class StrategyManual extends SearchStrategy {
     boolean waitsForUI() {
         return true;
     }
+
+    public short[] requestFallback(State state) {
+        return state.moveGen()[(int) (Math.random() * state.numMoves())];
+    }
 }

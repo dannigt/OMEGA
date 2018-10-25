@@ -50,7 +50,7 @@ public class StrategyAbIterativeDeepening extends SearchStrategy{
 
         State res = null;
         // for (turns left) to 0
-        for (byte ply=1; ply < state.turnsLeft(); ply++) {
+        for (byte ply=1; ply <= state.turnsLeft(); ply++) {
             cnt=0;
             Hashtable<Byte, Hashtable<Long, State>> tt = new Hashtable<>(); // current turn
             // if out of time, break
@@ -93,6 +93,7 @@ public class StrategyAbIterativeDeepening extends SearchStrategy{
 
         System.out.println(Arrays.toString(state.cells));
         System.out.println(Arrays.toString(res.cells));
+
         return curBestMove;
     }
 
@@ -246,6 +247,10 @@ public class StrategyAbIterativeDeepening extends SearchStrategy{
 //        }
 
         return bestChild;
+    }
+
+    public short[] requestFallback(State state) {
+        return state.moveGen()[(int) (Math.random() * state.numMoves())];
     }
 
     private void shuffle(short[] array) {
