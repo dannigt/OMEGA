@@ -53,7 +53,7 @@ public class StrategyAb extends SearchStrategy{
 
         if (sIn.isTerminal() || depth == 0) {
             // Only really eval here
-            sIn.eval(pIndex);
+            sIn.eval(pIndex, sIn.currentTurn());
             return sIn;
         }
 

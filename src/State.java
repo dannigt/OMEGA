@@ -268,28 +268,28 @@ public class State implements Comparable<State>  {
     //TODO: implement evaluation function
     //TODO: would this overflow in larger boards?
     //TODO: now this only takes diff with another play (for 2-player game only)
-    public void eval(byte currentPlayer, byte fromTurn) {
+    public void eval(byte curPlayerIdx, byte fromTurn) {
         // in earlier turns, use
         if (fromTurn < totalTurns() / 2) {
             value = 0;
             for (short entry : group_size_counter.keySet()) {
                 int pIdx = entry / 1000;
                 int size = entry % 1000;
-                if (size > 3) {
-                    value -= ((pIdx == currentPlayer) ? (size - 3) : (3 - size)) * group_size_counter.get(entry);
+
+//                System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" + curPlayerIdx + " - " + (num_player-1-curPlayerIdx));
+                if (size > 3) { // if too large groups are of my color, penalize
+                    value -= ((pIdx == curPlayerIdx+1) ? (size - 3) : (3 - size)) * group_size_counter.get(entry);
 //                    value -= (size - 3) * group_size_counter.get(entry);
                 }
             }
         } else { // in later turns, use the score directly
-            value = (int) (scores[currentPlayer] - scores[getOpponentIdx(currentPlayer)])/10; // score different MAX-MIN
-            if (currentPlayer==nextPlayer()) { // current player is next player
-                value = -value;
-//            System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" + currentPlayer + " - " + (num_player-1-currentPlayer));
-            }
+            value = (int) (scores[curPlayerIdx] - scores[getOpponentIdx(curPlayerIdx)])/10; // score different MAX-MIN
         }
-
         // flip value if it's a MIN node
-
+        if (curPlayerIdx+1 != nextPlayer()) { // current player is next player
+//            System.out.println("next player " + nextPlayer());
+            value = -value;
+        }
     }
 
     public void setValue(int v) {
