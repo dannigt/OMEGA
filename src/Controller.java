@@ -26,7 +26,7 @@ public class Controller // implements Serializable
 //	private StopWatch stopwatch = new StopWatch();
 	private String timestamp;
 //	private SearchStrategy[] strategies;
-	private byte[] player_strategy = new byte[] {0, 3};
+	private byte[] player_strategy = new byte[] {3, 0};
 
 	private String[] strategyNames = new String[] {"random", "human", "a-b", "a-b with id"};
 	private long[][] rands;
@@ -115,9 +115,10 @@ public class Controller // implements Serializable
 		}
 	}
 
-	public short getCellColor(short cell_index) {
-		return state.getCellContent(cell_index);
-	}
+    public byte getCellColor(short cIndex) {
+        return state.getCellContent(cIndex);
+    }
+
 	
 	public void processCellClick(short cell_index, boolean from_UI) {
 		if (state.isTerminal()) {

@@ -131,7 +131,7 @@ public class State implements Comparable<State>  {
 //        }
     }
 
-    public short getCellContent(short cell) {
+    public byte getCellContent(short cell) {
         return cells[cell];
     }
 

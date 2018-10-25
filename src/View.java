@@ -14,7 +14,7 @@ public class View
 	private static Controller c;
 	private static int NUM_ROWS;
 
-	private static final Color[] PALETTE = new Color[]{Color.GRAY, Color.WHITE, Color.BLACK, Color.RED, Color.BLUE};
+	private static final Color[] PALETTE = new Color[]{Color.GRAY, Color.WHITE, Color.BLACK, Color.LIGHT_GRAY, Color.BLUE};
 	private static final int SCR_H = (int) Toolkit.getDefaultToolkit().getScreenSize().getHeight();
 	private static final int SCR_W = (int) Toolkit.getDefaultToolkit().getScreenSize().getWidth();
 	private static final int SCRSIZE = Math.min(SCR_H, SCR_W);
@@ -249,9 +249,10 @@ public class View
 			
 			for (int j=0; j < tilesPerRow; j++) {
 				int x = startX + 2 * a * j;
-				
-				Color to_paint = PALETTE[c.getCellColor(cnt)];
-				drawHex(x, y, g2, to_paint, cnt);
+
+				byte colorIdx = c.getCellColor(cnt);
+				drawHex(x, y, g2, PALETTE[colorIdx], PALETTE[colorIdx+1], cnt);
+
 				cnt++;
 				if (add)
 					cellCenters.add(new Point(x, y));
@@ -265,7 +266,8 @@ public class View
 			
 			for (int j=0; j < tilesPerRow; j++) {
 				int x = startX + 2 * a * j;
-				drawHex(x, y, g2, PALETTE[c.getCellColor(cnt)], cnt);
+                byte colorIdx = c.getCellColor(cnt);
+                drawHex(x, y, g2, PALETTE[colorIdx], PALETTE[colorIdx+1], cnt);
 				cnt++;
 				if (add)
 					cellCenters.add(new Point(x, y));
@@ -304,14 +306,14 @@ Purpose: This function draws a hexagon based on the initial point (x,y).
 The hexagon is drawn in the colour specified in hexgame.COLOURELL.
 *********************************************************************/
 
-	private static void drawHex(int x, int y, Graphics2D g2, Color cell_color, int index) {
+	private static void drawHex(int x, int y, Graphics2D g2, Color cellColor, Color textColor, int index) {
 
 		Polygon poly = hex(x,y);
-		g2.setColor(cell_color);
+		g2.setColor(cellColor);
 		g2.fillPolygon(poly);
 		g2.setColor(Color.BLACK);
 		g2.drawPolygon(poly);
-
+        g2.setColor(textColor);
 		g2.drawString(Integer.toString(index), x, y);
 	}
 	
