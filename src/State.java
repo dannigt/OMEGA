@@ -269,7 +269,7 @@ public class State implements Comparable<State>  {
     //TODO: would this overflow in larger boards?
     //TODO: now this only takes diff with another play (for 2-player game only)
     public void eval(byte currentPlayer) {
-        value = (int) (scores[currentPlayer] - scores[getOpponentIdx(currentPlayer)]) / 10;
+        value = (int) (scores[currentPlayer] - scores[getOpponentIdx(currentPlayer)])/10;
         if (currentPlayer==nextPlayer()) { // current player is next player
             value = -value;
 //            System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" + currentPlayer + " - " + (num_player-1-currentPlayer));
@@ -328,12 +328,11 @@ public class State implements Comparable<State>  {
     }
 
     protected short getRandNeighbor(short cell) {
-        for (short ngb : adj_list[cell]) {
-            if (cells[ngb]==0) {
-                return ngb;
-            }
-        } //TODO: make it more random
-        return -1;
+        short idx;
+        do {
+            idx = (short) (Math.random() * adj_list[cell].size());
+        } while (cells[adj_list[cell].get(idx)]!=0);
+        return adj_list[cell].get(idx);
     }
 
     public byte getOpponentIdx(byte currentPlayer) {
