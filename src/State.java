@@ -277,7 +277,7 @@ public class State implements Comparable<State>  {
                 int size = entry % 1000;
 
                 if (size > 3) { // if too large groups are of my color, penalize
-                    value -= ((pIdx == curPlayerIdx+1) ? size : -size) * group_size_counter.get(entry);
+                    value -= ((pIdx == curPlayerIdx+1) ? Math.pow(size-3,2) : -Math.pow(size-3,2)) * group_size_counter.get(entry);
 //                    value -= (size - 3) * group_size_counter.get(entry);
                 }
             }
