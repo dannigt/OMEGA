@@ -240,18 +240,18 @@ public class View
 		short cnt = 0;
 		int num_rows = 2 * size - 1;
 //		drawHex(x0, y0, g2, COLOURCELL); // reference point
-		
+
 		for (int i=0; i <= num_rows/2; i++) {
 			int startX = x0 + a * (num_rows/2 - i); // towards right. X axis.
 			int y = (y0 + (int)(Math.sqrt(3) * a * i)); // towards down. Y axis.
-//			int lowerY = (y0 + (int)(Math.sqrt(3) * a * (num_rows - i - 1)));
 			int tilesPerRow = size + i;
 			
 			for (int j=0; j < tilesPerRow; j++) {
 				int x = startX + 2 * a * j;
 
 				byte colorIdx = c.getCellColor(cnt);
-				drawHex(x, y, g2, PALETTE[colorIdx], PALETTE[colorIdx+1], cnt);
+
+				drawHex(x, y, g2, PALETTE[colorIdx], PALETTE[colorIdx+1], cnt, c.isFocusedCell(cnt));
 
 				cnt++;
 				if (add)
@@ -267,7 +267,7 @@ public class View
 			for (int j=0; j < tilesPerRow; j++) {
 				int x = startX + 2 * a * j;
                 byte colorIdx = c.getCellColor(cnt);
-                drawHex(x, y, g2, PALETTE[colorIdx], PALETTE[colorIdx+1], cnt);
+                drawHex(x, y, g2, PALETTE[colorIdx], PALETTE[colorIdx+1], cnt, c.isFocusedCell(cnt));
 				cnt++;
 				if (add)
 					cellCenters.add(new Point(x, y));
@@ -306,16 +306,20 @@ Purpose: This function draws a hexagon based on the initial point (x,y).
 The hexagon is drawn in the colour specified in hexgame.COLOURELL.
 *********************************************************************/
 
-	private static void drawHex(int x, int y, Graphics2D g2, Color cellColor, Color textColor, int index) {
-
+	private static void drawHex(int x, int y, Graphics2D g2, Color cellColor, Color textColor, int index, boolean focus) {
 		Polygon poly = hex(x,y);
 		g2.setColor(cellColor);
 		g2.fillPolygon(poly);
 		g2.setColor(Color.BLACK);
 		g2.drawPolygon(poly);
-        g2.setColor(textColor);
-		g2.drawString(Integer.toString(index), x, y);
-	}
+        // cell index
+        if (focus) {
+            g2.setColor(Color.RED);
+        } else {
+            g2.setColor(textColor);
+        }
+        g2.drawString(Integer.toString(index), x, y);
+    }
 	
 	//take canvas point (x, y), convert to cell index.
 	private static short pointToCellIndex(int x, int y) {

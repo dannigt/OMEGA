@@ -20,12 +20,9 @@ public class Controller // implements Serializable
 
 	// TODO: also track past movements here
 	private ArrayList<Short> placementOrder;
-//	private Stack<Short> pastPlacements;
 	private final String LOG_DIR;
 	private final String HASH_DIR;
-//	private StopWatch stopwatch = new StopWatch();
 	private String timestamp;
-//	private SearchStrategy[] strategies;
 	private byte[] player_strategy = new byte[] {3, 0};
 
 	private String[] strategyNames = new String[] {"random", "human", "a-b", "a-b with id"};
@@ -119,6 +116,13 @@ public class Controller // implements Serializable
         return state.getCellContent(cIndex);
     }
 
+    public boolean isFocusedCell(short cIndex) { // last two pieces
+	    if (placementOrder != null && placementOrder.size() > 2)
+           return (cIndex==placementOrder.get(placementOrder.size()-1)) ||
+                (cIndex == placementOrder.get(placementOrder.size()-2));
+        else
+            return false;
+	}
 	
 	public void processCellClick(short cell_index, boolean from_UI) {
 		if (state.isTerminal()) {
@@ -126,10 +130,6 @@ public class Controller // implements Serializable
 		} else if (paused) {
 			throw new IllegalArgumentException("Game has paused. Not possible to place stone. (Re)start game.");
 		}
-//		if (from_UI)
-//			System.out.println("Human player placed stone on cell " + cell_index);
-//		else
-//			System.out.println("Computer player placed stone on cell " + cell_index);
 
 		// if click is outside board, or cell is already occupied --> illegal
 		if (cell_index < 0 || state.getCellContent(cell_index) != 0) {
