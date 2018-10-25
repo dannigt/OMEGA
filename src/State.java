@@ -6,7 +6,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class State implements Serializable {
+public class State implements Comparable<State>  {
     protected byte[] cells; // Color placed in the cell. Empty is 0
     private short[] uf_parent;
     private short[] uf_size;
@@ -20,6 +20,7 @@ public class State implements Serializable {
     private HashMap<Short, Short> group_size_counter = new HashMap<>();
     private long[] scores;
     private int value = Integer.MIN_VALUE;
+    private byte flag = Byte.MIN_VALUE;
     private long hashKey = 0; // hash key for transposition table
 
     //Constructors with default values
@@ -146,7 +147,7 @@ public class State implements Serializable {
         try {
             hashKey ^= c.requestRands()[cell][nextColor];
         } catch (Exception ex) {
-            System.out.println("sim " + sim);
+            System.err.println("sim " + sim);
         }
         // If in search step, don't notify change
         if (!sim) {
@@ -156,13 +157,6 @@ public class State implements Serializable {
 
     public long getHashKey() {
         return hashKey;
-    }
-
-    //TODO: also remove points. Or just delete past moves and restore again...
-    public void unplacePiece(short cell) {
-        cells[cell] = 0;
-        used_cells--;
-        c.notifyChange();
     }
 
     //For union find
@@ -219,48 +213,7 @@ public class State implements Serializable {
             }
         }
 
-//        if (!sim) {
-//            System.out.println("==========================" + uf_size[cell]);
-//            System.out.println(group_size_counter.toString());
-//        }
         return uf_size[cell];
-//        byte cur_player = cells[cell];
-//        byte cnt_ngb_color = 0;
-//        ArrayList<Short> group = null;
-//        for (int neighbor : adj_list[cell]) {
-//
-//            if (cells[cell] == cells[neighbor]) {
-//                cnt_ngb_color++;
-//                if (group == null) { // first connected group found.
-//                    group = cell_group_map[neighbor];
-//                    group_size_counter.computeIfPresent((short) (cur_player * 1000 + cell_group_map[neighbor].size()),
-//                            (k, v) -> (byte) (v - 1));
-//                    group.add(cell); //modify group list by adding current cell
-//                } else if (!group.equals(cell_group_map[neighbor])){// there has been a new group found. merge group
-////                    System.out.println("------------------------NEW GROUP------------------------");
-//                    group_size_counter.computeIfPresent((short) (cur_player * 1000 + cell_group_map[neighbor].size()),
-//                            (k, v) -> (byte) (v - 1));
-////                    groups.remove(cell_group_map[neighbor]);
-//                    group.addAll(cell_group_map[neighbor]);
-//                    cell_group_map[neighbor] = group;
-//                }
-//                cell_group_map[cell] = group; //update reference to group
-//            }
-//        }
-//        if (cnt_ngb_color == 0) {// no neighbor of same color, area consisting of this piece alone
-////            System.out.println("--------------------adding intial list-----------------");
-//            group = new ArrayList<Short>(cells.length); // create a new list containing current cell
-//            group.add(cell);
-//            cell_group_map[cell] = group;
-////            groups.add(group);
-//        } else {
-//            group_size_counter.merge((short) (cur_player * 1000 + group.size()), (byte) 1, (a, b) -> (byte) (a + b));
-//        }
-//            //        for (ArrayList<Short> g : cell_group_map) {
-////            if (g!=null)
-////                System.out.println(g);
-////        }
-//        return cell_group_map[cell].size();
     }
 
     private void calcScores() {
@@ -316,7 +269,7 @@ public class State implements Serializable {
     //TODO: would this overflow in larger boards?
     //TODO: now this only takes diff with another play (for 2-player game only)
     public void eval(byte currentPlayer) {
-        value = (int) (scores[currentPlayer] - scores[getOpponentIdx(currentPlayer)]);
+        value = (int) (scores[currentPlayer] - scores[getOpponentIdx(currentPlayer)]) / 10;
         if (currentPlayer==nextPlayer()) { // current player is next player
             value = -value;
 //            System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" + currentPlayer + " - " + (num_player-1-currentPlayer));
@@ -351,7 +304,7 @@ public class State implements Serializable {
     }
 
     public byte currentTurn() {
-        return (byte) ((currentRound() - 1) * num_player + 1);
+        return (byte) ((currentRound() - 1) * num_player + nextPlayer());
     }
 
     public byte turnsLeft() {
@@ -379,11 +332,35 @@ public class State implements Serializable {
             if (cells[ngb]==0) {
                 return ngb;
             }
-        }
+        } //TODO: make it more random
         return -1;
     }
 
     public byte getOpponentIdx(byte currentPlayer) {
         return (byte) (num_player - 1 - currentPlayer);
+    }
+
+    public void setFlag(byte flag) {
+        this.flag = flag;
+    }
+
+    public byte getFlag() {
+        return flag;
+    }
+
+    @Override
+    public int compareTo(State in) {
+        /* For Ascending order*/
+//        return this.value-in.getValue();
+
+        /* For Descending order do like this */
+        //return compareage-this.studentage;
+        if (value < in.getValue())
+            return 1;
+        else if (value > in.getValue())
+            return -1;
+        else
+            return 0;
+//        return in.getValue()-this.value;
     }
 }

@@ -37,7 +37,7 @@ public class Controller // implements Serializable
 
 	private String warning_info = "";
 
-	private int TIME_LIMIT = 60000;
+	private int TIME_LIMIT = 600000;
 
 	public void clear() {
 //        state = new State(this, state.getBoardSize());
@@ -264,7 +264,7 @@ public class Controller // implements Serializable
                 if (s.waitsForUI()) {
                     // wait for UI input
                     do {
-//							System.out.println(s.strategy_name + ", waiting for UI input");
+							System.out.println(s.strategy_name + ", waiting for UI input");
                         // And From your main() method or any other method
                     } while
                     (state.nextPlayer() == pIdx);
