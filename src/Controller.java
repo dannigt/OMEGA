@@ -37,7 +37,7 @@ public class Controller // implements Serializable
 
 	private String warning_info = "";
 
-	private int TIME_LIMIT = 1000;
+	private int TIME_LIMIT = 60000;
 
 	public void clear() {
 //        state = new State(this, state.getBoardSize());
@@ -269,7 +269,7 @@ public class Controller // implements Serializable
                     } while
                     (state.nextPlayer() == pIdx);
                 } else {
-                    short[] moves = s.getNextMove(state, TIME_LIMIT, pIdx-1);
+                    short[] moves = s.getNextMove(state, TIME_LIMIT, (byte) (pIdx-1));
                     for (short stone_placement : moves) {
                         System.out.println("===================strategy " + s.strategy_name + " move " + stone_placement);
                         processCellClick(stone_placement, false);
@@ -289,44 +289,6 @@ public class Controller // implements Serializable
 		}
 
 		start(players);
-
-		// separate thread for running the game
-//		Thread thread = new Thread(() -> {
-//			placementOrder = new ArrayList<>(state.getTotalCells());
-////			pastPlacements = new Stack<>();
-//            timestamp = LocalDateTime.now().toString().replace( ":" , "-" );
-//
-//			SearchStrategy[] players = new SearchStrategy[numPlayers()];
-//
-//			for (byte p_idx = 1; p_idx <= numPlayers(); p_idx++) {
-//				players[p_idx-1] = getStrategy(strategyNames[player_strategy[p_idx-1]]);
-//			}
-//
-//			// while game not terminated, alternate between players to get next move
-//			while (!state.isTerminal()) {
-//				// every round
-//				for (byte pIdx = 1; pIdx <= numPlayers(); pIdx++) {
-//					SearchStrategy s = players[pIdx-1];//strategies[player_strategy[p_idx-1]];
-//
-//					if (s.waitsForUI()) {
-//						// wait for UI input
-//						do {
-////							System.out.println(s.strategy_name + ", waiting for UI input");
-//							// And From your main() method or any other method
-//						} while
-//						(state.nextPlayer() == pIdx);
-//					} else {
-//						short[] moves = s.getNextMove(state, TIME_LIMIT, pIdx-1);
-//						for (short stone_placement : moves) {
-//							System.out.println("===================strategy " + s.strategy_name + " move " + stone_placement);
-//							processCellClick(stone_placement, false);
-//						}
-//					}
-//				}
-//			}
-//		});
-//
-//		thread.start();
 	}
 
 	public String[] getStrategies() {
@@ -395,5 +357,10 @@ public class Controller // implements Serializable
             throw ex;
         }
         return res;
+    }
+
+    public void setState(State newState) {
+	    state = newState;
+	    view.repaint();
     }
 }

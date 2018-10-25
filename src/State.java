@@ -4,9 +4,10 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class State implements Serializable {
-    public byte[] cells; // Color placed in the cell. Empty is 0
+    protected byte[] cells; // Color placed in the cell. Empty is 0
     private short[] uf_parent;
     private short[] uf_size;
     private ArrayList<Short>[] adj_list;  // neighbor indices
@@ -47,9 +48,6 @@ public class State implements Serializable {
         uf_size = s.uf_size.clone();
 
         group_size_counter = new HashMap<>(s.group_size_counter);
-//        for (Short key : s.group_size_counter.keySet()) {
-//            group_size_counter.put(key, s.group_size_counter.get(key));
-//        }
 
         sim = true;
 
@@ -317,8 +315,8 @@ public class State implements Serializable {
     //TODO: implement evaluation function
     //TODO: would this overflow in larger boards?
     //TODO: now this only takes diff with another play (for 2-player game only)
-    public void eval(int currentPlayer) {
-        value = (int) (scores[currentPlayer] - scores[num_player - 1 - currentPlayer]);
+    public void eval(byte currentPlayer) {
+        value = (int) (scores[currentPlayer] - scores[getOpponentIdx(currentPlayer)]);
         if (currentPlayer==nextPlayer()) { // current player is next player
             value = -value;
 //            System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" + currentPlayer + " - " + (num_player-1-currentPlayer));
@@ -352,8 +350,8 @@ public class State implements Serializable {
         return used_cells / (num_player * num_player) + 1;
     }
 
-    public int currentTurn() {
-        return (currentRound() - 1) * num_player + 1;
+    public byte currentTurn() {
+        return (byte) ((currentRound() - 1) * num_player + 1);
     }
 
     public byte turnsLeft() {
@@ -374,5 +372,18 @@ public class State implements Serializable {
 
     public String getScore() {
         return Arrays.toString(scores);
+    }
+
+    protected short getRandNeighbor(short cell) {
+        for (short ngb : adj_list[cell]) {
+            if (cells[ngb]==0) {
+                return ngb;
+            }
+        }
+        return -1;
+    }
+
+    public byte getOpponentIdx(byte currentPlayer) {
+        return (byte) (num_player - 1 - currentPlayer);
     }
 }

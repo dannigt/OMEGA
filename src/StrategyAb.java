@@ -11,8 +11,13 @@ public class StrategyAb extends SearchStrategy{
         super(c, name);
     }
 
+    State getNextState(State state, int millisec, byte pIndex) {
+//        return moves[(int) (Math.random() * moves.length)];
+        return null;
+    }
+
     @Override
-    short[] getNextMove(State state, int time, int pIndex) {
+    short[] getNextMove(State state, int time, byte pIndex) {
         cnt = 0;
         startTime = System.currentTimeMillis();
         timeLimit = time;
@@ -39,7 +44,7 @@ public class StrategyAb extends SearchStrategy{
         return false;
     }
 
-    private State alphaBeta(State sIn, int depth, int alpha, int beta, short[] curBestMove, int pIndex) throws TimeoutException{
+    private State alphaBeta(State sIn, int depth, int alpha, int beta, short[] curBestMove, byte pIndex) throws TimeoutException{
         // stop recursion if: 1) time is out, 2) is terminal
         if ((System.currentTimeMillis() - startTime) > timeLimit) {
 //            return sIn;

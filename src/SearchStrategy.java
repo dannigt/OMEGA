@@ -7,7 +7,9 @@ public abstract class SearchStrategy {
         strategy_name = name;
     }
 
-    abstract short[] getNextMove(State state, int millisec, int pIndex);
+    abstract short[] getNextMove(State state, int millisec, byte pIndex);
+
+    abstract State getNextState(State state, int millisec, byte pIndex);
 
     String getStrategyName() {
         return strategy_name;

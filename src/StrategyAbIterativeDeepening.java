@@ -7,64 +7,115 @@ public class StrategyAbIterativeDeepening extends SearchStrategy{
     private int cnt;
     private long startTime;
     private int timeLimit = 0;
+    State bestState;
+//    private Hashtable<Byte, Hashtable<Long, State>> tt = new Hashtable<>(); // current turn
 
     StrategyAbIterativeDeepening(Controller c, String name) {
         super(c, name);
     }
-//
-    @Override
-    short[] getNextMove(State state, int milli, int pIndex) {
 
-        System.out.println("=====================cells: " + state.cells.length+
-                " total rounds: " + state.totalRounds() +
-                " total turns: " + state.totalTurns() +
-                " turns left: " + state.turnsLeft() +
-                " next player: " + state.nextPlayer());
-        cnt = 0;
+    private void cleanupTT() {
+        // TODO: clear entries
+        System.out.println("");
+    }
+
+    @Override
+    short[] getNextMove(State state, int milli, byte pIndex) {
+        Hashtable<Byte, Hashtable<Long, State>> tt = new Hashtable<>(); // current turn
+//        System.out.println("=====================cells: " + state.cells.length+
+//                " total rounds: " + state.totalRounds() +
+//                " total turns: " + state.totalTurns() +
+//                " turns left: " + state.turnsLeft() +
+//                " next player: " + state.nextPlayer());
+
+        if (state.totalTurns() - state.turnsLeft() < 2) { // 0th or 1st turn
+            return openingBook(state, pIndex);
+        }
+
         startTime = System.currentTimeMillis();
         timeLimit = milli;
 
-//        short[][] moves = state.moveGen();
         short[] curBestMove = new short[]{0,0}; // store the most recent chosen move
 
-        byte totalDepth = state.turnsLeft();
-        Hashtable<Byte, Hashtable<Long, State>> tt = new Hashtable<>(totalDepth);
-        State res = null;
+//        byte totalDepth = (byte) state.totalTurns();
 
-//        Hashtable<Long, Object> tt= new Hashtable<Long, Object>(); // transposition table
+        State res = null;
         // for (turns left) to 0
-        for (byte ply=4; ply < 5; ply++) {
+        for (byte ply=3; ply < 4; ply++) {
+            cnt=0;
             // if out of time, break
             if ((System.currentTimeMillis() - startTime) > timeLimit) {
                 break;
             }
-            System.out.println("=====================PLY" + ply + " player " + pIndex);
-            // do a-b search with current # of ply
-            res = alphaBetaTT(state, ply, Integer.MIN_VALUE, Integer.MAX_VALUE, pIndex, tt, ply);
-            // get values for all children
-            // order based on values
-            // do search to next level
-            System.out.println("Evaluated " + cnt + " nodes in PLY " + ply);
 
-            for (byte i=0; i<res.cells.length; i++) {
-                if (state.getCellContent(i)==0 && res.getCellContent(i)==1) {
-                    curBestMove[0] = i;
-                } else if (state.getCellContent(i)==0 && res.getCellContent(i)==2) {
-                    curBestMove[1] = i;
+            byte currentTurn = (byte) (state.totalTurns() - state.turnsLeft());
+            for (byte i=currentTurn; i <= currentTurn+ply; i++) {
+                if (!tt.containsKey(i)) {
+                    tt.put(i, new Hashtable<Long, State>());
                 }
             }
 
+            System.out.println("=====================Search PLY" + ply + " player " + pIndex + " curTurn " + currentTurn);
+            // do a-b search with current # of ply
+            try {
+                res = alphaBetaTT(state, ply, Integer.MIN_VALUE, Integer.MAX_VALUE, pIndex, tt, currentTurn);
+            } catch (TimeoutException ex) {
+                res = bestState;
+            }
+            // get values for all children
+            // order based on values
+            // do search to next level
+            System.out.println("Reused " + cnt + " nodes in PLY " + ply);
         }
+
+        for (byte i=0; i<res.cells.length; i++) {
+            if (state.getCellContent(i)==0 && res.getCellContent(i)==1) {
+                curBestMove[0] = i;
+            } else if (state.getCellContent(i)==0 && res.getCellContent(i)==2) {
+                curBestMove[1] = i;
+            }
+        }
+
         System.out.println(Arrays.toString(state.cells));
-        if (res==null) {
-            System.err.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-        }
+        System.out.println(Arrays.toString(res.cells));
         System.out.println(Arrays.toString(curBestMove));
 
-//        System.exit(0);
-
+        tt = null;
         return curBestMove;
     }
+
+    State getNextState(State state, int millisec, byte pIndex) {
+//        return moves[(int) (Math.random() * moves.length)];
+        return null;
+    }
+
+    private short[] openingBook(State s, byte pIx) {
+        // pIndex + 1 is color
+        short[] res = new short[]{0, 0};
+
+        short opponentIdx = s.getOpponentIdx(pIx);
+
+        if (s.totalTurns() == s.turnsLeft()+1) { // empty board
+            if (Math.random()<0.5) {
+                res[pIx] = (short) (s.getTotalCells()-1);
+                res[opponentIdx] = 0;
+            } else {
+                res[pIx] = 0;
+                res[opponentIdx] = (short) (s.getTotalCells()-1);
+            }
+        }
+        else { // 2nd turn
+            for (short i=0; i<s.cells.length; i++) {
+                if (s.cells[i] == pIx+1) { // choose place for my color
+                    res[pIx] = s.getRandNeighbor(i);
+                } else if (s.cells[i] == opponentIdx+1) {//for opponent's color
+                    res[opponentIdx] = s.getRandNeighbor(i);
+                }
+            }
+        }
+        return res;
+    }
+
 
     @Override
     boolean waitsForUI() {
@@ -72,28 +123,17 @@ public class StrategyAbIterativeDeepening extends SearchStrategy{
     }
 
     // alpha beta with TT
-    private State alphaBetaTT(State sIn, int depth, int alpha, int beta, int pIndex,
-                              Hashtable<Byte, Hashtable<Long, State>> tt, byte ply) {
-//        olda = alpha; /* save original alpha value */
-//        n =  retrieve(s) /* Transposition-table lookup */
-//        if n.depth >= d then
-//        if n.flag = Exact
-//          return n.value;
-//        elseif n.flag = LowerBound
-//          alpha = max(alpha, n.value);
-//        elseif n.flag = UpperBound
-//          beta = min(beta, n.value);
-//        if (alpha>=beta)
-//          return n.value;
+    private State alphaBetaTT(State sIn, int depth, int alpha, int beta, byte pIndex,
+                              Hashtable<Byte, Hashtable<Long, State>>  tt, byte curTurn) throws TimeoutException {
+        if ((System.currentTimeMillis() - startTime) > timeLimit) {
+//            return sIn;
+            throw new TimeoutException();
+        }
 
-//        State stateTT = null;
-//        byte turn = (byte) (totalDepth-depth);
-//        if (tt.containsKey(turn)) {
-//            if (tt.get(turn).containsKey(sIn.getHashKey())) {
-////                System.out.println("found!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-//                return tt.get(turn).get(sIn.getHashKey());
-//            }
-//        }
+        if (tt.get(curTurn).containsKey(sIn.getHashKey())) {
+            cnt++;
+            return tt.get(curTurn).get(sIn.getHashKey());
+        }
         // if flag == exact
         // return state
         // if flag == lower bound
@@ -112,71 +152,37 @@ public class StrategyAbIterativeDeepening extends SearchStrategy{
             return sIn;
         }
 
-        int score = Integer.MIN_VALUE; // a-b always start with a max player
+        int bestValue = Integer.MIN_VALUE; // a-b always start with a max player
 
         short[][] all_moves = sIn.moveGen();
 
         State bestChild = null;
         for (int child = 0; child < all_moves.length; child++) { //all_moves.length
-            State sChild = new State(sIn); // copy states
-            if (child==0) {
-                bestChild = sChild;
-            }
 
-//            short[] move = all_moves[child];
+            State sChild = new State(sIn); // copy states
             sChild.placePiece(all_moves[child][0]);
             sChild.placePiece(all_moves[child][1]);
+            if (child==0)
+                bestChild=sChild;
 
-            int value = -alphaBetaTT(sChild, depth - 1, -beta, -alpha, pIndex, tt, ply).getValue();
+            int value = -alphaBetaTT(sChild, depth - 1, -beta, -alpha, pIndex, tt, (byte)(curTurn+1)).getValue();
 
-            if (value > score) {
-                score = value;
+            if (value > bestValue) {
+                bestValue = value;
                 sChild.setValue(value); // set value of this child state
                 bestChild = sChild;
-//                System.out.println("New best: depth " + depth + " | value:" + value + " | score:" + score +
-//                        " | child nr.:" + child +
-//                        " | a:" + alpha + " | b:" + beta);
+                bestState = sChild;
             }
-            if (score > alpha) {
-                alpha = score;
+            if (bestValue > alpha) {
+                alpha = bestValue;
             }
-            if (score >= beta) {
+            if (bestValue >= beta) {
                 break;
             }
-            cnt++;
-
-            //root
-//            if (depth==4) {
-//                System.out.println("child: " + child + " value: " + sChild.getValue());
-//            }
         }
-//        sIn = bestChild;
 
-        if (bestChild==null) {
-            System.err.println("===================================================null===============================");
-        }
-        return bestChild;
-
-
-        // TODO: if reaching here, there was no TT entry. Need to store!
-        //	/* Traditional transposition table storing of bounds */ 
-        //    	/* Fail-low result implies an upper bound */
-        //
-        // if (bestValue <= olda)
-            //  flag = UpperBound;
-
-        //	/* Fail-high result implies a lower bound */
-        // elseif bestValue >= beta then flag = LowerBound;
-        //	elseif  flag = Exact;
-        //
-        //	store(s, bestMove, bestValue, flag, depth);
-
-        //        store(s, bestMove, bestValue, flag, depth);
-//        if (!tt.containsKey(turn)) {
-//            tt.put(turn, new Hashtable<>());
-//        }
-//        tt.get(turn).put(sIn.getHashKey(), sIn);
-
+        tt.get(curTurn).put(sIn.getHashKey(), sIn);
 //        System.out.println("size: "+ tt.get(turn).size());
+        return bestChild;
     }
 }
