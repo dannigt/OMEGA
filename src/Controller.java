@@ -11,7 +11,7 @@ import java.util.*;
 
 public class Controller // implements Serializable
 {
-	private final byte MIN_SIZE = 2;
+	private final byte MIN_SIZE = 3;
 	private final byte MAX_SIZE = 10;
 	private State state;
 	private View view;
@@ -26,7 +26,7 @@ public class Controller // implements Serializable
 //	private StopWatch stopwatch = new StopWatch();
 	private String timestamp;
 //	private SearchStrategy[] strategies;
-	private byte[] player_strategy = new byte[] {0, 3};
+	private byte[] player_strategy = new byte[] {3, 0};
 
 	private String[] strategyNames = new String[] {"random", "human", "a-b", "a-b with id"};
 
@@ -40,7 +40,8 @@ public class Controller // implements Serializable
 	private int TIME_LIMIT = 1000;
 
 	public void clear() {
-        state = new State(this);
+//        state = new State(this, state.getBoardSize());
+        state.reset();
 //        placementOrder.clear();
         //TODO: also clear timer
         paused = true;
@@ -74,18 +75,6 @@ public class Controller // implements Serializable
 		}
 	}
 
-
-	private Object readObject(String path) throws Exception {
-        Object res = null;
-        try {
-            FileInputStream fin = new FileInputStream(path);
-            ObjectInputStream ois = new ObjectInputStream(fin);
-            res = ois.readObject();
-        } catch (Exception ex) {
-            throw ex;
-        }
-        return res;
-    }
   	// generate random number for hashing
   	private void loadRand() {
 		String path = Paths.get(HASH_DIR + "board_size_" + state.getBoardSize() + ".dat").toString();
@@ -107,7 +96,7 @@ public class Controller // implements Serializable
 
 			}
 		} else {
-			// If not exist
+			// If not exist, generate
 			Random randomLong = new Random();
 			long[][] rands = new long[state.getTotalCells()][numPlayers()+1];
 
@@ -116,12 +105,11 @@ public class Controller // implements Serializable
 					rands[cell][value] = randomLong.nextLong();
 				}
 			}
-
 			try {
-				FileOutputStream fos = new FileOutputStream(path);
-				ObjectOutputStream oos = new ObjectOutputStream(fos);
-				oos.writeObject(rands);
-
+			    saveObject(rands, path);
+//				FileOutputStream fos = new FileOutputStream(path);
+//				ObjectOutputStream oos = new ObjectOutputStream(fos);
+//				oos.writeObject(rands);
 			} catch (Exception e) {
 
 			}
@@ -222,6 +210,7 @@ public class Controller // implements Serializable
 	public void setBoardSize(byte size) {
 //		this.size = size;
 		this.paused = true;
+//		state = new State(this, size, numPlayers());
 		state.reset(size);
 		view.reset();
 	}
@@ -257,45 +246,43 @@ public class Controller // implements Serializable
 	}
 
 	// return the move sequences
-	public void start(SearchStrategy... players) {
+	public ArrayList<Short> start(SearchStrategy... players) {
+        clear();
         paused = false;
         loadRand();
-        // separate thread for running the game
-//        Thread thread = new Thread(() -> {
-            placementOrder = new ArrayList<>(state.getTotalCells());
+
+        placementOrder = new ArrayList<>(state.getTotalCells());
 //			pastPlacements = new Stack<>();
-            timestamp = LocalDateTime.now().toString().replace( ":" , "-" );
+        timestamp = LocalDateTime.now().toString().replace( ":" , "-" );
 
-            // while game not terminated, alternate between players to get next move
-            while (!state.isTerminal()) {
-                // every round
-                for (byte pIdx = 1; pIdx <= numPlayers(); pIdx++) {
-                    SearchStrategy s = players[pIdx-1];//strategies[player_strategy[p_idx-1]];
+        // while game not terminated, alternate between players to get next move
+        while (!state.isTerminal()) {
+            // every round
+            for (byte pIdx = 1; pIdx <= numPlayers(); pIdx++) {
+                SearchStrategy s = players[pIdx-1];//strategies[player_strategy[p_idx-1]];
 
-                    if (s.waitsForUI()) {
-                        // wait for UI input
-                        do {
+                if (s.waitsForUI()) {
+                    // wait for UI input
+                    do {
 //							System.out.println(s.strategy_name + ", waiting for UI input");
-                            // And From your main() method or any other method
-                        } while
-                        (state.nextPlayer() == pIdx);
-                    } else {
-                        short[] moves = s.getNextMove(state, TIME_LIMIT, pIdx-1);
-                        for (short stone_placement : moves) {
-                            System.out.println("===================strategy " + s.strategy_name + " move " + stone_placement);
-                            processCellClick(stone_placement, false);
-                        }
+                        // And From your main() method or any other method
+                    } while
+                    (state.nextPlayer() == pIdx);
+                } else {
+                    short[] moves = s.getNextMove(state, TIME_LIMIT, pIdx-1);
+                    for (short stone_placement : moves) {
+                        System.out.println("===================strategy " + s.strategy_name + " move " + stone_placement);
+                        processCellClick(stone_placement, false);
                     }
                 }
             }
-//        });
-
-//        thread.start();
-
+        }
+        return placementOrder;
     }
 
 	// star the game
 	public void start() {
+
         SearchStrategy[] players = new SearchStrategy[numPlayers()];
         for (byte p_idx = 1; p_idx <= numPlayers(); p_idx++) {
 			players[p_idx-1] = getStrategy(strategyNames[player_strategy[p_idx-1]]);
@@ -366,21 +353,47 @@ public class Controller // implements Serializable
 		//moves are full --> confirm --> process into state
 	}
 
-	private void createDirIfNotExist(Path path) {
-		if(Files.notExists(path)){
-			try {
-				Files.createDirectory(path);
-			}
-			catch (Exception ex) {
-				System.err.println("Cannot create dir " + path.toString());
-			}
-		}
-	}
 
 	public long[][] requestRands() {
 	    if (rands == null) {
 	        loadRand();
         }
 	    return rands;
+    }
+
+    //
+    //
+    // Static helper methods
+    public static void createDirIfNotExist(Path path) {
+        if(Files.notExists(path)){
+            try {
+                Files.createDirectory(path);
+            }
+            catch (Exception ex) {
+                System.err.println("Cannot create dir " + path.toString());
+            }
+        }
+    }
+
+    public static void saveObject(Object o, String path) throws Exception {
+        try {
+            FileOutputStream fos = new FileOutputStream(path);
+            ObjectOutputStream oos = new ObjectOutputStream(fos);
+            oos.writeObject(o);
+        } catch (Exception ex) {
+            throw ex;
+        }
+    }
+
+    public static Object readObject(String path) throws Exception {
+        Object res = null;
+        try {
+            FileInputStream fin = new FileInputStream(path);
+            ObjectInputStream ois = new ObjectInputStream(fin);
+            res = ois.readObject();
+        } catch (Exception ex) {
+            throw ex;
+        }
+        return res;
     }
 }
