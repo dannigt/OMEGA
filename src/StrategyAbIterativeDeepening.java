@@ -24,18 +24,19 @@ public class StrategyAbIterativeDeepening extends SearchStrategy{
         startTime = System.currentTimeMillis();
         timeLimit = milli;
 
+        System.out.println("=====================cells: " + state.cells.length +
+                ", total rounds: " + state.totalRounds() +
+                ", total turns: " + state.totalTurns() +
+                ", current round: " + state.currentRound() +
+                ", current turn: " + state.currentTurn() +
+                ", next player: " + state.nextPlayer());
 
         byte currentTurn = state.currentTurn();
         if (currentTurn <=2) { // 0th or 1st turn
             return openingBook(state, pIndex, state.currentTurn());
         }
 
-//        System.out.println("=====================cells: " + state.cells.length +
-//                ", total rounds: " + state.totalRounds() +
-//                ", total turns: " + state.totalTurns() +
-//                ", current round: " + state.currentRound() +
-//                ", current turn: " + state.currentTurn() +
-//                ", next player: " + state.nextPlayer());
+
         ArrayList<State> directChildren = new ArrayList<State>(state.numMoves());
         for (short[] move : state.moveGen()) {
             State newChild = new State(state);
@@ -48,7 +49,7 @@ public class StrategyAbIterativeDeepening extends SearchStrategy{
 
         State res = null;
         // for (turns left) to 0
-        for (byte ply=1; ply < 5; ply++) {
+        for (byte ply=1; ply < 4; ply++) {
             cnt=0;
             Hashtable<Byte, Hashtable<Long, State>> tt = new Hashtable<>(); // current turn
             // if out of time, break
@@ -65,7 +66,8 @@ public class StrategyAbIterativeDeepening extends SearchStrategy{
             System.out.println("=====================Search PLY" + ply + " player " + pIndex + " curTurn " + currentTurn);
             // do a-b search with current # of ply
             try {
-                res = alphaBetaTT(state, ply, -60000, 60000, pIndex, tt, currentTurn, directChildren, true);
+                res = alphaBetaTT(state, ply, -60000, 60000, pIndex, tt, currentTurn, directChildren,
+                        true, state.currentTurn());
             } catch (TimeoutException ex) {
                 res = bestState;
             }
@@ -113,13 +115,16 @@ public class StrategyAbIterativeDeepening extends SearchStrategy{
             }
         }
         else if (currentTurn == 2){ // 2nd turn
+            System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
             for (short i=0; i<s.cells.length; i++) {
                 if (s.cells[i] == pIx+1) { // choose place for my color
                     res[pIx] = s.getRandNeighbor(i);
                 } else if (s.cells[i] == opponentIdx+1) {//for opponent's color
-                    while (res[pIx]== s.getRandNeighbor(i)) { // avoid putting on the same cell
-                        res[opponentIdx] = s.getRandNeighbor(i);
+                    short ngb = s.getRandNeighbor(i);
+                    while (res[pIx]== ngb) { // avoid putting on the same cell
+                        ngb = s.getRandNeighbor(i);
                     }
+                    res[opponentIdx] = ngb;
                 }
             }
         }
@@ -134,7 +139,7 @@ public class StrategyAbIterativeDeepening extends SearchStrategy{
     // alpha beta with TT
     private State alphaBetaTT(State sIn, int depth, int alpha, int beta, byte pIndex,
                               Hashtable<Byte, Hashtable<Long, State>> tt, byte curTurn,
-                              ArrayList<State> directChildren, boolean isRoot) throws TimeoutException {
+                              ArrayList<State> directChildren, boolean isRoot, byte rootTurn) throws TimeoutException {
         if ((System.currentTimeMillis() - startTime) > timeLimit) {
             throw new TimeoutException();
         }
@@ -157,7 +162,7 @@ public class StrategyAbIterativeDeepening extends SearchStrategy{
         }
 
         if (sIn.isTerminal() || depth == 0) {
-            sIn.eval(pIndex); // leaf node, eval and return myself.
+            sIn.eval(pIndex, rootTurn); // leaf node, eval and return myself.
             return sIn;
         }
 
@@ -181,7 +186,7 @@ public class StrategyAbIterativeDeepening extends SearchStrategy{
                 bestChild=sChild;
 
             int value = -alphaBetaTT(sChild, depth - 1, -beta, -alpha, pIndex, tt, (byte)(curTurn+1),
-                    directChildren, false).getValue();
+                    directChildren, false, rootTurn).getValue();
 
             if (value > bestValue) {
                 bestValue = value;
