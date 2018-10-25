@@ -1,3 +1,5 @@
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 
 public class Experiment {
@@ -12,17 +14,31 @@ public class Experiment {
     private void runExperiments() {
         for (int i=0; i<strategies.length; i++) {
             for (int j=i+1; j<strategies.length; j++) {
-//                for (int k=0; k<REPEAT; k++) {
-                    System.out.println("Running experiment "
-                            + strategies[i].getStrategyName() + " v.s. " + strategies[j].getStrategyName());
-                    c.start(strategies[i], strategies[j]);
-//                }
+                String pair = strategies[i].getStrategyName() + "_" + strategies[j].getStrategyName();
+                Path folder = Paths.get(System.getProperty("user.dir") , "exp", pair);
+                Controller.createDirIfNotExist(Paths.get(System.getProperty("user.dir") , "exp", pair));
+
+                for (int k=0; k<REPEAT; k++) {
+                    c = new Controller();
+                    System.out.println("Running experiment " + pair);
+                    ArrayList<Short> res = c.start(strategies[i], strategies[j]);
+//                    c.clear();
+                    try {
+                        Controller.saveObject(res, Paths.get(folder.toString(), Integer.toString(k)).toString());
+                    } catch (Exception ex) {
+
+                    }
+                }
             }
         }
     }
 
+    private void analyzeExperients() {
+
+    }
+
     public static void main(String[] args) {
-        c = new Controller();
+
         Experiment experiment = new Experiment(
                 new StrategyRandom(c, "random"),
 //                new StrategyAb(c, "a-b"),

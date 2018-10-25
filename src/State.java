@@ -3,6 +3,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class State implements Serializable {
     public byte[] cells; // Color placed in the cell. Empty is 0
@@ -45,21 +46,26 @@ public class State implements Serializable {
         uf_parent = s.uf_parent.clone();
         uf_size = s.uf_size.clone();
 
-        group_size_counter = new HashMap<>(group_size_counter);
+        group_size_counter = new HashMap<>(s.group_size_counter);
+//        for (Short key : s.group_size_counter.keySet()) {
+//            group_size_counter.put(key, s.group_size_counter.get(key));
+//        }
+
         sim = true;
 
         scores = s.scores.clone();
-//        if (value != s.value) {
-//            System.out.println(value + "<--" + s.value);
-//        value = s.value;
 
         hashKey = s.hashKey;
 
-        //TODO: should simulation have ref to controller???
         c = s.c;
     }
 
     public void reset(byte size) {
+        init(size);
+        c.notifyChange();
+    }
+
+    public void reset() {
         init(size);
         c.notifyChange();
     }
@@ -190,9 +196,9 @@ public class State implements Serializable {
                 if (nbg_root != cell) {
                     // Decrement count for uf_size[nbg_root]
                     short key_nbg_root = (short) (cells[cell] * 1000 + uf_size[nbg_root]);
-                  if (group_size_counter.containsKey(key_nbg_root))
-                    // TODO: why does it break in simulation rounds?
-                        group_size_counter.put(key_nbg_root, (short) (group_size_counter.get(key_nbg_root) - 1));
+
+                    // Decrement count for
+                    group_size_counter.put(key_nbg_root, (short) (group_size_counter.get(key_nbg_root) - 1));
 
                     // Update parent reference
                     uf_parent[nbg_root] = cell; // The newly added cell becomes parent of the neighbor
@@ -303,25 +309,20 @@ public class State implements Serializable {
         return used_cells == (totalRounds() * num_player * num_player);
     }
 
+    // getValue depends on player's perspective
+    public int getValue() {
+        return value;
+    }
+
     //TODO: implement evaluation function
     //TODO: would this overflow in larger boards?
     //TODO: now this only takes diff with another play (for 2-player game only)
-    // getValue depends on player's perspective
-    public int getValue() {
-        // current player's score - the opponent
-//        if (isLeftNode) {// if i'm the last depth
-////            System.out.println("------------------------------" );
-//            return (int) (scores[currentPlayer] - scores[num_player - 1 - currentPlayer]);
-//        }
-//        else {// if i'm not the last depth, my value should have been updated by my child nodes
-//            return (int) (scores[currentPlayer] - scores[num_player - 1 - currentPlayer]);
-//            System.out.println("---" + value);
-        return value;
-//        }
-    }
-
     public void eval(int currentPlayer) {
         value = (int) (scores[currentPlayer] - scores[num_player - 1 - currentPlayer]);
+        if (currentPlayer==nextPlayer()) { // current player is next player
+            value = -value;
+//            System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" + currentPlayer + " - " + (num_player-1-currentPlayer));
+        }
     }
 
     public void setValue(int v) {

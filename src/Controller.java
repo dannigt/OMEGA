@@ -26,7 +26,7 @@ public class Controller // implements Serializable
 //	private StopWatch stopwatch = new StopWatch();
 	private String timestamp;
 //	private SearchStrategy[] strategies;
-	private byte[] player_strategy = new byte[] {3, 0};
+	private byte[] player_strategy = new byte[] {0, 3};
 
 	private String[] strategyNames = new String[] {"random", "human", "a-b", "a-b with id"};
 
