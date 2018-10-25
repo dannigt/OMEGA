@@ -268,12 +268,28 @@ public class State implements Comparable<State>  {
     //TODO: implement evaluation function
     //TODO: would this overflow in larger boards?
     //TODO: now this only takes diff with another play (for 2-player game only)
-    public void eval(byte currentPlayer) {
-        value = (int) (scores[currentPlayer] - scores[getOpponentIdx(currentPlayer)])/10;
-        if (currentPlayer==nextPlayer()) { // current player is next player
-            value = -value;
+    public void eval(byte currentPlayer, byte fromTurn) {
+        // in earlier turns, use
+        if (fromTurn < totalTurns() / 2) {
+            value = 0;
+            for (short entry : group_size_counter.keySet()) {
+                int pIdx = entry / 1000;
+                int size = entry % 1000;
+                if (size > 3) {
+                    value -= ((pIdx == currentPlayer) ? (size - 3) : (3 - size)) * group_size_counter.get(entry);
+//                    value -= (size - 3) * group_size_counter.get(entry);
+                }
+            }
+        } else { // in later turns, use the score directly
+            value = (int) (scores[currentPlayer] - scores[getOpponentIdx(currentPlayer)])/10; // score different MAX-MIN
+            if (currentPlayer==nextPlayer()) { // current player is next player
+                value = -value;
 //            System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" + currentPlayer + " - " + (num_player-1-currentPlayer));
+            }
         }
+
+        // flip value if it's a MIN node
+
     }
 
     public void setValue(int v) {
