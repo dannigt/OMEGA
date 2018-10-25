@@ -37,7 +37,7 @@ public class Controller // implements Serializable
 
 	private String warning_info = "";
 
-	private int TIME_LIMIT = 600000;
+	private int TIME_LIMIT = 60000;
 
 	public void clear() {
 //        state = new State(this, state.getBoardSize());
