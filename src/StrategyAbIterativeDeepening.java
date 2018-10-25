@@ -73,6 +73,10 @@ public class StrategyAbIterativeDeepening extends SearchStrategy{
             tt = null;
             // sort nodes at the root based on value
             Collections.sort(directChildren);
+            for (State s : directChildren) {
+                System.out.print(s.getValue() + ",");
+            }
+            System.out.println("");
         }
 
         for (byte i=0; i<res.cells.length; i++) {
@@ -85,9 +89,6 @@ public class StrategyAbIterativeDeepening extends SearchStrategy{
 
         System.out.println(Arrays.toString(state.cells));
         System.out.println(Arrays.toString(res.cells));
-        System.out.println(Arrays.toString(curBestMove));
-
-
         return curBestMove;
     }
 
@@ -116,13 +117,14 @@ public class StrategyAbIterativeDeepening extends SearchStrategy{
                 if (s.cells[i] == pIx+1) { // choose place for my color
                     res[pIx] = s.getRandNeighbor(i);
                 } else if (s.cells[i] == opponentIdx+1) {//for opponent's color
-                    res[opponentIdx] = s.getRandNeighbor(i);
+                    while (res[pIx]== s.getRandNeighbor(i)) { // avoid putting on the same cell
+                        res[opponentIdx] = s.getRandNeighbor(i);
+                    }
                 }
             }
         }
         return res;
     }
-
 
     @Override
     boolean waitsForUI() {
