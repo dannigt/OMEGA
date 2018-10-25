@@ -140,7 +140,6 @@ public class Controller // implements Serializable
 			makeCache();
 		}
 		// TODO: switch timer
-		// TODO: send a copy to search to mess up
 	}
 
 	public byte numPlayers() {
@@ -240,9 +239,11 @@ public class Controller // implements Serializable
 	}
 
 	public void reverseMove() {
-//	    throw ExecutionControl.NotImplementedException("delete from the move order list");
-	    //		short cell = pastPlacements.pop();
-//		state.unplacePiece(cell);
+	    placementOrder.remove(placementOrder.size()-1);
+	    state.reset();
+        for (short move : placementOrder) {
+            state.placePiece(move);
+        }
 	}
 
 	// return the move sequences
@@ -260,11 +261,10 @@ public class Controller // implements Serializable
             // every round
             for (byte pIdx = 1; pIdx <= numPlayers(); pIdx++) {
                 SearchStrategy s = players[pIdx-1];//strategies[player_strategy[p_idx-1]];
-
                 if (s.waitsForUI()) {
                     // wait for UI input
                     do {
-							System.out.println(s.strategy_name + ", waiting for UI input");
+                        System.out.println(s.strategy_name + ", waiting for UI input");
                         // And From your main() method or any other method
                     } while
                     (state.nextPlayer() == pIdx);

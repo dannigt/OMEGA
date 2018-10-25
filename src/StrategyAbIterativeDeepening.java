@@ -83,8 +83,6 @@ public class StrategyAbIterativeDeepening extends SearchStrategy{
             System.out.println("TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT" + (System.currentTimeMillis() - startTime));
         }
 
-        System.exit(0);
-
         for (byte i=0; i<res.cells.length; i++) {
             if (state.getCellContent(i)==0 && res.getCellContent(i)==1) {
                 curBestMove[0] = i;
