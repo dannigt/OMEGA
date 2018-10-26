@@ -270,7 +270,7 @@ public class State implements Comparable<State>  {
     //TODO: now this only takes diff with another play (for 2-player game only)
     public void eval(byte curPlayerIdx, byte fromTurn) {
         // in earlier turns, use
-        if (fromTurn < totalTurns() / 2) {
+        if (fromTurn <= (totalTurns() / 2)) {
             value = 0;
             for (short entry : group_size_counter.keySet()) {
                 if (group_size_counter.get(entry)!= 0) {

@@ -29,12 +29,12 @@ public class Controller // implements Serializable
 	private String[] strategyNames = new String[] {"random", "human", "a-b", "a-b with id"};
 	private long[][] rands;
 	// TODO: timer for players
-	private int[] timer = new int[]{900000, 900000};
+	private int[] timer = new int[]{300000, 300000};
 	private boolean paused;
 
 	private String warning_info = "";
 
-	private int TIME_LIMIT = 10000; //60s
+	private int TIME_LIMIT = 15000; //ms
 
 	public void clear() {
 //        state = new State(this, state.getBoardSize());
@@ -270,7 +270,11 @@ public class Controller // implements Serializable
                     (state.nextPlayer() == pIdx);
                 } else {
                     long start = System.currentTimeMillis();//timer[pIdx-1]/(Math.max(1, state.turnsLeft()/2-4)
-                    short[] moves = s.getNextMove(state, timer[pIdx-1]/(Math.max(1, state.turnsLeft()/2-3)), (byte) (pIdx-1));
+                    int limit = timer[pIdx-1]/(Math.max(2, state.turnsLeft()/2));
+                    if (state.currentTurn() <= 14) {
+                        limit = TIME_LIMIT;
+                    }
+                    short[] moves = s.getNextMove(state, limit, (byte) (pIdx-1));
                     System.out.println("==================\t\t" + s.getStrategyName() + ": " + Arrays.toString(moves));
                     try {
                         for (short stone_placement : moves) {
