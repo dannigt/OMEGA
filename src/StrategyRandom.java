@@ -8,11 +8,11 @@ public class StrategyRandom extends SearchStrategy {
     public short[] getNextMove(State state , int millisec, byte pIdx) {
         short[][] moves = state.moveGen();
 
-        try {
-            Thread.sleep(10000);
-        } catch (Exception ex) {
-
-        }
+//        try {
+//            Thread.sleep(10000);
+//        } catch (Exception ex) {
+//
+//        }
         return moves[(int) (Math.random() * moves.length)];
     }
 

@@ -4,11 +4,11 @@ import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 public class StrategyAbIterativeDeepening extends SearchStrategy{
-    private int cnt;
+//    private int cnt;
     private long startTime;
     private int timeLimit = 0;
     private Random random = new Random();
-    private ExecutorService ex = Executors.newCachedThreadPool();
+//    private ExecutorService ex = Executors.newFixedThreadPool(6);
     State bestState;
 //    private Hashtable<Byte, Hashtable<Long, State>> tt = new Hashtable<>(); // current turn
 
@@ -16,27 +16,22 @@ public class StrategyAbIterativeDeepening extends SearchStrategy{
         super(c, name);
     }
 
-    public void preprocessForNext() {
-        // generate stuff move orders?
-    }
-
     @Override
     short[] getNextMove(State state, int milli, byte pIndex) {
         startTime = System.currentTimeMillis();
         timeLimit = milli;
 
-        System.out.println("=====================cells: " + state.cells.length +
-                ", total rounds: " + state.totalRounds() +
-                ", total turns: " + state.totalTurns() +
-                ", current round: " + state.currentRound() +
-                ", current turn: " + state.currentTurn() +
-                ", next player: " + state.nextPlayer());
+//        System.out.println("=====================cells: " + state.cells.length +
+//                ", total rounds: " + state.totalRounds() +
+//                ", total turns: " + state.totalTurns() +
+//                ", current round: " + state.currentRound() +
+//                ", current turn: " + state.currentTurn() +
+//                ", next player: " + state.nextPlayer());
 
         byte currentTurn = state.currentTurn();
         if (currentTurn <=4) { // 0th or 1st turn
             return openingBook(state, pIndex, state.currentTurn());
         }
-
 
         ArrayList<State> directChildren = new ArrayList<State>(state.numMoves());
         for (short[] move : state.moveGen()) {
@@ -50,8 +45,8 @@ public class StrategyAbIterativeDeepening extends SearchStrategy{
 
         State res = null;
         // for (turns left) to 0
-        for (byte ply=1; ply <= state.turnsLeft(); ply++) {
-            cnt=0;
+        for (byte ply=1; ply <= state.turnsLeft()+1; ply++) {
+//            cnt=0;
             Hashtable<Byte, Hashtable<Long, State>> tt = new Hashtable<>(); // current turn
             // if out of time, break
             if ((System.currentTimeMillis() - startTime) > timeLimit) {
@@ -72,15 +67,14 @@ public class StrategyAbIterativeDeepening extends SearchStrategy{
             } catch (TimeoutException ex) {
                 res = bestState;
             }
-            System.out.println("Reused " + cnt + " nodes in PLY " + ply);
+//            System.out.println("Reused " + cnt + " nodes in PLY " + ply);
             tt = null;
             // sort nodes at the root based on value
             Collections.sort(directChildren);
-            for (State s : directChildren) {
-                System.out.print(s.getValue() + ",");
-            }
-            System.out.println("");
-            System.out.println("TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT" + (System.currentTimeMillis() - startTime));
+//            for (State s : directChildren) {
+//                System.out.print(s.getValue() + ",");
+//            }
+//            System.out.println("TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT" + (System.currentTimeMillis() - startTime));
         }
 
         for (byte i=0; i<res.cells.length; i++) {
@@ -90,10 +84,6 @@ public class StrategyAbIterativeDeepening extends SearchStrategy{
                 curBestMove[1] = i;
             }
         }
-
-        System.out.println(Arrays.toString(state.cells));
-        System.out.println(Arrays.toString(res.cells));
-
         return curBestMove;
     }
 
@@ -120,8 +110,9 @@ public class StrategyAbIterativeDeepening extends SearchStrategy{
         else { // 2nd turn onwards
             for (short i=0; i<s.cells.length; i++) {
                 if (s.cells[i] == pIx+1) { // choose place for my color
-                    res[pIx] = s.getRandNeighbor(i);
-                } else if (s.cells[i] == opponentIdx+1) {//for opponent's color
+                    res[pIx] = s.getRandFarawayCell(i);
+//                    res[pIx] = s.getRandNeighbor(i);
+                } else if (s.cells[i] == opponentIdx+1) { // for opponent's color
                     short ngb = s.getRandNeighbor(i);
                     while (res[pIx]== ngb) { // avoid putting on the same cell
                         ngb = s.getRandNeighbor(i);
@@ -148,7 +139,7 @@ public class StrategyAbIterativeDeepening extends SearchStrategy{
 
         int alphaOld = alpha;
         if (tt.get(curTurn).containsKey(sIn.getHashKey())) {
-            cnt++;
+//            cnt++;
             State entry = tt.get(curTurn).get(sIn.getHashKey());
             if (entry.getFlag()==0) {
                 return entry;
@@ -170,26 +161,10 @@ public class StrategyAbIterativeDeepening extends SearchStrategy{
 
         int bestValue = Integer.MIN_VALUE; // a-b always start with a max player
 
-        // TODO: parallelize
-//        ArrayBlockingQueue<State> allChildren = new ArrayBlockingQueue<State>(sIn.numMoves());
-//        Future<String> fut = null;
-//        if (!isRoot) {
-//            fut = ex.submit(() -> {
-//                short[][] all_moves = sIn.moveGen();
-//                for (int child = 0; child < all_moves.length; child++) {
-//                    State sChild = new State(sIn); // copy states
-//                    sChild.placePiece(all_moves[child][0]);
-//                    sChild.placePiece(all_moves[child][1]);
-//                    allChildren.add(sChild);
-//                }
-//                return "Hello World!";
-//            });
-//        }
-
         short[][] all_moves = sIn.moveGen();
         State bestChild = null;
         //TODO: don't generate "all moves!!!"
-        for (int child = 0; child < sIn.numMoves(); child++) { //all_moves.length
+        for (int child = 0; child < all_moves.length; child++) { //all_moves.length
             State sChild;
             if (isRoot) { // get children based on value ordered
                 sChild = directChildren.get(child);
@@ -198,10 +173,12 @@ public class StrategyAbIterativeDeepening extends SearchStrategy{
                 sChild.placePiece(all_moves[child][0]);
                 sChild.placePiece(all_moves[child][1]);
 //                while (allChildren.empty()) {
-////                    System.out.println("wait");
+////                    System.out.print("wait");
 //                }
-//                sChild = allChildren.poll();
-//                System.out.println("-------------------------------------------");
+//                synchronized (allChildren) {
+//                    sChild = allChildren.pop();
+//                }
+//                System.out.print("-------------------------------------------");
             }
 
             if (child==0)
@@ -240,12 +217,6 @@ public class StrategyAbIterativeDeepening extends SearchStrategy{
         tt.get(curTurn).put(sIn.getHashKey(), sIn);
 //        System.out.println("size: "+ tt.get(curTurn).size());
 
-//        try {
-//            String result = fut.get();
-//        } catch (Exception ex) {
-//
-//        }
-
         return bestChild;
     }
 
@@ -269,5 +240,13 @@ public class StrategyAbIterativeDeepening extends SearchStrategy{
         }
     }
 
-
+//    private void generateMoves(State s, Stack<State> allChildren) {
+//        short[][] all_moves = s.moveGen();
+//        for (int child = 0; child < all_moves.length; child++) {
+//            State sChild = new State(s); // copy states
+//            sChild.placePiece(all_moves[child][0]);
+//            sChild.placePiece(all_moves[child][1]);
+//            allChildren.add(sChild);
+//        }
+//    }
 }

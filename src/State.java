@@ -273,20 +273,26 @@ public class State implements Comparable<State>  {
         if (fromTurn < totalTurns() / 2) {
             value = 0;
             for (short entry : group_size_counter.keySet()) {
-                int pIdx = entry / 1000;
-                int size = entry % 1000;
+                if (group_size_counter.get(entry)!= 0) {
+                    int pIdx = entry / 1000;
+                    int size = entry % 1000;
 
-                if (size > 3) { // if too large groups are of my color, penalize
-                    value -= ((pIdx == curPlayerIdx+1) ? Math.pow(size-3,2) : -Math.pow(size-3,2)) * group_size_counter.get(entry);
-//                    value -= (size - 3) * group_size_counter.get(entry);
+                    if (size > 3) { // if too large groups are of my color, penalize
+                        value -= ((pIdx == curPlayerIdx+1) ? Math.pow(size-3,2) : -Math.pow(size-3,2)) * group_size_counter.get(entry);
+                    }
+                    else if (size == 1 || size == 2) { // incentivize small groups
+                        value += ((pIdx == curPlayerIdx+1) ? 1 : -1) * group_size_counter.get(entry);
+                    }
                 }
+
             }
         } else { // in later turns, use the score directly
             value = (int) (scores[curPlayerIdx] - scores[getOpponentIdx(curPlayerIdx)])/10; // score different MAX-MIN
         }
         // flip value if it's a MIN node
-        if (curPlayerIdx+1 != nextPlayer()) { // current player is next player
+        if ((curPlayerIdx+1) != nextPlayer()) { // current player is next player
 //            System.out.println("next player " + nextPlayer());
+//            System.out.println("flipped");
             value = -value;
         }
     }
@@ -348,6 +354,14 @@ public class State implements Comparable<State>  {
             idx = (short) (Math.random() * adj_list[cell].size());
         } while (cells[adj_list[cell].get(idx)]!=0);
         return adj_list[cell].get(idx);
+    }
+
+    public short getRandFarawayCell(short cell) {
+        short res = (short) (cells.length - cell - 1);
+        if (cells[res] != 0) {
+            return getRandNeighbor(res);
+        }
+        return res;
     }
 
     public byte getOpponentIdx(byte currentPlayer) {

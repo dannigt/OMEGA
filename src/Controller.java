@@ -1,8 +1,10 @@
 //import org.apache.commons.lang3.time.StopWatch;
 
 import jdk.jshell.spi.ExecutionControl;
+import jdk.swing.interop.SwingInterOpUtils;
 
 import java.io.*;
+import java.lang.reflect.Array;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -18,7 +20,6 @@ public class Controller // implements Serializable
 //	private byte computer_player;
 //	private StrategyRandom search;
 
-	// TODO: also track past movements here
 	private ArrayList<Short> placementOrder;
 	private final String LOG_DIR;
 	private final String HASH_DIR;
@@ -28,12 +29,12 @@ public class Controller // implements Serializable
 	private String[] strategyNames = new String[] {"random", "human", "a-b", "a-b with id"};
 	private long[][] rands;
 	// TODO: timer for players
-	private long[] timer;
+	private int[] timer = new int[]{900000, 900000};
 	private boolean paused;
 
 	private String warning_info = "";
 
-	private int TIME_LIMIT = 60000;
+	private int TIME_LIMIT = 10000; //60s
 
 	public void clear() {
 //        state = new State(this, state.getBoardSize());
@@ -155,7 +156,6 @@ public class Controller // implements Serializable
             view.repaint();
     }
 
-    // TODO: only need to dump past movements and timer
 	// save past moves and timer to file
     public void makeCache() {
 //		Gson gson = new Gson();
@@ -269,15 +269,18 @@ public class Controller // implements Serializable
                     } while
                     (state.nextPlayer() == pIdx);
                 } else {
-                    short[] moves = s.getNextMove(state, TIME_LIMIT, (byte) (pIdx-1));
+                    long start = System.currentTimeMillis();//timer[pIdx-1]/(Math.max(1, state.turnsLeft()/2-4)
+                    short[] moves = s.getNextMove(state, timer[pIdx-1]/(Math.max(1, state.turnsLeft()/2-3)), (byte) (pIdx-1));
+                    System.out.println("==================\t\t" + s.getStrategyName() + ": " + Arrays.toString(moves));
                     try {
                         for (short stone_placement : moves) {
-                            System.out.println("===================strategy " + s.strategy_name + " move " + stone_placement);
                             processCellClick(stone_placement, false);
                         }
                     } catch (Exception ex) {
-                        s.requestFallback();
+                        s.requestFallback(state);
                     }
+                    timer[pIdx-1] -= (System.currentTimeMillis() - start);
+                    System.out.println("Timer: " + Arrays.toString(timer));
                 }
             }
         }
