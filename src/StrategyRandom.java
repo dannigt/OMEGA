@@ -13,12 +13,16 @@ public class StrategyRandom extends SearchStrategy {
 //        } catch (Exception ex) {
 //
 //        }
-        return moves[(int) (Math.random() * moves.length)];
+
+        int choice = (int) (Math.random() * moves.length);
+        System.out.println(choice);
+        return moves[choice];
     }
 
     @Override
     public short[] requestFallback(State state) {
-        return state.moveGen()[(int) (Math.random() * state.numMoves())];
+        return null;
+//        state.moveGen()[(int) (Math.random() * state.numMoves())];
     }
 
     @Override

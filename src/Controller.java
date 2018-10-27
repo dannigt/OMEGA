@@ -6,6 +6,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class Controller // implements Serializable
 {
@@ -16,11 +17,11 @@ public class Controller // implements Serializable
 	private ArrayList<Short> placementOrder;
 	private final String LOG_DIR;
 	private final String HASH_DIR;
+    private final String[] STRATEGY_NAMES;
 	private String timestamp;
-	private byte[] player_strategy = new byte[] {3, 1}; // I'm white: {3,1}. I'm black: {1,3}.
-	private String[] strategyNames = new String[] {"random", "human", "a-b", "a-b with id"};
+	private byte[] player_strategy;
 	private long[][] rands;
-	private int[] timer = new int[]{900000, 900000};
+	private int[] timer;
     private int TIME_LIMIT = 18000; //ms
 	private boolean paused;
 	private String warning_info = "";
@@ -39,7 +40,12 @@ public class Controller // implements Serializable
 
 		LOG_DIR = Paths.get(System.getProperty("user.dir"), "log").toString();
 		HASH_DIR = Paths.get(System.getProperty("user.dir") , "hash").toString();
+        STRATEGY_NAMES = new String[] {"random", "human", "a-b", "a-b with id"};
 
+		player_strategy = new byte[state.getNumPlayer()];
+		timer = new int[state.getNumPlayer()];
+		Arrays.fill(player_strategy, (byte) 0);
+		Arrays.fill(timer, 900000);
 		paused = true;
 
 		// TODO: move to elsewhere?
@@ -64,7 +70,8 @@ public class Controller // implements Serializable
 
   	// generate random number for hashing
   	private void loadRand() {
-		String path = Paths.get(HASH_DIR + "board_size_" + state.getBoardSize() + ".dat").toString();
+		String path = Paths.get(HASH_DIR , "board_size_" + state.getBoardSize() +
+                "_p_" + state.getNumPlayer() + ".dat").toString();
 
         try {
             rands = (long[][]) readObject(path);
@@ -124,7 +131,7 @@ public class Controller // implements Serializable
 
 		// if click is outside board, or cell is already occupied --> illegal
 		if (cell_index < 0 || state.getCellContent(cell_index) != 0) {
-			throw new IllegalArgumentException("Cell index out of bound or already occupied");
+			throw new IllegalArgumentException("Cell " + cell_index + " out of bound or already occupied");
         } else { // If legal, update state, return the player index
 			state.placePiece(cell_index);
 			placementOrder.add(cell_index);
@@ -178,13 +185,13 @@ public class Controller // implements Serializable
 			fin = new FileInputStream(path);
 			ois = new ObjectInputStream(fin);
 
-			// TODO: downcasting is ugly. Another other way?
+            clear();
 			ArrayList<Short> foo = (ArrayList<Short>) ois.readObject();
 
-			System.out.println("==========================read object" + foo);
 			for (short move : foo) {
 				state.placePiece(move);
 			}
+
 
 		} catch (Exception ex) {
 			throw ex;
@@ -257,13 +264,13 @@ public class Controller // implements Serializable
                     }
                     short[] moves = s.getNextMove(state, limit, (byte) (pIdx-1));
                     System.out.println("==================\t\t" + s.getStrategyName() + ": " + Arrays.toString(moves));
-                    try {
+//                    try {
                         for (short stone_placement : moves) {
                             processCellClick(stone_placement, false);
                         }
-                    } catch (Exception ex) {
-                        s.requestFallback(state);
-                    }
+//                    } catch (Exception ex) {
+//                        s.requestFallback(state);
+//                    }
                     timer[pIdx-1] -= (System.currentTimeMillis() - start);
                     System.out.println("Timer: " + Arrays.toString(timer));
                 }
@@ -277,15 +284,15 @@ public class Controller // implements Serializable
 
         SearchStrategy[] players = new SearchStrategy[numPlayers()];
         for (byte p_idx = 1; p_idx <= numPlayers(); p_idx++) {
-			players[p_idx-1] = getStrategy(strategyNames[player_strategy[p_idx-1]]);
+			players[p_idx-1] = getStrategy(STRATEGY_NAMES[player_strategy[p_idx-1]]);
 		}
 		start(players);
 	}
 
 	public String[] getStrategies() {
-		String[] names = new String[strategyNames.length];
-		for (byte i = 0; i < strategyNames.length; i++) {
-			names[i] = strategyNames[i];//.getStrategyName();
+		String[] names = new String[STRATEGY_NAMES.length];
+		for (byte i = 0; i < STRATEGY_NAMES.length; i++) {
+			names[i] = STRATEGY_NAMES[i];//.getStrategyName();
 		}
 		return names;
 	}
@@ -341,6 +348,24 @@ public class Controller // implements Serializable
             throw ex;
         }
         return res;
+    }
+
+    public static void permutation(short[][] res, short[] perm, int pos, short[] source, AtomicInteger cnt) {
+        if (pos == perm.length) {
+            for (int i=0; i<perm.length;i++) {
+                res[cnt.intValue()][i] = perm[i];
+            }
+            cnt.getAndIncrement();
+        } else {
+            for (int i = 0 ; i < source.length ; i++) {
+                if (source[i] != -1) {
+                    perm[pos] = source[i];
+                    short[] newSource = source.clone();
+                    newSource[i] = -1;
+                    permutation(res, perm, pos + 1, newSource, cnt);
+                }
+            }
+        }
     }
 
     public void setState(State newState) {

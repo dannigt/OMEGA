@@ -3,6 +3,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -25,7 +26,7 @@ public class State implements Comparable<State>  {
 
     //Constructors with default values
     public State(Controller c) {
-        this(c, (byte) 5, (byte) 2);
+        this(c, (byte) 5, (byte) 3);
     }
 
     public State(Controller c, byte size, byte num_player) {
@@ -228,29 +229,43 @@ public class State implements Comparable<State>  {
 
     // number of possible moves given current state
     public int numMoves() {
-        return (total_cells - used_cells) * (total_cells - used_cells - 1);
+        int res = total_cells - used_cells;
+        for (byte i=1; i<num_player; i++) {
+            res *= (total_cells - used_cells - i);
+        }
+        return res;
     }
 
     // Generate all legal moves
-    //TODO: move to search strategy
     public short[][] moveGen()  { // TODO: currently it's a naive enumeration of all possible movements
         short[][] moves = new short[numMoves()][num_player]; // return cell index for each color
 
         int cnt = 0;
-        for (short idx_a = 0; idx_a < total_cells; idx_a++) {
-            if (cells[idx_a] == 0) {
-                for (short idx_b = 0; idx_b < total_cells; idx_b++) {
-                    if (cells[idx_b] == 0 && idx_b != idx_a) {
-//                        System.out.println("has " + moves.length + ", but accessing " + cnt);
-                        moves[cnt][0] = idx_a;
-                        moves[cnt][1] = idx_b;
-                        cnt++;
+        if (num_player==2) { // array operations when numPlayer == 2
+            for (short idx_a = 0; idx_a < total_cells; idx_a++) {
+                if (cells[idx_a] == 0) {
+                    for (short idx_b = 0; idx_b < total_cells; idx_b++) {
+                        if (cells[idx_b] == 0 && idx_b != idx_a) {
+                            moves[cnt][0] = idx_a;
+                            moves[cnt][1] = idx_b;
+                            cnt++;
+                        }
                     }
                 }
             }
-        }
-        if (cnt != numMoves()) {
-            System.exit(0);
+        } else { // otherwise use more heavyweight to generate
+            short[] perm = new short[num_player];
+
+            short[] emptyCellsIdx = new short[total_cells-used_cells];
+            short cntEmpty = 0;
+            for (short idx=0; idx < total_cells; idx++) {
+                if (cells[idx]==0) {
+                    emptyCellsIdx[cntEmpty] = idx;
+                    cntEmpty++;
+                }
+            }
+//            System.out.println("-----------------------------" + Arrays.toString(emptyCellsIdx));
+            c.permutation(moves, perm, 0, emptyCellsIdx, new AtomicInteger(0));
         }
         return moves;
     }
