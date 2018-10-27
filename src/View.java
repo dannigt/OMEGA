@@ -1,7 +1,5 @@
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
@@ -14,11 +12,12 @@ public class View
 	private static Controller c;
 	private static int NUM_ROWS;
 
-	private static final Color[] PALETTE = new Color[]{Color.GRAY, Color.WHITE, Color.BLACK, Color.RED, Color.BLUE, Color.WHITE};
+	private static final Color[] PALETTE = new Color[]{Color.GRAY, Color.WHITE, Color.BLACK, Color.RED, Color.BLUE, Color.YELLOW};
+	private static final Color[] OPPOSING_PALETTE = new Color[]{Color.WHITE, Color.BLACK, Color.WHITE, Color.WHITE, Color.YELLOW, Color.WHITE};
 	private static final int SCR_H = (int) Toolkit.getDefaultToolkit().getScreenSize().getHeight();
 	private static final int SCR_W = (int) Toolkit.getDefaultToolkit().getScreenSize().getWidth();
 	private static final int SCRSIZE = Math.min(SCR_H, SCR_W);
-	private static int boarder_pxl;
+	private static int boarderPxl;
 	private static ArrayList<Point> cellCenters = new ArrayList<>();
 	private static int h;	// height. Distance between centres of two adjacent hexes. Distance between two opposite sides in a hex.
 	private static int s;	// length of one side
@@ -34,17 +33,14 @@ public class View
 
 	public void reset() {
 		NUM_ROWS = 2 * c.getBoardSize() - 1;
-		boarder_pxl = SCRSIZE / NUM_ROWS / 2;
-		h= boarder_pxl;	// height. Distance between centres of two adjacent hexes. Distance between two opposite sides in a hex.
-		s= boarder_pxl;	// length of one side
+		boarderPxl = SCRSIZE / NUM_ROWS / 2;
+		h= boarderPxl;	// height. Distance between centres of two adjacent hexes. Distance between two opposite sides in a hex.
+		s= boarderPxl;	// length of one side
 		r=h/2;	// radius of inscribed circle (centre to middle of each side). r= h/2
 		a=(int) (Math.sqrt(3)*(h/2.0));
 		cellCenters.clear();
 	}
 
-//	public void setEnabled(boolean enabled) {
-//		panel.setEnabled(enabled);
-//	}
 
 	public static void createAndShowGUI(Controller c) {
 		new View(c);
@@ -106,13 +102,10 @@ public class View
 				c.setBoardSize((byte) (int) res);
 				System.out.println("New board size " + res);
 			}
-
-//				}
 		});
 		menu.add(menuItem);
 
-		//Choose computer player index
-
+		// Configure player strategies
 		for (byte p=0; p < c.numPlayers(); p++) {
 			submenu = new JMenu("Configure Player " + (p+1));
 			ButtonGroup group = new ButtonGroup();
@@ -122,10 +115,10 @@ public class View
 				if (s == c.getPlayerStrategy(p)) {
 					rbMenuItem.setSelected(s == c.getPlayerStrategy(p));
 				}
-				byte p_final = p;
-				byte s_final = s;
+				byte pFinal = p;
+				byte sFinal = s;
 				rbMenuItem.addActionListener(e -> {
-					c.setPlayerStrategy(p_final, s_final); // Requires a final/effectively final var
+					c.setPlayerStrategy(pFinal, sFinal); // Lambda function requires a final/effectively final var
 				});
 				group.add(rbMenuItem);
 				submenu.add(rbMenuItem);
@@ -177,20 +170,15 @@ public class View
 
 	static class DrawingPanel extends JPanel
 	{
-	    private JLabel progress_info;
-	    private JLabel warning_info;
+	    private JLabel progressInfo;
 
         public DrawingPanel()
 		{
-//			super(new GridBagLayout());
 			setBackground(Color.LIGHT_GRAY);
 			addMouseListener(new MyMouseListener());
 
-			progress_info = new JLabel(c.getProgressInfo());
-			this.add(progress_info);
-
-//			warning_info = new JLabel();
-//			this.add(warning_info);
+			progressInfo = new JLabel(c.getProgressInfo());
+			this.add(progressInfo);
 
 			this.setEnabled(false);
 		}
@@ -200,7 +188,7 @@ public class View
 			super.paintComponent(g);
 			Graphics2D g2 = (Graphics2D)g;
 			drawBoard(c.getBoardSize(), g2, SCRSIZE/8, SCRSIZE/8);
-			progress_info.setText(formatHTML(new String[] {c.getProgressInfo(), c.getScore(), c.getWarningInfo()}));
+			progressInfo.setText(formatHTML(new String[] {c.getProgressInfo(), c.getScore(), c.getWarningInfo()}));
 		}
 		
 		class MyMouseListener extends MouseAdapter	{
@@ -238,11 +226,10 @@ public class View
 		boolean add = cellCenters.isEmpty();
 		//draw grid
 		short cnt = 0;
-		int num_rows = 2 * size - 1;
+		int numRows = 2 * size - 1;
 //		drawHex(x0, y0, g2, COLOURCELL); // reference point
-
-		for (int i=0; i <= num_rows/2; i++) {
-			int startX = x0 + a * (num_rows/2 - i); // towards right. X axis.
+		for (int i=0; i <= numRows/2; i++) {
+			int startX = x0 + a * (numRows/2 - i); // towards right. X axis.
 			int y = (y0 + (int)(Math.sqrt(3) * a * i)); // towards down. Y axis.
 			int tilesPerRow = size + i;
 			
@@ -251,7 +238,7 @@ public class View
 
 				byte colorIdx = c.getCellColor(cnt);
 
-				drawHex(x, y, g2, PALETTE[colorIdx], PALETTE[colorIdx+1], cnt, c.isFocusedCell(cnt));
+				drawHex(x, y, g2, PALETTE[colorIdx], OPPOSING_PALETTE[colorIdx], cnt, c.isFocusedCell(cnt));
 
 				cnt++;
 				if (add)
@@ -259,15 +246,15 @@ public class View
 			}
 		}
 		
-		for (int i=1; i <= num_rows/2; i++) {
+		for (int i=1; i <= numRows/2; i++) {
 			int startX = x0 + a * (i); // towards right. X axis.
-			int y = (y0 + (int)(Math.sqrt(3) * a * (i + num_rows/2))); // towards down. Y axis.
-			int tilesPerRow = num_rows - i;
+			int y = (y0 + (int)(Math.sqrt(3) * a * (i + numRows/2))); // towards down. Y axis.
+			int tilesPerRow = numRows - i;
 			
 			for (int j=0; j < tilesPerRow; j++) {
 				int x = startX + 2 * a * j;
                 byte colorIdx = c.getCellColor(cnt);
-                drawHex(x, y, g2, PALETTE[colorIdx], PALETTE[colorIdx+1], cnt, c.isFocusedCell(cnt));
+                drawHex(x, y, g2, PALETTE[colorIdx], OPPOSING_PALETTE[colorIdx], cnt, c.isFocusedCell(cnt));
 				cnt++;
 				if (add)
 					cellCenters.add(new Point(x, y));
@@ -288,8 +275,8 @@ and calculates all six of the points in the hexagon.
 *********************************************************/
 	public static Polygon hex (int x0, int y0) {
 		int[] cornerXs,cornerYs;
-		int y = y0;// + boarder_pxl;
-		int x = x0;// + boarder_pxl; // + (XYVertex ? t : 0); //Fix added for XYVertex = true.
+		int y = y0;// + boarderPxl;
+		int x = x0;// + boarderPxl; // + (XYVertex ? t : 0); //Fix added for XYVertex = true.
 //		  *for POINTY ORIENTATION:
 		cornerXs = new int[] {x,x+a,x+a,x,x-a,x-a};
 		cornerYs = new int[] {y-s, y-s/2, y+s/2, y+s, y+s/2, y-s/2};
@@ -305,7 +292,6 @@ Calls: hex()
 Purpose: This function draws a hexagon based on the initial point (x,y).
 The hexagon is drawn in the colour specified in hexgame.COLOURELL.
 *********************************************************************/
-
 	private static void drawHex(int x, int y, Graphics2D g2, Color cellColor, Color textColor, int index, boolean focus) {
 		Polygon poly = hex(x,y);
 		g2.setColor(cellColor);
@@ -333,15 +319,4 @@ The hexagon is drawn in the colour specified in hexgame.COLOURELL.
 		//Ensure that the point is within the board
 		return (short)((nearest.distance(given) < a) ? cellCenters.indexOf(nearest) : -1);
 	}
-
-//	public static void main(String[] args)
-//{
-//    Controller c = new Controller();
-//
-//    SwingUtilities.invokeLater(new Runnable() {
-//        public void run() {
-//            createAndShowGUI(c);
-//        }
-//    });
-//}
 }
