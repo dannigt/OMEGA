@@ -41,8 +41,8 @@ public class Experiment {
 
         Experiment experiment = new Experiment(
                 new StrategyRandom(c, "random"),
-//                new StrategyAb(c, "a-b"),
-                new StrategyAbIterativeDeepening(c, "a-b with id"));
+//                new StrategyAlphaBeta(c, "a-b"),
+                new StrategyAlphaBetaId(c, "a-b with id"));
 
         experiment.runExperiments();
     }

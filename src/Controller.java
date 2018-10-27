@@ -1,10 +1,6 @@
 //import org.apache.commons.lang3.time.StopWatch;
 
-import jdk.jshell.spi.ExecutionControl;
-import jdk.swing.interop.SwingInterOpUtils;
-
 import java.io.*;
-import java.lang.reflect.Array;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -17,24 +13,18 @@ public class Controller // implements Serializable
 	private final byte MAX_SIZE = 10;
 	private State state;
 	private View view;
-//	private byte computer_player;
-//	private StrategyRandom search;
-
 	private ArrayList<Short> placementOrder;
 	private final String LOG_DIR;
 	private final String HASH_DIR;
 	private String timestamp;
-	private byte[] player_strategy = new byte[] {3, 0};
-
+	private byte[] player_strategy = new byte[] {3, 1}; // I'm white: {3,1}. I'm black: {1,3}.
 	private String[] strategyNames = new String[] {"random", "human", "a-b", "a-b with id"};
 	private long[][] rands;
-	// TODO: timer for players
-	private int[] timer = new int[]{300000, 300000};
+	private int[] timer = new int[]{900000, 900000};
+    private int TIME_LIMIT = 18000; //ms
 	private boolean paused;
-
 	private String warning_info = "";
 
-	private int TIME_LIMIT = 15000; //ms
 
 	public void clear() {
 //        state = new State(this, state.getBoardSize());
@@ -64,9 +54,9 @@ public class Controller // implements Serializable
 			case "human":
 				return new StrategyManual(this, name);
 			case "a-b":
-				return new StrategyAb(this, name);
+				return new StrategyAlphaBeta(this, name);
 			case "a-b with id":
-				return new StrategyAbIterativeDeepening(this, name);
+				return new StrategyAlphaBetaId(this, name);
 			default:
 				throw new IllegalArgumentException("No strategy with name " + name);
 		}
@@ -140,7 +130,6 @@ public class Controller // implements Serializable
 			placementOrder.add(cell_index);
 			makeCache();
 		}
-		// TODO: switch timer
 	}
 
 	public byte numPlayers() {
@@ -202,40 +191,36 @@ public class Controller // implements Serializable
 		}
 	}
 
+    /**
+     * Getters and setters
+     */
     public byte getMinSize() {
 		return MIN_SIZE;
 	}
-
-	public void setBoardSize(byte size) {
+    public byte getMaxSize() {
+        return MAX_SIZE;
+    }
+    public byte getBoardSize() {
+        return state.getBoardSize();
+    }
+    public String getProgressInfo() {
+        return "Round " + state.currentRound() + ", next player " + state.nextPlayer();
+    }
+    public String getWarningInfo(){
+        return warning_info;
+    }
+    public void setWarningInfo(String in) {
+        warning_info = in;
+    }
+    public String getScore() {
+        return state.getScore();
+    }
+    public void setBoardSize(byte size) {
 //		this.size = size;
 		this.paused = true;
 //		state = new State(this, size, numPlayers());
 		state.reset(size);
 		view.reset();
-	}
-
-	public byte getMaxSize() {
-		return MAX_SIZE;
-	}
-
-	public byte getBoardSize() {
-		return state.getBoardSize();
-	}
-
-	public String getProgressInfo() {
-		return "Round " + state.currentRound() + ", next player " + state.nextPlayer();
-	}
-
-	public String getWarningInfo(){
-		return warning_info;
-	}
-
-	public void setWarningInfo(String in) {
-		warning_info = in;
-	}
-
-	public String getScore() {
-		return state.getScore();
 	}
 
 	public void reverseMove() {
@@ -251,9 +236,7 @@ public class Controller // implements Serializable
         clear();
         paused = false;
         loadRand();
-
         placementOrder = new ArrayList<>(state.getTotalCells());
-//			pastPlacements = new Stack<>();
         timestamp = LocalDateTime.now().toString().replace( ":" , "-" );
 
         // while game not terminated, alternate between players to get next move
@@ -261,11 +244,9 @@ public class Controller // implements Serializable
             // every round
             for (byte pIdx = 1; pIdx <= numPlayers(); pIdx++) {
                 SearchStrategy s = players[pIdx-1];//strategies[player_strategy[p_idx-1]];
-                if (s.waitsForUI()) {
-                    // wait for UI input
+                if (s.waitsForUI()) {// wait for UI input
                     do {
-                        System.out.println(s.strategy_name + ", waiting for UI input");
-                        // And From your main() method or any other method
+                        System.out.print("");
                     } while
                     (state.nextPlayer() == pIdx);
                 } else {
@@ -298,7 +279,6 @@ public class Controller // implements Serializable
         for (byte p_idx = 1; p_idx <= numPlayers(); p_idx++) {
 			players[p_idx-1] = getStrategy(strategyNames[player_strategy[p_idx-1]]);
 		}
-
 		start(players);
 	}
 
@@ -319,13 +299,6 @@ public class Controller // implements Serializable
 		System.out.println(Arrays.toString(player_strategy));
 //		start();
 	}
-
-	public void storeHumanMovement() {
-		//check current player index
-
-		//moves are full --> confirm --> process into state
-	}
-
 
 	public long[][] requestRands() {
 	    if (rands == null) {

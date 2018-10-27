@@ -1,13 +1,13 @@
 import java.util.Arrays;
 import java.util.concurrent.TimeoutException;
 
-public class StrategyAb extends SearchStrategy{
+public class StrategyAlphaBeta extends SearchStrategy{
     private short[] curBestMove; // store the most recent chosen move
     private int cnt;
     private long startTime;
     private int timeLimit = 0;
 
-    StrategyAb(Controller c, String name) {
+    StrategyAlphaBeta(Controller c, String name) {
         super(c, name);
     }
 

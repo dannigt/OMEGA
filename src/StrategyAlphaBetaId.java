@@ -3,16 +3,15 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
-public class StrategyAbIterativeDeepening extends SearchStrategy{
+public class StrategyAlphaBetaId extends SearchStrategy{
 //    private int cnt;
     private long startTime;
     private int timeLimit = 0;
     private Random random = new Random();
-//    private ExecutorService ex = Executors.newFixedThreadPool(6);
     State bestState;
 //    private Hashtable<Byte, Hashtable<Long, State>> tt = new Hashtable<>(); // current turn
 
-    StrategyAbIterativeDeepening(Controller c, String name) {
+    StrategyAlphaBetaId(Controller c, String name) {
         super(c, name);
     }
 
@@ -29,7 +28,7 @@ public class StrategyAbIterativeDeepening extends SearchStrategy{
 //                ", next player: " + state.nextPlayer());
 
         byte currentTurn = state.currentTurn();
-        if (currentTurn <=4) { // 0th or 1st turn
+        if (currentTurn <=2) { // 0th or 1st turn
             return openingBook(state, pIndex, state.currentTurn());
         }
 
@@ -71,9 +70,9 @@ public class StrategyAbIterativeDeepening extends SearchStrategy{
             tt = null;
             // sort nodes at the root based on value
             Collections.sort(directChildren);
-//            for (State s : directChildren) {
-//                System.out.print(s.getValue() + ",");
-//            }
+            for (State s : directChildren) {
+                System.out.print(s.getValue() + ",");
+            }
 //            System.out.println("TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT" + (System.currentTimeMillis() - startTime));
         }
 
@@ -99,13 +98,8 @@ public class StrategyAbIterativeDeepening extends SearchStrategy{
         short opponentIdx = s.getOpponentIdx(pIx);
 
         if (currentTurn == 1) { // empty board
-            if (Math.random()<0.5) {
-                res[pIx] = (short) (s.getTotalCells()-1);
-                res[opponentIdx] = 0;
-            } else {
-                res[pIx] = 0;
-                res[opponentIdx] = (short) (s.getTotalCells()-1);
-            }
+            res[pIx] = (short) (s.getTotalCells()/2); //0;
+            res[opponentIdx] = 0; //(short) (s.getTotalCells()/2);
         }
         else { // 2nd turn onwards
             for (short i=0; i<s.cells.length; i++) {
@@ -221,6 +215,7 @@ public class StrategyAbIterativeDeepening extends SearchStrategy{
     }
 
     public short[] requestFallback(State state) {
+        System.err.println("---------------------");
         return state.moveGen()[(int) (Math.random() * state.numMoves())];
     }
 
