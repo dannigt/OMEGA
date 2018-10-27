@@ -44,7 +44,7 @@ public class StrategyAlphaBetaId extends SearchStrategy {
             // do a-b search with current # of ply
             try {
                 res = alphaBetaTT(state, ply, -60000, 60000, pIndex, tt, currentTurn, directChildren,
-                        true, state.currentTurn());
+                        true, state.currentTurn(), state.totalTurns());
             } catch (TimeoutException ex) {
                 res = bestState;
                 break;
@@ -73,33 +73,6 @@ public class StrategyAlphaBetaId extends SearchStrategy {
         return null;
     }
 
-    private short[] openingBook(State s, byte pIx, byte currentTurn) {
-        // pIndex + 1 is color
-        short[] res = new short[]{0, 0};
-
-        short opponentIdx = s.getOpponentIdx(pIx);
-
-        if (currentTurn == 1) { // empty board
-            res[pIx] = (short) (s.getTotalCells()/2); //0;
-            res[opponentIdx] = 0; //(short) (s.getTotalCells()/2);
-        }
-        else { // 2nd turn onwards
-            for (short i=0; i<s.getNumCells(); i++) {
-                if (s.getCellContent(i) == pIx+1) { // choose place for my color
-                    res[pIx] = s.getRandFarawayCell(i);
-//                    res[pIx] = s.getRandNeighbor(i);
-                } else if (s.getCellContent(i) == opponentIdx+1) { // for opponent's color
-                    short ngb = s.getRandNeighbor(i);
-                    while (res[pIx]== ngb) { // avoid putting on the same cell
-                        ngb = s.getRandNeighbor(i);
-                    }
-                    res[opponentIdx] = ngb;
-                }
-            }
-        }
-        return res;
-    }
-
     @Override
     boolean waitsForUI() {
         return false;
@@ -108,7 +81,7 @@ public class StrategyAlphaBetaId extends SearchStrategy {
     // alpha beta with TT
     private State alphaBetaTT(State sIn, int depth, int alpha, int beta, byte pIndex,
                               Hashtable<Byte, Hashtable<Long, State>> tt, byte curTurn,
-                              ArrayList<State> directChildren, boolean isRoot, byte rootTurn) throws TimeoutException {
+                              ArrayList<State> directChildren, boolean isRoot, byte rootTurn, byte totalTurns) throws TimeoutException {
         if ((System.currentTimeMillis() - startTime) > timeLimit) {
             throw new TimeoutException();
         }
@@ -131,7 +104,7 @@ public class StrategyAlphaBetaId extends SearchStrategy {
         }
 
         if (sIn.isTerminal() || depth == 0) {
-            sIn.eval(pIndex, rootTurn); // leaf node, eval and return myself.
+            sIn.eval(pIndex, (rootTurn > (totalTurns / 2)), pIndex != sIn.nextPlayerIdx()); // leaf node, eval and return myself.
             return sIn;
         }
 
@@ -161,7 +134,7 @@ public class StrategyAlphaBetaId extends SearchStrategy {
                 bestChild=sChild;
 
             int value = -alphaBetaTT(sChild, depth - 1, -beta, -alpha, pIndex, tt, (byte)(curTurn+1),
-                    directChildren, false, rootTurn).getValue();
+                    directChildren, false, rootTurn, totalTurns).getValue();
 
             if (value > bestValue) {
                 bestValue = value;

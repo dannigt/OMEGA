@@ -20,11 +20,12 @@ public class Controller // implements Serializable
     private final String[] STRATEGY_NAMES;
 	private String timestamp;
 	private byte[] player_strategy;
-	private long[][] rands;
+	private long[][] RAND;
 	private int[] timer;
     private int TIME_LIMIT = 18000; //ms
 	private boolean paused;
 	private String warning_info = "";
+    private static Random random = new Random();
 
 
 	public void clear() {
@@ -40,7 +41,7 @@ public class Controller // implements Serializable
 
 		LOG_DIR = Paths.get(System.getProperty("user.dir"), "log").toString();
 		HASH_DIR = Paths.get(System.getProperty("user.dir") , "hash").toString();
-        STRATEGY_NAMES = new String[] {"random", "human", "a-b", "a-b with id"};
+        STRATEGY_NAMES = new String[] {"random", "human", "a-b", "a-b with id", "Monte Carlo"};
 
 		player_strategy = new byte[state.getNumPlayer()];
 		timer = new int[state.getNumPlayer()];
@@ -63,6 +64,8 @@ public class Controller // implements Serializable
 				return new StrategyAlphaBeta(this, name);
 			case "a-b with id":
 				return new StrategyAlphaBetaId(this, name);
+            case "monte carlo":
+                return new StrategyMonteCarlo(this, name);
 			default:
 				throw new IllegalArgumentException("No strategy with name " + name);
 		}
@@ -74,40 +77,55 @@ public class Controller // implements Serializable
                 "_p_" + state.getNumPlayer() + ".dat").toString();
 
         try {
-            rands = (long[][]) readObject(path);
+            RAND = (long[][]) readObject(path);
         } catch (Exception ex) {
-            System.err.println("Cannot cast");
-            // TODO: generate here
-        }
+            Random randomLong = new Random();
+            long[][] rands = new long[state.getTotalCells()][numPlayers()+1];
 
-		File f = new File(path);
-		if(f.exists() && !f.isDirectory()) {
-			try {
-				FileInputStream fis = new FileInputStream(path);
-				ObjectInputStream iis = new ObjectInputStream(fis);
-				rands = (long[][]) iis.readObject();
-			} catch (Exception e) {
-
-			}
-		} else {
-			// If not exist, generate
-			Random randomLong = new Random();
-			long[][] rands = new long[state.getTotalCells()][numPlayers()+1];
-
-			for (short cell = 0; cell < state.getTotalCells(); cell++) {
-				for (byte value = 0; value <= numPlayers(); value++) {
-					rands[cell][value] = randomLong.nextLong();
-				}
-			}
-			try {
-			    saveObject(rands, path);
+            for (short cell = 0; cell < state.getTotalCells(); cell++) {
+                for (byte value = 0; value <= numPlayers(); value++) {
+                    rands[cell][value] = randomLong.nextLong();
+                }
+            }
+            try {
+                saveObject(rands, path);
 //				FileOutputStream fos = new FileOutputStream(path);
 //				ObjectOutputStream oos = new ObjectOutputStream(fos);
 //				oos.writeObject(rands);
-			} catch (Exception e) {
+            } catch (Exception e) {
 
-			}
-		}
+            }
+            System.err.println("Cannot cast from the object");
+        }
+
+//		File f = new File(path);
+//		if(f.exists() && !f.isDirectory()) {
+//			try {
+//				FileInputStream fis = new FileInputStream(path);
+//				ObjectInputStream iis = new ObjectInputStream(fis);
+//                RAND = (long[][]) iis.readObject();
+//			} catch (Exception e) {
+//
+//			}
+//		} else {
+			// If not exist, generate
+//			Random randomLong = new Random();
+//			long[][] rands = new long[state.getTotalCells()][numPlayers()+1];
+//
+//			for (short cell = 0; cell < state.getTotalCells(); cell++) {
+//				for (byte value = 0; value <= numPlayers(); value++) {
+//					rands[cell][value] = randomLong.nextLong();
+//				}
+//			}
+//			try {
+//			    saveObject(rands, path);
+////				FileOutputStream fos = new FileOutputStream(path);
+////				ObjectOutputStream oos = new ObjectOutputStream(fos);
+////				oos.writeObject(rands);
+//			} catch (Exception e) {
+//
+//			}
+//		}
 	}
 
     public byte getCellColor(short cIndex) {
@@ -188,8 +206,10 @@ public class Controller // implements Serializable
             clear();
 			ArrayList<Short> foo = (ArrayList<Short>) ois.readObject();
 
+
 			for (short move : foo) {
 				state.placePiece(move);
+                System.out.print(move + ",");
 			}
 
 
@@ -308,10 +328,10 @@ public class Controller // implements Serializable
 	}
 
 	public long[][] requestRands() {
-	    if (rands == null) {
+	    if (RAND == null) {
 	        loadRand();
         }
-	    return rands;
+	    return RAND;
     }
 
     //
@@ -367,6 +387,8 @@ public class Controller // implements Serializable
             }
         }
     }
+
+
 
     public void setState(State newState) {
 	    state = newState;

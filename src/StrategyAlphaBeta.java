@@ -21,11 +21,15 @@ public class StrategyAlphaBeta extends SearchStrategy{
         startTime = System.currentTimeMillis();
         timeLimit = time;
 
-        byte currentTurn = state.currentTurn();
+        byte currentTurn = (byte) (state.currentTurn()+1);
+        if (currentTurn <=2) { // 0th or 1st turn, use opening book
+            return openingBook(state, pIndex, state.currentTurn());
+        }
 
         State res = null;
         try {
-            res = alphaBeta(state, 3, -60000, 60000, pIndex, currentTurn, true, state.currentTurn());
+            res = alphaBeta(state, 3, -60000, 60000, pIndex, currentTurn, true,
+                    state.currentTurn(), state.totalTurns());
         } catch (TimeoutException ex) {  // store the most recent best move
             res = bestState;
         }
@@ -47,13 +51,13 @@ public class StrategyAlphaBeta extends SearchStrategy{
     }
 
     private State alphaBeta(State sIn, int depth, int alpha, int beta, byte pIndex,
-                            byte curTurn, boolean isRoot, byte rootTurn) throws TimeoutException{
+                            byte curTurn, boolean isRoot, byte rootTurn, byte totalTurns) throws TimeoutException{
         if ((System.currentTimeMillis() - startTime) > timeLimit) {
             throw new TimeoutException();
         }
 
         if (sIn.isTerminal() || depth == 0) {
-            sIn.eval(pIndex, rootTurn); // leaf node, eval and return myself.
+            sIn.eval(pIndex, (rootTurn > (totalTurns / 2)), pIndex != sIn.nextPlayerIdx()); // leaf node, eval and return myself.
             return sIn;
         }
 
@@ -70,7 +74,8 @@ public class StrategyAlphaBeta extends SearchStrategy{
             if (child==0)
                 bestChild=sChild;
 
-            int value = -alphaBeta(sChild, depth - 1, -beta, -alpha, pIndex, (byte)(curTurn+1), false, rootTurn).getValue();
+            int value = -alphaBeta(sChild, depth - 1, -beta, -alpha, pIndex, (byte)(curTurn+1), false,
+                    rootTurn, totalTurns).getValue();
 
             if (value > bestValue) {
                 bestValue = value;

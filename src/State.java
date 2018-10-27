@@ -27,11 +27,11 @@ public class State implements Comparable<State>  {
     private boolean sim = false; // is simulation
 
     //Constructors with default values
-    public State(Controller c) {
+    State(Controller c) {
         this(c, (byte) 5, (byte) 2);
     }
 
-    public State(Controller c, byte size, byte numPlayer) {
+    State(Controller c, byte size, byte numPlayer) {
         this.c = c;
         this.numPlayer = numPlayer;
         init(size);
@@ -39,7 +39,7 @@ public class State implements Comparable<State>  {
     }
 
     // overloaded constructor for copying states
-    public State(State s) {
+    State(State s) {
         size = s.size;
         adjList = s.adjList;
         numPlayer = s.numPlayer;
@@ -62,12 +62,12 @@ public class State implements Comparable<State>  {
         c = s.c;
     }
 
-    public void reset(byte size) {
+    void reset(byte size) {
         init(size);
         c.notifyChange();
     }
 
-    public void reset() {
+    void reset() {
         init(size);
         c.notifyChange();
     }
@@ -129,11 +129,11 @@ public class State implements Comparable<State>  {
         }
     }
 
-    public byte getCellContent(short cell) {
+    byte getCellContent(short cell) {
         return cells[cell];
     }
 
-    public void placePiece(short cell) {
+    void placePiece(short cell) {
         byte nextColor = nextColor();
         cells[cell] = nextColor;
         usedCells++;
@@ -153,7 +153,7 @@ public class State implements Comparable<State>  {
         }
     }
 
-    public long getHashKey() {
+    long getHashKey() {
         return hashKey;
     }
 
@@ -225,7 +225,7 @@ public class State implements Comparable<State>  {
     }
 
     // number of possible moves given current state
-    public int numMoves() {
+    int numMoves() {
         int res = totalCells - usedCells;
         for (byte i = 1; i< numPlayer; i++) {
             res *= (totalCells - usedCells - i);
@@ -234,11 +234,11 @@ public class State implements Comparable<State>  {
     }
 
     // Generate all legal moves
-    public short[][] moveGen()  { // TODO: currently it's a naive enumeration of all possible movements
-        short[][] moves = new short[numMoves()][numPlayer]; // return cell index for each color
+    short[][] moveGen()  {
+        short[][] moves = new short[numMoves()][numPlayer];
 
         int cnt = 0;
-        if (numPlayer ==2) { // array operations when numPlayer == 2
+        if (numPlayer ==2) { // use array operations when numPlayer == 2
             for (short idxA = 0; idxA < totalCells; idxA++) {
                 if (cells[idxA] == 0) {
                     for (short idxB = 0; idxB < totalCells; idxB++) {
@@ -250,37 +250,48 @@ public class State implements Comparable<State>  {
                     }
                 }
             }
-        } else { // otherwise use more heavyweight to generate
+        } else { // >=2 players, use more heavyweight recursive method to generate
             short[] perm = new short[numPlayer];
-
-            short[] emptyCellsIdx = new short[totalCells - usedCells];
-            short cntEmpty = 0;
-            for (short idx = 0; idx < totalCells; idx++) {
-                if (cells[idx]==0) {
-                    emptyCellsIdx[cntEmpty] = idx;
-                    cntEmpty++;
-                }
-            }
-            c.permutation(moves, perm, 0, emptyCellsIdx, new AtomicInteger(0));
+//            short[] emptyCellsIdx = new short[totalCells - usedCells];
+//            short cntEmpty = 0;
+//            for (short idx = 0; idx < totalCells; idx++) {
+//                if (cells[idx]==0) {
+//                    emptyCellsIdx[cntEmpty] = idx;
+//                    cntEmpty++;
+//                }
+//            }
+            c.permutation(moves, perm, 0, getEmptyCellsIdx(), new AtomicInteger(0));
         }
         return moves;
     }
 
+    short[] getEmptyCellsIdx() {
+        short[] emptyCellsIdx = new short[totalCells - usedCells];
+        short cntEmpty = 0;
+        for (short idx = 0; idx < totalCells; idx++) {
+            if (cells[idx]==0) {
+                emptyCellsIdx[cntEmpty] = idx;
+                cntEmpty++;
+            }
+        }
+        return emptyCellsIdx;
+    }
+
     // Check termination condition
-    public boolean isTerminal() {
+    boolean isTerminal() {
         return usedCells == (totalRounds() * numPlayer * numPlayer);
     }
 
     // getValue depends on player's perspective
-    public int getValue() {
+    int getValue() {
         return value;
     }
 
     //TODO: implement evaluation function
     //TODO: would this overflow in larger boards?
-    public void eval(byte curPlayerIdx, byte fromTurn) {
+    void eval(byte curPlayerIdx, boolean useExactscore, boolean isMinNode) {
         // in earlier turns, use
-        if (fromTurn <= (totalTurns() / 2)) { // TODO: closed groups!
+        if (!useExactscore) { // TODO: closed groups!
             value = 0;
             for (short entry : groupSizeCounter.keySet()) {
                 if (groupSizeCounter.get(entry)!= 0) {
@@ -297,66 +308,70 @@ public class State implements Comparable<State>  {
                 }
             }
         } else { // in later turns, use the score directly
-            value = (int) (scores[curPlayerIdx] - scores[getOpponentIdx(curPlayerIdx)]); // score different MAX-MIN
+            value = (int) (scores[curPlayerIdx] - scores[getOpponentIdx(curPlayerIdx)])/10; // score different MAX-MIN
         }
         // flip value if it's a MIN node
-        if ((curPlayerIdx+1) != nextPlayer()) { // current player is next player
+        if (isMinNode) {//((curPlayerIdx+1) != nextPlayer()) { // current player is next player
             value = -value;
         }
     }
 
-    public void setValue(int v) {
+
+    void setValue(int v) {
         value = v;
     }
 
     // number of total rounds
-    public int totalRounds() {
+    int totalRounds() {
         return totalCells / (numPlayer * numPlayer);
     }
 
-    public int totalTurns() {
-        return totalRounds() * numPlayer;
+    byte totalTurns() {
+        return (byte) (totalRounds() * numPlayer);
     }
 
     // which player's turn it is
-    public byte nextPlayer() {
+    byte nextPlayer() {
         return (byte) (usedCells % (numPlayer * numPlayer) / numPlayer + 1);
     }
 
+    byte nextPlayerIdx() {return (byte) (usedCells % (numPlayer * numPlayer) / numPlayer); }
+
+
     // next color
-    public byte nextColor() {
+    private byte nextColor() {
         return (byte) (usedCells % numPlayer + 1);
     }
 
-    public int currentRound() {
+    int currentRound() {
         return usedCells / (numPlayer * numPlayer) + 1;
     }
 
-    public byte currentTurn() {
+    byte currentTurn() {
         return (byte) ((currentRound() - 1) * numPlayer + nextPlayer());
     }
 
-    public byte turnsLeft() {
+    byte turnsLeft() {
         return (byte) (totalTurns() - currentTurn());
     }
 
-    public byte getBoardSize() {
+    byte getBoardSize() {
         return size;
     }
 
-    public byte getNumPlayer() {
+    byte getNumPlayer() {
         return numPlayer;
     }
 
-    public short getTotalCells() {
+    short getTotalCells() {
         return totalCells;
     }
 
-    public String getScore() {
+    String getScore() {
         return Arrays.toString(scores);
     }
 
-    protected short getRandNeighbor(short cell) {
+    short getRandNeighbor(short cell) {
         short idx;
         do {
             idx = (short) (Math.random() * adjList[cell].size());
@@ -364,7 +379,7 @@ public class State implements Comparable<State>  {
         return adjList[cell].get(idx);
     }
 
-    public short getRandFarawayCell(short cell) {
+    short getRandFarawayCell(short cell) {
         short res;
         if (cell>=30 && cell<=42)
             res = (short) (0);
@@ -379,20 +394,19 @@ public class State implements Comparable<State>  {
         return res;
     }
 
-    public byte getOpponentIdx(byte currentPlayer) {
+    byte getOpponentIdx(byte currentPlayer) {
         return (byte) (numPlayer - 1 - currentPlayer);
     }
 
-    public void setFlag(byte flag) {
+    void setFlag(byte flag) {
         this.flag = flag;
     }
 
-    public byte getFlag() {
+    byte getFlag() {
         return flag;
     }
 
-
-    public int getNumCells() {
+    int getNumCells() {
         return cells.length;
     }
     @Override
