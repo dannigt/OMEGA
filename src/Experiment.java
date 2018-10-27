@@ -47,15 +47,14 @@ public class Experiment {
 
 
     public static void main(String[] args) {
-
         Experiment experiment = new Experiment(
-                new StrategyAlphaBeta(c, "a-b"),
+                new StrategyAlphaBeta(c, "Monte Carlo"),
                 new StrategyAlphaBetaId(c, "a-b with id"));
         experiment.runExperiments();
 
         experiment = new Experiment(
-                new StrategyAlphaBeta(c, "a-b"),
-                new StrategyAlphaBetaId(c, "a-b with id"));
+                new StrategyAlphaBeta(c, "a-b with id"),
+                new StrategyAlphaBetaId(c, "Monte Carlo"));
         experiment.runExperiments();
     }
 }

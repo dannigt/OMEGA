@@ -1,14 +1,10 @@
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.Hashtable;
-import java.util.concurrent.TimeoutException;
 
 public class StrategyMonteCarlo extends SearchStrategy {
     private long startTime;
     private int timeLimit;
-    private State bestState;
-    private int simCnt = 10000;
+    private int simCnt = 10000; // TODO: set it to max
 
 
     public StrategyMonteCarlo(Controller c, String name) {
@@ -19,29 +15,27 @@ public class StrategyMonteCarlo extends SearchStrategy {
         startTime = System.currentTimeMillis();
         timeLimit = milli;
 
-        int numMoves = state.numMoves();
+        int numMoves = state.numMovesSinglePiece(); //numMoves();//
         ArrayList<State> children = new ArrayList<State>(numMoves);
-
-        short[][] moves = state.moveGen();
-
-        for (int i=0; i < numMoves; i++) {
-            State sChild = new State(state);
-            for (int j=0; j < state.getNumPlayer(); j++) {
-                sChild.placePiece(moves[i][j]);
-            }
-            children.add(sChild);
-        }
+//
+        generateDirectChildren(state, state.getNumPlayer(), children);
+//
+//        int numMoves = state.numMoves();
+//        short[][] moves = state.generateDirectChildren();
+//
+//        for (int i=0; i < numMoves; i++) {
+//            State sChild = new State(state);
+//            for (int j=0; j < moves[0].length; j++) { // place pieces for of each color
+//                sChild.placePiece(moves[i][j]);
+//            }
+//            children.add(sChild);
+//        }
         int[] sum = new int[numMoves];
         int[] cnt = new int[numMoves];
 
-        byte currentTurn = state.currentTurn();
-        if (currentTurn <=2) { // 0th or 1st turn, use opening book
-            return openingBook(state, pIdx, state.currentTurn());
-        }
-
         mc(pIdx, simCnt, children, numMoves, sum, cnt);
 
-        System.out.println(Arrays.toString(sum));
+//        System.out.println(Arrays.toString(sum));
         for (int i=0; i < numMoves; i++) {
 //            System.out.println("sum " + sum + " cnt " + cnt);
             children.get(i).setValue(sum[i]);
@@ -54,25 +48,38 @@ public class StrategyMonteCarlo extends SearchStrategy {
 //        }
 //        System.out.println("");
 
+//        System.out.println(Arrays.toString(res.));
         State res = children.get(0);
-        short[] curBestMove = new short[]{0,0};
-        for (byte i=0; i< res.getNumCells(); i++) {
-            if (state.getCellContent(i)==0 && res.getCellContent(i)==1) {
-                curBestMove[0] = i;
-            } else if (state.getCellContent(i)==0 && res.getCellContent(i)==2) {
-                curBestMove[1] = i;
+        short[] curBestMove = new short[state.getNumPlayer()];
+        for (byte i=0; i< res.getNumCells(); i++) { // cell index
+            for (short j=1; j <= state.getNumPlayer(); j++) {
+                if (state.getCellContent(i)==0 && res.getCellContent(i)==j) {
+                    curBestMove[j-1] = i;
+                }
             }
         }
-
         return curBestMove;
+    }
+
+    private void generateDirectChildren(State state, byte depth, ArrayList<State> children) {
+        if (depth==0) {
+            children.add(state);
+            return;
+        }
+        short[] moves = state.moveGenSinglePiece();
+        for (short move : moves) { // place pieces for of each color
+            State sChild = new State(state);
+            sChild.placePiece(move);
+            generateDirectChildren(sChild, (byte)(depth-1), children);
+        }
     }
 
     private int playoutAndEval(State sIn, byte pIdx) {
         State s = new State(sIn);
         while(!s.isTerminal()) {
             short[] move = StrategyRandom.randMove(s);
-            for (short piece : move) {
-                s.placePiece(piece);
+            for (int j=0; j < s.getNumPlayer(); j++) { // place pieces for of each color
+                s.placePiece(move[j]);
             }
         }
         s.eval(pIdx, true, false);
@@ -87,8 +94,12 @@ public class StrategyMonteCarlo extends SearchStrategy {
             }
             for (int j = 0; j < numMoves; j++) {
                 // TODO: no need to play out further if sum is too low (<-simCnt/2)
-                sum[j] += playoutAndEval(children.get(j), pIndex)>0 ? 1: -1;
-                cnt[j]++;
+                if (sum[j] < - simCnt/2) {
+//                    System.out.println("====================================");
+                }
+                else {sum[j] += playoutAndEval(children.get(j), pIndex)>0 ? 1: -1;
+                    cnt[j]++;
+                }
             }
 //            System.out.println(i + ": " + sChild.getScore());
         }

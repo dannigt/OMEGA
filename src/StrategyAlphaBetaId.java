@@ -17,7 +17,7 @@ public class StrategyAlphaBetaId extends SearchStrategy {
         timeLimit = milli;
 
         byte currentTurn = state.currentTurn();
-        if (currentTurn <=2) { // 0th or 1st turn, use opening book
+        if (currentTurn == 1) { // 0th or 1st turn, use opening book
             return openingBook(state, pIndex, state.currentTurn());
         }
 
@@ -104,7 +104,7 @@ public class StrategyAlphaBetaId extends SearchStrategy {
         }
 
         if (sIn.isTerminal() || depth == 0) {
-            sIn.eval(pIndex, (rootTurn > (totalTurns / 2)), pIndex != sIn.nextPlayerIdx()); // leaf node, eval and return myself.
+            sIn.eval(pIndex, (rootTurn > (totalTurns / 4)), pIndex != sIn.nextPlayerIdx()); // leaf node, eval and return myself.
             return sIn;
         }
 

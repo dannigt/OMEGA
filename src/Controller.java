@@ -49,7 +49,6 @@ public class Controller // implements Serializable
 		Arrays.fill(timer, 900000);
 		paused = true;
 
-		// TODO: move to elsewhere?
 		createDirIfNotExist(Paths.get(HASH_DIR));
 		createDirIfNotExist(Paths.get(LOG_DIR));
   	}
@@ -132,8 +131,9 @@ public class Controller // implements Serializable
         return state.getCellContent(cIndex);
     }
 
-    public boolean isFocusedCell(short cIndex) { // last two pieces
-	    if (placementOrder != null && placementOrder.size() > 2)
+    public boolean isFocusedCell(short cIndex) { // the piece placed in the most recent round
+	    if (placementOrder != null && placementOrder.size() > numPlayers())
+	        //
            return (cIndex==placementOrder.get(placementOrder.size()-1)) ||
                 (cIndex == placementOrder.get(placementOrder.size()-2));
         else

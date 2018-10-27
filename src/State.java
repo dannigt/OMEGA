@@ -28,7 +28,7 @@ public class State implements Comparable<State>  {
 
     //Constructors with default values
     State(Controller c) {
-        this(c, (byte) 5, (byte) 2);
+        this(c, (byte) 5, (byte) 4);
     }
 
     State(Controller c, byte size, byte numPlayer) {
@@ -137,15 +137,19 @@ public class State implements Comparable<State>  {
         byte nextColor = nextColor();
         cells[cell] = nextColor;
         usedCells++;
+        if (usedCells > totalCells) {
+            System.err.println(cell + "----------------------" + usedCells + "------------------------" + totalCells);
+            System.exit(0);
+        }
         calcConnectedAreaSize(cell);
         calcScores();
 
         // Update hashkey
-        // hahKey *= rand[cell][color];
         try {
             hashKey ^= c.requestRands()[cell][nextColor];
         } catch (Exception ex) {
-            System.err.println("sim " + sim);
+            System.err.println("sim " + sim + "." + ex.getMessage() + ". next color " + nextColor + " . " + usedCells + ", " + totalCells);
+            System.exit(0);
         }
         // If in search step, don't notify change
         if (!sim) {
@@ -171,7 +175,7 @@ public class State implements Comparable<State>  {
         ufParent[cell] = cell;
         ufSize[cell] = 1;
 
-        short key = (short) (cells[cell] * 1000 + 1);
+        short key = (short) (cells[cell] * 1000 + 1); // cell index * 1000 + size 1
         if (groupSizeCounter.containsKey(key)) {
             groupSizeCounter.put(key, (short) (groupSizeCounter.get(key) + 1));
         } else {
@@ -217,9 +221,14 @@ public class State implements Comparable<State>  {
     private void calcScores() {
         Arrays.fill(scores, 1);
         for (Map.Entry<Short, Short> entry : groupSizeCounter.entrySet()) {
-//            System.out.println("Player : " + entry.getKey() / 1000 + ", Group size: " + entry.getKey() % 1000 +
-//                    " Count : " + entry.getValue());
-            scores[ entry.getKey() / 1000 - 1] *= Math.pow(entry.getKey() % 1000, entry.getValue());
+            try {
+                scores[ entry.getKey() / 1000 - 1] *= Math.pow(entry.getKey() % 1000, entry.getValue());
+            }
+            catch (Exception ex) {
+
+                System.out.println("Player : " + entry.getKey() / 1000 + ", Group size: " + entry.getKey() % 1000 +
+                        " Count : " + entry.getValue());
+            }
         }
 //        System.out.println("Points: " + Arrays.toString(scores));
     }
@@ -232,6 +241,15 @@ public class State implements Comparable<State>  {
         }
         return res;
     }
+
+    int numMovesSinglePiece() {
+        return totalCells - usedCells;
+    }
+
+    short[] moveGenSinglePiece() {
+        return getEmptyCellsIdx();
+    }
+
 
     // Generate all legal moves
     short[][] moveGen()  {
@@ -266,7 +284,7 @@ public class State implements Comparable<State>  {
     }
 
     short[] getEmptyCellsIdx() {
-        short[] emptyCellsIdx = new short[totalCells - usedCells];
+        short[] emptyCellsIdx = new short[totalCells];
         short cntEmpty = 0;
         for (short idx = 0; idx < totalCells; idx++) {
             if (cells[idx]==0) {
@@ -274,7 +292,7 @@ public class State implements Comparable<State>  {
                 cntEmpty++;
             }
         }
-        return emptyCellsIdx;
+        return Arrays.copyOfRange(emptyCellsIdx, 0, cntEmpty);
     }
 
     // Check termination condition
@@ -308,7 +326,8 @@ public class State implements Comparable<State>  {
                 }
             }
         } else { // in later turns, use the score directly
-            value = (int) (scores[curPlayerIdx] - scores[getOpponentIdx(curPlayerIdx)])/10; // score different MAX-MIN
+            // for every opponent
+            value = myScoreMinOthers(curPlayerIdx) / 10;//(int) (scores[curPlayerIdx] - scores[getOpponentIdx(curPlayerIdx)])/10; // score different MAX-MIN
         }
         // flip value if it's a MIN node
         if (isMinNode) {//((curPlayerIdx+1) != nextPlayer()) { // current player is next player
@@ -390,6 +409,15 @@ public class State implements Comparable<State>  {
         }
         if (cells[res] != 0) {
             return getRandNeighbor(res);
+        }
+        return res;
+    }
+
+
+    int myScoreMinOthers(byte currentPlayer) {
+        int res = 0;
+        for (byte i=0; i< numPlayer; i++) {
+            res += (i == currentPlayer) ? scores[i] : -scores[i];
         }
         return res;
     }
