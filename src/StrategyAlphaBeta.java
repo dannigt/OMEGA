@@ -1,11 +1,9 @@
-import java.util.Arrays;
 import java.util.concurrent.TimeoutException;
 
 public class StrategyAlphaBeta extends SearchStrategy{
-    private short[] curBestMove; // store the most recent chosen move
-    private int cnt;
     private long startTime;
-    private int timeLimit = 0;
+    private int timeLimit;
+    private State bestState;
 
     StrategyAlphaBeta(Controller c, String name) {
         super(c, name);
@@ -19,24 +17,27 @@ public class StrategyAlphaBeta extends SearchStrategy{
 
     @Override
     short[] getNextMove(State state, int time, byte pIndex) {
-        cnt = 0;
+//        cnt = 0;
         startTime = System.currentTimeMillis();
         timeLimit = time;
-        // choose something first
-        short[][] moves = state.moveGen();
 
-        curBestMove = moves[moves.length-1];
+        byte currentTurn = state.currentTurn();
 
+        State res = null;
         try {
-            alphaBeta(state, 3, -60000, 60000, curBestMove, pIndex);
-//            alphaBeta(state, state.turnsLeft(), Integer.MIN_VALUE, Integer.MAX_VALUE, curBestMove, pIndex);
-        } catch (TimeoutException ex) {
-            System.out.println("timeout");
+            res = alphaBeta(state, 3, -60000, 60000, pIndex, currentTurn, true, state.currentTurn());
+        } catch (TimeoutException ex) {  // store the most recent best move
+            res = bestState;
         }
 
-        System.out.println(Arrays.toString(curBestMove));
-        System.out.println("Evaluated " + cnt + " children.");
-//        System.exit(0);
+        short[] curBestMove = new short[]{0,0};
+        for (byte i=0; i< res.getNumCells(); i++) {
+            if (state.getCellContent(i)==0 && res.getCellContent(i)==1) {
+                curBestMove[0] = i;
+            } else if (state.getCellContent(i)==0 && res.getCellContent(i)==2) {
+                curBestMove[1] = i;
+            }
+        }
         return curBestMove;
     }
 
@@ -45,56 +46,48 @@ public class StrategyAlphaBeta extends SearchStrategy{
         return false;
     }
 
-    private State alphaBeta(State sIn, int depth, int alpha, int beta, short[] curBestMove, byte pIndex) throws TimeoutException{
-        // stop recursion if: 1) time is out, 2) is terminal
+    private State alphaBeta(State sIn, int depth, int alpha, int beta, byte pIndex,
+                            byte curTurn, boolean isRoot, byte rootTurn) throws TimeoutException{
         if ((System.currentTimeMillis() - startTime) > timeLimit) {
-//            return sIn;
             throw new TimeoutException();
         }
 
         if (sIn.isTerminal() || depth == 0) {
-            // Only really eval here
-            sIn.eval(pIndex, sIn.currentTurn());
+            sIn.eval(pIndex, rootTurn); // leaf node, eval and return myself.
             return sIn;
         }
 
-        int score = Integer.MIN_VALUE; // a-b always start with a max player
+        int bestValue = Integer.MIN_VALUE; // a-b always start with a max player
 
         short[][] all_moves = sIn.moveGen();
+        State bestChild = null;
 
-//        State bestChild = null;
         for (int child = 0; child < all_moves.length; child++) { //all_moves.length
             State sChild = new State(sIn); // copy states
+            sChild.placePiece(all_moves[child][0]);
+            sChild.placePiece(all_moves[child][1]);
 
-            short[] move = all_moves[child];
+            if (child==0)
+                bestChild=sChild;
 
-            sChild.placePiece(move[0]);
-            sChild.placePiece(move[1]);
+            int value = -alphaBeta(sChild, depth - 1, -beta, -alpha, pIndex, (byte)(curTurn+1), false, rootTurn).getValue();
 
-            int value = -alphaBeta(sChild, depth - 1, -beta, -alpha, curBestMove, pIndex).getValue();
-
-            if (value > score) {
-                score = value;
-                //TODO: this is wrong. Only at root, we can get move. Otherwise it's some moves elsewhere
-                curBestMove[0] = move[0];
-                curBestMove[1] = move[1];
-                sIn.setValue(value);
-//                System.out.println("=============================================" + value);
-//                System.out.println("New best: depth " + depth + " | value:" + value + " | score:" + score +
-//                        " | child nr.:" + child +
-//                        " | a:" + alpha + " | b:" + beta +
-//                        " | best move:" + Arrays.toString(curBestMove));
+            if (value > bestValue) {
+                bestValue = value;
+                sChild.setValue(value); // set value of this child state
+                bestChild = sChild;
+                if (isRoot)
+                    bestState = sChild;
             }
-            if (score > alpha) {
-                alpha = score;
+            if (bestValue > alpha) {
+                alpha = bestValue;
             }
-            if (score >= beta) {
+            if (bestValue >= beta) {
                 break;
             }
         }
-        cnt++;
 
-        return sIn;
+        return bestChild;
     }
 
     @Override
