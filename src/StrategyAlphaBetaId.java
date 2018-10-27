@@ -35,19 +35,19 @@ public class StrategyAlphaBetaId extends SearchStrategy {
             Hashtable<Byte, Hashtable<Long, State>> tt = new Hashtable<>(); // TT for current turn
 
             // prepare TT
-            for (byte i=currentTurn; i <= currentTurn+ply; i++) {
+            for (byte i=currentTurn; i <= currentTurn + ply; i++) {
                 if (!tt.containsKey(i)) {
                     tt.put(i, new Hashtable<Long, State>());
                 }
             }
 
-            System.out.println("=====================Search PLY" + ply + " player " + pIndex + " curTurn " + currentTurn);
             // do a-b search with current # of ply
             try {
                 res = alphaBetaTT(state, ply, -60000, 60000, pIndex, tt, currentTurn, directChildren,
                         true, state.currentTurn());
             } catch (TimeoutException ex) {
                 res = bestState;
+                break;
             }
             // sort nodes at the root based on value
             Collections.sort(directChildren);
@@ -57,7 +57,7 @@ public class StrategyAlphaBetaId extends SearchStrategy {
         }
 
         short[] curBestMove = new short[]{0,0}; // store the most recent chosen move
-        for (byte i=0; i<res.cells.length; i++) {
+        for (byte i=0; i<res.getNumCells(); i++) {
             if (state.getCellContent(i)==0 && res.getCellContent(i)==1) {
                 curBestMove[0] = i;
             } else if (state.getCellContent(i)==0 && res.getCellContent(i)==2) {
@@ -84,11 +84,11 @@ public class StrategyAlphaBetaId extends SearchStrategy {
             res[opponentIdx] = 0; //(short) (s.getTotalCells()/2);
         }
         else { // 2nd turn onwards
-            for (short i=0; i<s.cells.length; i++) {
-                if (s.cells[i] == pIx+1) { // choose place for my color
+            for (short i=0; i<s.getNumCells(); i++) {
+                if (s.getCellContent(i) == pIx+1) { // choose place for my color
                     res[pIx] = s.getRandFarawayCell(i);
 //                    res[pIx] = s.getRandNeighbor(i);
-                } else if (s.cells[i] == opponentIdx+1) { // for opponent's color
+                } else if (s.getCellContent(i) == opponentIdx+1) { // for opponent's color
                     short ngb = s.getRandNeighbor(i);
                     while (res[pIx]== ngb) { // avoid putting on the same cell
                         ngb = s.getRandNeighbor(i);
