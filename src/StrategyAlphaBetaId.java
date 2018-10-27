@@ -1,15 +1,11 @@
-import javax.management.StandardEmitterMBean;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.stream.Collectors;
 
-public class StrategyAlphaBetaId extends SearchStrategy{
-//    private int cnt;
+public class StrategyAlphaBetaId extends SearchStrategy {
     private long startTime;
-    private int timeLimit = 0;
+    private int timeLimit;
     private Random random = new Random();
-    State bestState;
-//    private Hashtable<Byte, Hashtable<Long, State>> tt = new Hashtable<>(); // current turn
+    private State bestState;
 
     StrategyAlphaBetaId(Controller c, String name) {
         super(c, name);
@@ -21,7 +17,7 @@ public class StrategyAlphaBetaId extends SearchStrategy{
         timeLimit = milli;
 
         byte currentTurn = state.currentTurn();
-        if (currentTurn <=2) { // 0th or 1st turn
+        if (currentTurn <=2) { // 0th or 1st turn, use opening book
             return openingBook(state, pIndex, state.currentTurn());
         }
 
@@ -33,17 +29,11 @@ public class StrategyAlphaBetaId extends SearchStrategy{
             directChildren.add(newChild);
         }
 
-        short[] curBestMove = new short[]{0,0}; // store the most recent chosen move
-
         State res = null;
         // for (turns left) to 0
         for (byte ply=1; ply <= state.turnsLeft()+1; ply++) {
-//            cnt=0;
-            Hashtable<Byte, Hashtable<Long, State>> tt = new Hashtable<>(); // current turn
-            // if out of time, break
-            if ((System.currentTimeMillis() - startTime) > timeLimit) {
-                break;
-            }
+            Hashtable<Byte, Hashtable<Long, State>> tt = new Hashtable<>(); // TT for current turn
+
             // prepare TT
             for (byte i=currentTurn; i <= currentTurn+ply; i++) {
                 if (!tt.containsKey(i)) {
@@ -59,14 +49,14 @@ public class StrategyAlphaBetaId extends SearchStrategy{
             } catch (TimeoutException ex) {
                 res = bestState;
             }
-//            System.out.println("Reused " + cnt + " nodes in PLY " + ply);
             // sort nodes at the root based on value
             Collections.sort(directChildren);
-            for (State s : directChildren) {
-                System.out.print(s.getValue() + ",");
-            }
+//            for (State s : directChildren) {
+//                System.out.print("ply " +  ply + s.getValue() + ",");
+//            }
         }
 
+        short[] curBestMove = new short[]{0,0}; // store the most recent chosen move
         for (byte i=0; i<res.cells.length; i++) {
             if (state.getCellContent(i)==0 && res.getCellContent(i)==1) {
                 curBestMove[0] = i;
@@ -149,7 +139,7 @@ public class StrategyAlphaBetaId extends SearchStrategy{
 
         short[][] all_moves = sIn.moveGen();
         State bestChild = null;
-        //TODO: don't generate "all moves!!!"
+
         for (int child = 0; child < all_moves.length; child++) { //all_moves.length
             State sChild;
             if (isRoot) { // get children based on value ordered
@@ -188,26 +178,21 @@ public class StrategyAlphaBetaId extends SearchStrategy{
             }
         }
 
-//        if bestValue <= olda then flag = UpperBound;
-//
-//        /* Fail-high result implies a lower bound */ elseif bestValue >= beta then flag = LowerBound;
-//        elseif  flag = Exact;
-        if (bestValue <= alphaOld) {
+        if (bestValue <= alphaOld) { // if bestValue <= olda, flag = UpperBound;
             sIn.setFlag((byte)1);
-        } else if (bestValue>=beta) {
+        } else if (bestValue>=beta) { // if bestValue >= beta, flag = LowerBound;
             sIn.setFlag((byte)-1);
         } else {
-            sIn.setFlag((byte)0);
+            sIn.setFlag((byte)0); //  elseif  flag is exact;
         }
 
         tt.get(curTurn).put(sIn.getHashKey(), sIn);
-//        System.out.println("size: "+ tt.get(curTurn).size());
 
         return bestChild;
     }
 
     public short[] requestFallback(State state) {
-        System.err.println("---------------------");
+        System.err.println("----------------------------------------------");
         return state.moveGen()[(int) (Math.random() * state.numMoves())];
     }
 
