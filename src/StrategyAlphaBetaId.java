@@ -20,13 +20,6 @@ public class StrategyAlphaBetaId extends SearchStrategy{
         startTime = System.currentTimeMillis();
         timeLimit = milli;
 
-//        System.out.println("=====================cells: " + state.cells.length +
-//                ", total rounds: " + state.totalRounds() +
-//                ", total turns: " + state.totalTurns() +
-//                ", current round: " + state.currentRound() +
-//                ", current turn: " + state.currentTurn() +
-//                ", next player: " + state.nextPlayer());
-
         byte currentTurn = state.currentTurn();
         if (currentTurn <=2) { // 0th or 1st turn
             return openingBook(state, pIndex, state.currentTurn());
@@ -51,7 +44,7 @@ public class StrategyAlphaBetaId extends SearchStrategy{
             if ((System.currentTimeMillis() - startTime) > timeLimit) {
                 break;
             }
-
+            // prepare TT
             for (byte i=currentTurn; i <= currentTurn+ply; i++) {
                 if (!tt.containsKey(i)) {
                     tt.put(i, new Hashtable<Long, State>());
@@ -67,13 +60,11 @@ public class StrategyAlphaBetaId extends SearchStrategy{
                 res = bestState;
             }
 //            System.out.println("Reused " + cnt + " nodes in PLY " + ply);
-            tt = null;
             // sort nodes at the root based on value
             Collections.sort(directChildren);
             for (State s : directChildren) {
                 System.out.print(s.getValue() + ",");
             }
-//            System.out.println("TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT" + (System.currentTimeMillis() - startTime));
         }
 
         for (byte i=0; i<res.cells.length; i++) {
@@ -86,6 +77,7 @@ public class StrategyAlphaBetaId extends SearchStrategy{
         return curBestMove;
     }
 
+    @Override
     State getNextState(State state, int millisec, byte pIndex) {
 //        return moves[(int) (Math.random() * moves.length)];
         return null;
@@ -234,14 +226,4 @@ public class StrategyAlphaBetaId extends SearchStrategy{
             array[i] = randomElement;
         }
     }
-
-//    private void generateMoves(State s, Stack<State> allChildren) {
-//        short[][] all_moves = s.moveGen();
-//        for (int child = 0; child < all_moves.length; child++) {
-//            State sChild = new State(s); // copy states
-//            sChild.placePiece(all_moves[child][0]);
-//            sChild.placePiece(all_moves[child][1]);
-//            allChildren.add(sChild);
-//        }
-//    }
 }

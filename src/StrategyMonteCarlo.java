@@ -1,9 +1,7 @@
-public class StrategyRandom extends SearchStrategy {
-
-    StrategyRandom(Controller c, String name) {
+public class StrategyMonteCarlo extends SearchStrategy {
+    public StrategyMonteCarlo(Controller c, String name) {
         super(c, name);
     }
-
     @Override
     public short[] getNextMove(State state , int millisec, byte pIdx) {
         short[][] moves = state.moveGen();
@@ -15,16 +13,13 @@ public class StrategyRandom extends SearchStrategy {
 //        }
         return moves[(int) (Math.random() * moves.length)];
     }
-
+    @Override
+    public State getNextState(State state, int millisec, byte pIndex) {
+        return null;
+    }
     @Override
     public short[] requestFallback(State state) {
         return state.moveGen()[(int) (Math.random() * state.numMoves())];
-    }
-
-    @Override
-    State getNextState(State state, int millisec, byte pIndex) {
-//        return moves[(int) (Math.random() * moves.length)];
-        return null;
     }
 
     @Override

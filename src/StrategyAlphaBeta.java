@@ -11,6 +11,7 @@ public class StrategyAlphaBeta extends SearchStrategy{
         super(c, name);
     }
 
+    @Override
     State getNextState(State state, int millisec, byte pIndex) {
 //        return moves[(int) (Math.random() * moves.length)];
         return null;
@@ -96,6 +97,7 @@ public class StrategyAlphaBeta extends SearchStrategy{
         return sIn;
     }
 
+    @Override
     public short[] requestFallback(State state) {
         return state.moveGen()[(int) (Math.random() * state.numMoves())];
     }
