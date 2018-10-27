@@ -1,37 +1,39 @@
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class State implements Comparable<State>  {
-    protected byte[] cells; // Color placed in the cell. Empty is 0
-    private short[] uf_parent;
-    private short[] uf_size;
-    private ArrayList<Short>[] adj_list;  // neighbor indices
-    private byte num_player;
-    private short total_cells;
-    private short used_cells;
     private Controller c;
-    private boolean sim = false; // is simulation
-    private byte size;
-    private HashMap<Short, Short> group_size_counter = new HashMap<>();
+
+    private byte[] cells; // Color placed in the cell. Empty is 0
+    private byte size; // board size
+    private ArrayList<Short>[] adjList;  // neighbor indices
+    private byte numPlayer;
+    private short totalCells;
+    private short usedCells;
+
+    private short[] ufParent;
+    private short[] ufSize;
+
     private long[] scores;
+    private HashMap<Short, Short> groupSizeCounter = new HashMap<>();
+
     private int value = Integer.MIN_VALUE;
     private byte flag = Byte.MIN_VALUE;
+
     private long hashKey = 0; // hash key for transposition table
+    private boolean sim = false; // is simulation
 
     //Constructors with default values
     public State(Controller c) {
-        this(c, (byte) 5, (byte) 3);
+        this(c, (byte) 5, (byte) 2);
     }
 
-    public State(Controller c, byte size, byte num_player) {
+    public State(Controller c, byte size, byte numPlayer) {
         this.c = c;
-        this.num_player = num_player;
+        this.numPlayer = numPlayer;
         init(size);
 
     }
@@ -39,17 +41,17 @@ public class State implements Comparable<State>  {
     // overloaded constructor for copying states
     public State(State s) {
         size = s.size;
-        adj_list = s.adj_list;
-        num_player = s.num_player;
+        adjList = s.adjList;
+        numPlayer = s.numPlayer;
 
-        total_cells = s.total_cells;
-        used_cells = s.used_cells;
+        totalCells = s.totalCells;
+        usedCells = s.usedCells;
         cells = s.cells.clone();
 
-        uf_parent = s.uf_parent.clone();
-        uf_size = s.uf_size.clone();
+        ufParent = s.ufParent.clone();
+        ufSize = s.ufSize.clone();
 
-        group_size_counter = new HashMap<>(s.group_size_counter);
+        groupSizeCounter = new HashMap<>(s.groupSizeCounter);
 
         sim = true;
 
@@ -70,66 +72,61 @@ public class State implements Comparable<State>  {
         c.notifyChange();
     }
 
+    // initialize the state, build adjacency matrix, arrays for Union Find etc.
     private void init(byte size) {
-        this.scores = new long[num_player];
+        this.scores = new long[numPlayer];
         Arrays.fill(scores, 1);
 
         this.size = size;
-        total_cells = (short) ((size * 2 + size - 1) * size - size * 2 + 1);
-        used_cells = 0;
-        cells = new byte[total_cells];
-        uf_parent = new short[total_cells];
-        Arrays.fill(uf_parent, (short) -1);
-        uf_size = new short[total_cells];
-        group_size_counter = new HashMap<>();
-        System.out.println(total_cells + " cells, ");
+        totalCells = (short) ((size * 2 + size - 1) * size - size * 2 + 1);
+        usedCells = 0;
+        cells = new byte[totalCells];
+        ufParent = new short[totalCells];
+        Arrays.fill(ufParent, (short) -1);
+        ufSize = new short[totalCells];
+        groupSizeCounter = new HashMap<>();
 
         // Make adjacency list
-        adj_list = new ArrayList[total_cells];
-        for (short i = 0; i < adj_list.length; i++) {
-            //at most 6 neighbours.
-            adj_list[i] = new ArrayList<>(6);
+        adjList = new ArrayList[totalCells];
+        for (short i = 0; i < adjList.length; i++) {
+            adjList[i] = new ArrayList<>(6); // 6 as initial capacity (at most 6 neighbours)
         }
 
-        short num_iters = (short) (size - 1);
-        short cur_idx = 0;
+        short numIters = (short) (size - 1);
+        short curIdx = 0;
         // build adjacency matrix
-        for (short i = 0; i <= num_iters; i++) {
-            int num_cells_per_row = size + i;
-            for (byte j = 0; j < num_cells_per_row; j++) {
-                if (i != num_iters) {
+        for (short i = 0; i <= numIters; i++) {
+            int numCellsPerrow = size + i;
+            for (byte j = 0; j < numCellsPerrow; j++) {
+                if (i != numIters) {
                     // cross-row
-                    adj_list[cur_idx].add((short) (cur_idx + num_cells_per_row));
-                    adj_list[cur_idx].add((short) (cur_idx + num_cells_per_row + 1));
-                    adj_list[cur_idx + num_cells_per_row].add(cur_idx);
-                    adj_list[cur_idx + num_cells_per_row + 1].add(cur_idx);
+                    adjList[curIdx].add((short) (curIdx + numCellsPerrow));
+                    adjList[curIdx].add((short) (curIdx + numCellsPerrow + 1));
+                    adjList[curIdx + numCellsPerrow].add(curIdx);
+                    adjList[curIdx + numCellsPerrow + 1].add(curIdx);
 
-                    short mirror_idx = (short) (total_cells - cur_idx - 1);
+                    short mirrorIdx = (short) (totalCells - curIdx - 1);
 
-                    adj_list[mirror_idx].add((short) (mirror_idx - num_cells_per_row));
-                    adj_list[mirror_idx].add((short) (mirror_idx - num_cells_per_row - 1));
-                    adj_list[mirror_idx - num_cells_per_row].add(mirror_idx);
-                    adj_list[mirror_idx - num_cells_per_row - 1].add(mirror_idx);
+                    adjList[mirrorIdx].add((short) (mirrorIdx - numCellsPerrow));
+                    adjList[mirrorIdx].add((short) (mirrorIdx - numCellsPerrow - 1));
+                    adjList[mirrorIdx - numCellsPerrow].add(mirrorIdx);
+                    adjList[mirrorIdx - numCellsPerrow - 1].add(mirrorIdx);
 
                     // same row
-                    if (j < num_cells_per_row - 1) {
-                        adj_list[cur_idx].add((short) (cur_idx + 1));
-                        adj_list[cur_idx + 1].add(cur_idx);
-                        adj_list[mirror_idx].add((short) (mirror_idx - 1));
-                        adj_list[mirror_idx - 1].add(mirror_idx);
+                    if (j < numCellsPerrow - 1) {
+                        adjList[curIdx].add((short) (curIdx + 1));
+                        adjList[curIdx + 1].add(curIdx);
+                        adjList[mirrorIdx].add((short) (mirrorIdx - 1));
+                        adjList[mirrorIdx - 1].add(mirrorIdx);
 
                     }
-                } else if (j < num_cells_per_row - 1) { // middle row
-                    adj_list[cur_idx].add((short) (cur_idx + 1));
-                    adj_list[cur_idx + 1].add(cur_idx);
+                } else if (j < numCellsPerrow - 1) { // middle row
+                    adjList[curIdx].add((short) (curIdx + 1));
+                    adjList[curIdx + 1].add(curIdx);
                 }
-                cur_idx++;
+                curIdx++;
             }
         }
-        //TODO: no need to XOR all the empty cells. Start the same anyways
-//        for (short i=0; i<cells.length; i++) {
-//            hashKey ^= c.requestRands()[i][0];
-//        }
     }
 
     public byte getCellContent(short cell) {
@@ -139,7 +136,7 @@ public class State implements Comparable<State>  {
     public void placePiece(short cell) {
         byte nextColor = nextColor();
         cells[cell] = nextColor;
-        used_cells++;
+        usedCells++;
         calcConnectedAreaSize(cell);
         calcScores();
 
@@ -162,64 +159,64 @@ public class State implements Comparable<State>  {
 
     //For union find
     private int findRoot(int p) {
-        while (p != uf_parent[p]) {
-            uf_parent[p] = uf_parent[uf_parent[p]];    // path compression by halving
-            p = uf_parent[p];
+        while (p != ufParent[p]) {
+            ufParent[p] = ufParent[ufParent[p]];    // path compression by halving
+            p = ufParent[p];
         }
         return p;
     }
 
     private int calcConnectedAreaSize(short cell) {
         // Set parent of this cell to itself
-        uf_parent[cell] = cell;
-        uf_size[cell] = 1;
+        ufParent[cell] = cell;
+        ufSize[cell] = 1;
 
         short key = (short) (cells[cell] * 1000 + 1);
-        if (group_size_counter.containsKey(key)) {
-            group_size_counter.put(key, (short) (group_size_counter.get(key) + 1));
+        if (groupSizeCounter.containsKey(key)) {
+            groupSizeCounter.put(key, (short) (groupSizeCounter.get(key) + 1));
         } else {
-            group_size_counter.put(key, (short) 1);
+            groupSizeCounter.put(key, (short) 1);
         }
 
         // Go through neighbors of same color
-        for (int neighbor : adj_list[cell]) {
+        for (int neighbor : adjList[cell]) {
             if (cells[cell] == cells[neighbor]) {
-                int nbg_root = findRoot(neighbor);
+                int nbgRoot = findRoot(neighbor);
 
-                if (nbg_root != cell) {
-                    // Decrement count for uf_size[nbg_root]
-                    short key_nbg_root = (short) (cells[cell] * 1000 + uf_size[nbg_root]);
+                if (nbgRoot != cell) {
+                    // Decrement count for ufSize[nbgRoot]
+                    short keyNbgRoot = (short) (cells[cell] * 1000 + ufSize[nbgRoot]);
 
                     // Decrement count for
-                    group_size_counter.put(key_nbg_root, (short) (group_size_counter.get(key_nbg_root) - 1));
+                    groupSizeCounter.put(keyNbgRoot, (short) (groupSizeCounter.get(keyNbgRoot) - 1));
 
                     // Update parent reference
-                    uf_parent[nbg_root] = cell; // The newly added cell becomes parent of the neighbor
+                    ufParent[nbgRoot] = cell; // The newly added cell becomes parent of the neighbor
 
-                    // Decrement count for uf_size[cell]
-                    short key_cell = (short) (cells[cell] * 1000 + uf_size[cell]);
-                    group_size_counter.put(key_cell, (short) (group_size_counter.get(key_cell) - 1));
+                    // Decrement count for ufSize[cell]
+                    short keyCell = (short) (cells[cell] * 1000 + ufSize[cell]);
+                    groupSizeCounter.put(keyCell, (short) (groupSizeCounter.get(keyCell) - 1));
 
                     // Increment counter
-                    uf_size[cell] += uf_size[nbg_root];
+                    ufSize[cell] += ufSize[nbgRoot];
 
-                   // Increment count for uf_size[cell]
-                    key_cell = (short) (cells[cell] * 1000 + uf_size[cell]);
-                    if (group_size_counter.containsKey(key_cell)) {
-                        group_size_counter.put(key_cell, (short) (group_size_counter.get(key_cell) + 1));
+                   // Increment count for ufSize[cell]
+                    keyCell = (short) (cells[cell] * 1000 + ufSize[cell]);
+                    if (groupSizeCounter.containsKey(keyCell)) {
+                        groupSizeCounter.put(keyCell, (short) (groupSizeCounter.get(keyCell) + 1));
                     } else {
-                        group_size_counter.put(key_cell, (short) 1);
+                        groupSizeCounter.put(keyCell, (short) 1);
                     }
                 }
             }
         }
 
-        return uf_size[cell];
+        return ufSize[cell];
     }
 
     private void calcScores() {
         Arrays.fill(scores, 1);
-        for (Map.Entry<Short, Short> entry : group_size_counter.entrySet()) {
+        for (Map.Entry<Short, Short> entry : groupSizeCounter.entrySet()) {
 //            System.out.println("Player : " + entry.getKey() / 1000 + ", Group size: " + entry.getKey() % 1000 +
 //                    " Count : " + entry.getValue());
             scores[ entry.getKey() / 1000 - 1] *= Math.pow(entry.getKey() % 1000, entry.getValue());
@@ -229,42 +226,41 @@ public class State implements Comparable<State>  {
 
     // number of possible moves given current state
     public int numMoves() {
-        int res = total_cells - used_cells;
-        for (byte i=1; i<num_player; i++) {
-            res *= (total_cells - used_cells - i);
+        int res = totalCells - usedCells;
+        for (byte i = 1; i< numPlayer; i++) {
+            res *= (totalCells - usedCells - i);
         }
         return res;
     }
 
     // Generate all legal moves
     public short[][] moveGen()  { // TODO: currently it's a naive enumeration of all possible movements
-        short[][] moves = new short[numMoves()][num_player]; // return cell index for each color
+        short[][] moves = new short[numMoves()][numPlayer]; // return cell index for each color
 
         int cnt = 0;
-        if (num_player==2) { // array operations when numPlayer == 2
-            for (short idx_a = 0; idx_a < total_cells; idx_a++) {
-                if (cells[idx_a] == 0) {
-                    for (short idx_b = 0; idx_b < total_cells; idx_b++) {
-                        if (cells[idx_b] == 0 && idx_b != idx_a) {
-                            moves[cnt][0] = idx_a;
-                            moves[cnt][1] = idx_b;
+        if (numPlayer ==2) { // array operations when numPlayer == 2
+            for (short idxA = 0; idxA < totalCells; idxA++) {
+                if (cells[idxA] == 0) {
+                    for (short idxB = 0; idxB < totalCells; idxB++) {
+                        if (cells[idxB] == 0 && idxB != idxA) {
+                            moves[cnt][0] = idxA;
+                            moves[cnt][1] = idxB;
                             cnt++;
                         }
                     }
                 }
             }
         } else { // otherwise use more heavyweight to generate
-            short[] perm = new short[num_player];
+            short[] perm = new short[numPlayer];
 
-            short[] emptyCellsIdx = new short[total_cells-used_cells];
+            short[] emptyCellsIdx = new short[totalCells - usedCells];
             short cntEmpty = 0;
-            for (short idx=0; idx < total_cells; idx++) {
+            for (short idx = 0; idx < totalCells; idx++) {
                 if (cells[idx]==0) {
                     emptyCellsIdx[cntEmpty] = idx;
                     cntEmpty++;
                 }
             }
-//            System.out.println("-----------------------------" + Arrays.toString(emptyCellsIdx));
             c.permutation(moves, perm, 0, emptyCellsIdx, new AtomicInteger(0));
         }
         return moves;
@@ -272,7 +268,7 @@ public class State implements Comparable<State>  {
 
     // Check termination condition
     public boolean isTerminal() {
-        return used_cells == (totalRounds() * num_player * num_player);
+        return usedCells == (totalRounds() * numPlayer * numPlayer);
     }
 
     // getValue depends on player's perspective
@@ -286,17 +282,17 @@ public class State implements Comparable<State>  {
         // in earlier turns, use
         if (fromTurn <= (totalTurns() / 2)) { // TODO: closed groups!
             value = 0;
-            for (short entry : group_size_counter.keySet()) {
-                if (group_size_counter.get(entry)!= 0) {
+            for (short entry : groupSizeCounter.keySet()) {
+                if (groupSizeCounter.get(entry)!= 0) {
                     int pIdx = entry / 1000;
                     int size = entry % 1000;
 
                     if (size > 3) { // if too large groups are of my color, penalize
-                        int val = (int) Math.pow(size-3, 2) * group_size_counter.get(entry);
-                        value -= ((pIdx == curPlayerIdx+1) ? 1:-1) * Math.pow(size-3, 2) * group_size_counter.get(entry);
+                        int val = (int) Math.pow(size-3, 2) * groupSizeCounter.get(entry);
+                        value -= ((pIdx == curPlayerIdx+1) ? 1:-1) * Math.pow(size-3, 2) * groupSizeCounter.get(entry);
                     }
                     else if (size == 1 || size == 2) { // incentivize small groups
-                        value += ((pIdx == curPlayerIdx+1) ? 1:-1) * group_size_counter.get(entry);
+                        value += ((pIdx == curPlayerIdx+1) ? 1:-1) * groupSizeCounter.get(entry);
                     }
                 }
             }
@@ -315,29 +311,29 @@ public class State implements Comparable<State>  {
 
     // number of total rounds
     public int totalRounds() {
-        return total_cells / (num_player * num_player);
+        return totalCells / (numPlayer * numPlayer);
     }
 
     public int totalTurns() {
-        return totalRounds() * num_player;
+        return totalRounds() * numPlayer;
     }
 
     // which player's turn it is
     public byte nextPlayer() {
-        return (byte) (used_cells % (num_player * num_player) / num_player + 1);
+        return (byte) (usedCells % (numPlayer * numPlayer) / numPlayer + 1);
     }
 
     // next color
     public byte nextColor() {
-        return (byte) (used_cells % num_player + 1);
+        return (byte) (usedCells % numPlayer + 1);
     }
 
     public int currentRound() {
-        return used_cells / (num_player * num_player) + 1;
+        return usedCells / (numPlayer * numPlayer) + 1;
     }
 
     public byte currentTurn() {
-        return (byte) ((currentRound() - 1) * num_player + nextPlayer());
+        return (byte) ((currentRound() - 1) * numPlayer + nextPlayer());
     }
 
     public byte turnsLeft() {
@@ -349,11 +345,11 @@ public class State implements Comparable<State>  {
     }
 
     public byte getNumPlayer() {
-        return num_player;
+        return numPlayer;
     }
 
     public short getTotalCells() {
-        return total_cells;
+        return totalCells;
     }
 
     public String getScore() {
@@ -363,9 +359,9 @@ public class State implements Comparable<State>  {
     protected short getRandNeighbor(short cell) {
         short idx;
         do {
-            idx = (short) (Math.random() * adj_list[cell].size());
-        } while (cells[adj_list[cell].get(idx)]!=0);
-        return adj_list[cell].get(idx);
+            idx = (short) (Math.random() * adjList[cell].size());
+        } while (cells[adjList[cell].get(idx)]!=0);
+        return adjList[cell].get(idx);
     }
 
     public short getRandFarawayCell(short cell) {
@@ -384,7 +380,7 @@ public class State implements Comparable<State>  {
     }
 
     public byte getOpponentIdx(byte currentPlayer) {
-        return (byte) (num_player - 1 - currentPlayer);
+        return (byte) (numPlayer - 1 - currentPlayer);
     }
 
     public void setFlag(byte flag) {
@@ -395,19 +391,17 @@ public class State implements Comparable<State>  {
         return flag;
     }
 
+
+    public int getNumCells() {
+        return cells.length;
+    }
     @Override
     public int compareTo(State in) {
-        /* For Ascending order*/
-//        return this.value-in.getValue();
-
-        /* For Descending order do like this */
-        //return compareage-this.studentage;
         if (value < in.getValue())
             return 1;
         else if (value > in.getValue())
             return -1;
         else
             return 0;
-//        return in.getValue()-this.value;
     }
 }
