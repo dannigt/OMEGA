@@ -1,4 +1,8 @@
+import java.util.Arrays;
+import java.util.Random;
+
 public class StrategyRandom extends SearchStrategy {
+    private Random random = new Random();
 
     StrategyRandom(Controller c, String name) {
         super(c, name);
@@ -6,19 +10,11 @@ public class StrategyRandom extends SearchStrategy {
 
     @Override
     public short[] getNextMove(State state , int millisec, byte pIdx) {
-        short[][] moves = state.moveGen();
-
-//        try {
-//            Thread.sleep(10000);
-//        } catch (Exception ex) {
-//
-//        }
-
-        int choice = (int) (Math.random() * moves.length);
-        System.out.println(choice);
-        return moves[choice];
+//        short[][] moves = ;
+        short[] indices = state.getEmptyCellsIdx();
+        shuffle(indices);
+        return Arrays.copyOfRange(indices, 0, state.getNumPlayer());
     }
-
     @Override
     public short[] requestFallback(State state) {
         return null;
@@ -34,5 +30,19 @@ public class StrategyRandom extends SearchStrategy {
     @Override
     boolean waitsForUI() {
         return false;
+    }
+
+    void shuffle(short[] array) {
+        int n = array.length;
+        // Loop over array.
+        for (int i = 0; i < array.length; i++) {
+            // Get a random index of the array past the current index.
+            int randomValue = i + random.nextInt(n - i);
+
+            // Swap the random element with the present element.
+            short randomElement = array[randomValue];
+            array[randomValue] = array[i];
+            array[i] = randomElement;
+        }
     }
 }
