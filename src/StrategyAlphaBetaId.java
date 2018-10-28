@@ -43,7 +43,7 @@ public class StrategyAlphaBetaId extends SearchStrategy {
 
             // do a-b search with current # of ply
             try {
-                res = alphaBetaTT(state, ply, -60000, 60000, pIndex, tt, currentTurn, directChildren,
+                res = alphaBetaTT(state, ply, Integer.MIN_VALUE, Integer.MAX_VALUE, pIndex, tt, currentTurn, directChildren,
                         true, state.currentTurn(), state.totalTurns());
             } catch (TimeoutException ex) {
                 res = bestState;

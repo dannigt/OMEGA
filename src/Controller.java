@@ -22,17 +22,12 @@ public class Controller // implements Serializable
 	private byte[] player_strategy;
 	private long[][] RAND;
 	private int[] timer;
-//    private int TIME_LIMIT = 18000; //ms
 	private boolean paused;
 	private String warning_info = "";
-    private static Random random = new Random();
 
 
 	public void clear() {
-//        state = new State(this, state.getBoardSize());
         state.reset();
-//        placementOrder.clear();
-        //TODO: also clear timer
         paused = true;
     }
 
@@ -41,7 +36,7 @@ public class Controller // implements Serializable
 
 		LOG_DIR = Paths.get(System.getProperty("user.dir"), "log").toString();
 		HASH_DIR = Paths.get(System.getProperty("user.dir") , "hash").toString();
-        STRATEGY_NAMES = new String[] {"Random", "Manual", "A-B with ID", "Monte Carlo", "A-B with MC"};
+        STRATEGY_NAMES = new String[] {"Random", "Manual", "A-B", "A-B with ID", "Monte Carlo", "A-B with MC"};
 
 		player_strategy = new byte[state.getNumPlayer()];
 		timer = new int[state.getNumPlayer()];
@@ -280,6 +275,7 @@ public class Controller // implements Serializable
                     (state.nextPlayer() == pIdx);
                 } else {
                     long start = System.currentTimeMillis();//timer[pIdx-1]/(Math.max(1, state.turnsLeft()/2-4)
+
                     int limit = timer[pIdx-1]/(Math.max(2, state.turnsLeft()/2));
 //                    if (state.currentTurn() <= 14) {
 //                        limit = TIME_LIMIT;

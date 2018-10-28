@@ -15,6 +15,10 @@ public class StrategyMonteCarlo extends SearchStrategy {
         startTime = System.currentTimeMillis();
         timeLimit = milli;
 
+        if (state.currentTurn() == 1) { // 0th or 1st turn, use opening book
+            return openingBook(state, pIdx, state.currentTurn());
+        }
+
         int numMoves = state.numMovesSinglePiece(); //numMoves();//
         ArrayList<State> children = new ArrayList<State>(numMoves);
 //

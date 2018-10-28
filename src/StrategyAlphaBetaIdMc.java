@@ -44,10 +44,10 @@ public class StrategyAlphaBetaIdMc extends SearchStrategy {
                 }
             }
 
-            System.out.println("--------------------PLY" + ply);
+            System.out.println("-------------------------PLY" + ply);
             // do a-b search with current # of ply
             try {
-                res = alphaBetaTT(state, ply, -60000, 60000, pIndex, tt, currentTurn, directChildren,
+                res = alphaBetaTT(state, ply, Integer.MIN_VALUE, Integer.MAX_VALUE, pIndex, tt, currentTurn, directChildren,
                         true, 100);
             } catch (TimeoutException ex) {
                 res = bestState;
@@ -116,9 +116,9 @@ public class StrategyAlphaBetaIdMc extends SearchStrategy {
             for (int i=0; i<simCnt; i++) {
                 sum += StrategyMonteCarlo.playoutAndEval(sIn, pIndex).getValue();
             }
-            if (pIndex != sIn.nextPlayerIdx()) { // flip value if it's a MIN node
-                sum = -sum;
-            }
+//            if (pIndex != sIn.nextPlayerIdx()) { // flip value if it's a MIN node
+//                sum = -sum;
+//            }
             sIn.setValue((int) (sum / simCnt));
             return sIn;
         }
