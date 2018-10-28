@@ -29,10 +29,10 @@ public class Controller // implements Serializable
 
 
 	public void clear() {
-//        state = new State(this, state.getBoardSize());
-        state.reset();
-//        placementOrder.clear();
-        //TODO: also clear timer
+        player_strategy = new byte[state.getNumPlayer()];
+        timer = new int[state.getNumPlayer()];
+        Arrays.fill(player_strategy, (byte) 0);
+        Arrays.fill(timer, 900000);
         paused = true;
     }
 
@@ -98,35 +98,6 @@ public class Controller // implements Serializable
             }
             System.err.println("Cannot cast from the object");
         }
-
-//		File f = new File(path);
-//		if(f.exists() && !f.isDirectory()) {
-//			try {
-//				FileInputStream fis = new FileInputStream(path);
-//				ObjectInputStream iis = new ObjectInputStream(fis);
-//                RAND = (long[][]) iis.readObject();
-//			} catch (Exception e) {
-//
-//			}
-//		} else {
-			// If not exist, generate
-//			Random randomLong = new Random();
-//			long[][] rands = new long[state.getTotalCells()][numPlayers()+1];
-//
-//			for (short cell = 0; cell < state.getTotalCells(); cell++) {
-//				for (byte value = 0; value <= numPlayers(); value++) {
-//					rands[cell][value] = randomLong.nextLong();
-//				}
-//			}
-//			try {
-//			    saveObject(rands, path);
-////				FileOutputStream fos = new FileOutputStream(path);
-////				ObjectOutputStream oos = new ObjectOutputStream(fos);
-////				oos.writeObject(rands);
-//			} catch (Exception e) {
-//
-//			}
-//		}
 	}
 
     public byte getCellColor(short cIndex) {
@@ -262,7 +233,9 @@ public class Controller // implements Serializable
 
 	// return the move sequences
 	public ArrayList<Short> start(SearchStrategy... players) {
+        state = new State(this, (byte) players.length);
         clear();
+
         paused = false;
         loadRand();
         placementOrder = new ArrayList<>(state.getTotalCells());
@@ -280,7 +253,7 @@ public class Controller // implements Serializable
                     (state.nextPlayer() == pIdx);
                 } else {
                     long start = System.currentTimeMillis();//timer[pIdx-1]/(Math.max(1, state.turnsLeft()/2-4)
-                    int limit = timer[pIdx-1]/(Math.max(2, state.turnsLeft()/2));
+                    int limit = timer[pIdx - 1]/(Math.max(2, state.turnsLeft()/2));
 //                    if (state.currentTurn() <= 14) {
 //                        limit = TIME_LIMIT;
 //                    }
@@ -303,7 +276,7 @@ public class Controller // implements Serializable
 
 	// star the game
 	public void start() {
-
+        System.out.println("--------------" + numPlayers());
         SearchStrategy[] players = new SearchStrategy[numPlayers()];
         for (byte p_idx = 1; p_idx <= numPlayers(); p_idx++) {
 			players[p_idx-1] = getStrategy(STRATEGY_NAMES[player_strategy[p_idx-1]]);

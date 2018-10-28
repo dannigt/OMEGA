@@ -31,11 +31,14 @@ public class State implements Comparable<State>  {
         this(c, (byte) 5, (byte) 2);
     }
 
+    State(Controller c, byte numPlayer) {
+        this(c, (byte) 5, numPlayer);
+    }
+
     State(Controller c, byte size, byte numPlayer) {
         this.c = c;
         this.numPlayer = numPlayer;
         init(size);
-
     }
 
     // overloaded constructor for copying states
