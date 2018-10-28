@@ -3,7 +3,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 
 public class Experiment {
-    private final int REPEAT = 2;
+    private final int REPEAT = 10;
     private SearchStrategy[] strategies;
     private static Controller c;
 
@@ -50,7 +50,7 @@ public class Experiment {
 
         for (int run=0; run<REPEAT; run++)  {
             try {
-                c.applyCache(Paths.get(folder.toString(), Integer.toString(run)).toString());
+                c.applyCache(Paths.get(folder.toString(), Integer.toString(run)).toString(), 1);
             } catch (Exception ex) {
 //                System.out.println();
                 ex.printStackTrace();
@@ -69,34 +69,51 @@ public class Experiment {
 //                new StrategyAlphaBetaIdMc(c, "a-b with mc"));
 //        exp.runExperiments();
 
-        //For multi-player version
+        /**
+         * Uncomment the following for running and analyzing experiment.
+         * If only analyzing experiments, leave the exp.runExperiments() commented out!
+         * board size 5. a-b with ID - MC. 2-player.
+         */
 //        exp = new Experiment(  // Change instantiations for different experiment setup
-//                new StrategyRandom(c, "Random"), // White: random
-//                new StrategyRandom(c, "Random"), // Black: random
-//                new StrategyMonteCarlo(c, "Monte Carlo")); // Red: MC
+//                new StrategyAlphaBetaId(c, "a-b with id"), // White
+//                new StrategyMonteCarlo(c, "Monte Carlo")); // Black
 //        exp.runExperiments();
+//        exp.analyzeExperients();
 
         /**
          * Uncomment the following for running and analyzing experiment.
          * If only analyzing experiments, leave the exp.runExperiments() commented out!
-         * board size 5. a-b with ID - MC. 2-player.
+         * board size 5. MC - a-b with ID. 2-player.
+         */
+//        exp = new Experiment(  // Change instantiations for different experiment setup
+//                 new StrategyMonteCarlo(c, "Monte Carlo"),// White
+//                new StrategyAlphaBetaId(c, "a-b with id")); // Black
+//        exp.runExperiments();
+//        exp.analyzeExperients();
+
+        /**
+         * Uncomment the following for running and analyzing experiment.
+         * If only analyzing experiments, leave the exp.runExperiments() commented out!
+         * board size 5. a-b with MC - MC. 2-player.
          */
         exp = new Experiment(  // Change instantiations for different experiment setup
-                new StrategyAlphaBetaId(c, "a-b with id"), // White
+                new StrategyAlphaBetaIdMc(c, "a-b with mc"), // White
                 new StrategyMonteCarlo(c, "Monte Carlo")); // Black
-        exp.runExperiments();
+//        exp.runExperiments();
         exp.analyzeExperients();
 
         /**
          * Uncomment the following for running and analyzing experiment.
          * If only analyzing experiments, leave the exp.runExperiments() commented out!
-         * board size 5. a-b with ID - MC. 2-player.
+         * board size 5. MC - a-b with MC. 2-player.
          */
         exp = new Experiment(  // Change instantiations for different experiment setup
-                 new StrategyMonteCarlo(c, "Monte Carlo"),// White
-                new StrategyAlphaBetaId(c, "a-b with id")); // Black
-        exp.runExperiments();
+                new StrategyMonteCarlo(c, "Monte Carlo"),// White
+                new StrategyAlphaBetaIdMc(c, "a-b with mc") // Black
+        );
+//        exp.runExperiments();
         exp.analyzeExperients();
+
 
         /**
          * Uncomment the following for running and analyzing experiment.

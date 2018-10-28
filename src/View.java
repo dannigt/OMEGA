@@ -105,35 +105,32 @@ public class View
 		});
 		menu.add(menuItem);
 
-		// Configure player strategies
-		for (byte p=0; p < c.numPlayers(); p++) {
-			submenu = new JMenu("Configure Player " + (p+1));
-			ButtonGroup group = new ButtonGroup();
+        menuItem = new JMenuItem("Set Player Number");
 
-			for (byte s=0; s < c.getStrategies().length; s++) {
-				rbMenuItem = new JRadioButtonMenuItem(c.getStrategies()[s]);
-				if (s == c.getPlayerStrategy(p)) {
-					rbMenuItem.setSelected(s == c.getPlayerStrategy(p));
-				}
-				byte pFinal = p;
-				byte sFinal = s;
-				rbMenuItem.addActionListener(e -> {
-					c.setPlayerStrategy(pFinal, sFinal); // Lambda function requires a final/effectively final var
-				});
-				group.add(rbMenuItem);
-				submenu.add(rbMenuItem);
-			}
-			menu.add(submenu);
-		}
+        JMenu menuFinal = menu;
+        menuItem.addActionListener(e -> {
+            final JOptionPane optionPane = new JOptionPane("Choose player number:",
+                    JOptionPane.PLAIN_MESSAGE,
+                    JOptionPane.DEFAULT_OPTION);
 
+            Object[] options = IntStream.range(2, 5).mapToObj(i -> i).toArray();
 
-		//a group of check box menu items
-		menu.addSeparator();
-		cbMenuItem = new JCheckBoxMenuItem("Keep time");
-		menu.add(cbMenuItem);
+            Object res = JOptionPane.showInputDialog(
+                    frame,
+                    "Choose player number:",
+                    "Choose Player Number",
+                    JOptionPane.PLAIN_MESSAGE,
+                    null,
+                    options,
+                    null);
 
-//		cbMenuItem = new JCheckBoxMenuItem("Another one");
-//		menu.add(cbMenuItem);
+            if (res != null) {
+                c.setPlayerNumber((byte) (int) res);
+            }
+        });
+        menu.add(menuItem);
+
+        addPlayerConfig(menu);
 
 		//Build second menu in the menu bar.
 		menu = new JMenu("Restore");
@@ -147,7 +144,7 @@ public class View
 				String path = Paths.get(chooser.getCurrentDirectory().toString(), chooser.getSelectedFile().getName()).toString();
 				Thread thread = new Thread(() -> { // use a new thread to run the game
 					try {
-						c.applyCache(path);
+						c.applyCache(path, 500);
 					}
 					catch (Exception ex){
 						JOptionPane.showMessageDialog(null,
@@ -164,6 +161,30 @@ public class View
 
 		return menuBar;
 	}
+
+	private static void addPlayerConfig(JMenu menu) {
+        for (byte p=0; p < 4; p++) {
+            JMenu submenu = new JMenu("Configure Player " + (p+1) + " (default random)");
+            ButtonGroup group = new ButtonGroup();
+
+            if (p < c.numPlayers()) {
+                for (byte s=0; s < c.getStrategies().length; s++) {
+                    JRadioButtonMenuItem rbMenuItem = new JRadioButtonMenuItem(c.getStrategies()[s]);
+                    if (s == c.getPlayerStrategy(p)) {
+                        rbMenuItem.setSelected(s == c.getPlayerStrategy(p));
+                    }
+                    byte pFinal = p;
+                    byte sFinal = s;
+                    rbMenuItem.addActionListener(e -> {
+                        c.setPlayerStrategy(pFinal, sFinal); // Lambda function requires a final/effectively final var
+                    });
+                    group.add(rbMenuItem);
+                    submenu.add(rbMenuItem);
+                }
+            }
+            menu.add(submenu);
+        }
+    }
 
 	static class DrawingPanel extends JPanel
 	{

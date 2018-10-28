@@ -11,7 +11,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class Controller // implements Serializable
 {
-	private final byte MIN_SIZE = 3;
+	private final byte MIN_SIZE = 5;
 	private final byte MAX_SIZE = 10;
 	private State state;
 	private View view;
@@ -144,9 +144,6 @@ public class Controller // implements Serializable
 
 	// save past moves and timer to file
     public void makeCache() {
-//		Gson gson = new Gson();
-//		String json = gson.toJson(pastPlacements);
-//		System.out.println(json);
 		ObjectOutputStream oos = null;
 		FileOutputStream fout = null;
 		try{
@@ -167,7 +164,7 @@ public class Controller // implements Serializable
 		}
 	}
 
-	public void applyCache(String path) throws Exception {
+	public void applyCache(String path, int delay) throws Exception {
 		//Apply cache
 		FileInputStream fin = null;
 		ObjectInputStream ois = null;
@@ -180,7 +177,8 @@ public class Controller // implements Serializable
 
 			for (short move : foo) { // one second per piece, for better visibility
 				state.placePiece(move);
-                TimeUnit.MILLISECONDS.sleep(500);
+                TimeUnit.MILLISECONDS.sleep(delay);
+                System.out.print(move + ", ");
 			}
 
             System.out.println(getScore());
@@ -216,12 +214,20 @@ public class Controller // implements Serializable
         return state.getScore();
     }
     public void setBoardSize(byte size) {
-//		this.size = size;
 		this.paused = true;
-//		state = new State(this, size, numPlayers());
 		state.reset(size);
 		view.reset();
 	}
+
+
+    public void setPlayerNumber(byte p) {
+        this.paused = true;
+        state = new State(this, p);
+        player_strategy = new byte[state.getNumPlayer()];
+        timer = new int[state.getNumPlayer()];
+        Arrays.fill(player_strategy, (byte) 0);
+        view.reset();
+    }
 
 	public void reverseMove() {
 	    placementOrder.remove(placementOrder.size()-1);
@@ -233,7 +239,8 @@ public class Controller // implements Serializable
 
 	// return the move sequences
 	public ArrayList<Short> start(SearchStrategy... players) {
-        state = new State(this, (byte) players.length);
+        byte oldSize = state.getBoardSize();
+        state = new State(this, oldSize, (byte) players.length);
         clear();
 
         paused = false;
@@ -299,7 +306,6 @@ public class Controller // implements Serializable
 	public void setPlayerStrategy(byte p, byte s) {
 		player_strategy[p] = s;
 		System.out.println(Arrays.toString(player_strategy));
-//		start();
 	}
 
 	public long[][] requestRands() {
@@ -309,8 +315,6 @@ public class Controller // implements Serializable
 	    return RAND;
     }
 
-    //
-    //
     // Static helper methods
     public static void createDirIfNotExist(Path path) {
         if(Files.notExists(path)){
