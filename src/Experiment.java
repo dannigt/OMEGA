@@ -14,29 +14,29 @@ public class Experiment {
     private void runExperiments() {
         for (int i=0; i<strategies.length; i++) {
             for (int j=i+1; j<strategies.length; j++) {
-                createExperiments(i, j);
-                createExperiments(j, i);
+                for (int k=0; k<REPEAT; k++) {
+                    createExperiments(j, i, k);
+                    createExperiments(i, j, k);
+                }
             }
         }
     }
 
-    private void createExperiments(int a, int b) {
+    private void createExperiments(int a, int b, int run) {
         String pair = strategies[a].getStrategyName() + " VS " + strategies[b].getStrategyName();
 
         Path folder = Paths.get(System.getProperty("user.dir") , "exp", pair);
 
         Controller.createDirIfNotExist(Paths.get(System.getProperty("user.dir") , "exp", pair));
 
-        for (int k=0; k<REPEAT; k++) {
-            c = new Controller();
-            System.out.println("Running experiment " + pair);
-            ArrayList<Short> res = c.start(strategies[a], strategies[b]);
-//                    c.clear();
-            try {
-                Controller.saveObject(res, Paths.get(folder.toString(), Integer.toString(k)).toString());
-            } catch (Exception ex) {
+        c = new Controller();
 
-            }
+        ArrayList<Short> res = c.start(strategies[a], strategies[b]);
+
+        try {
+            Controller.saveObject(res, Paths.get(folder.toString(), Integer.toString(run)).toString());
+        } catch (Exception ex) {
+
         }
     }
 
@@ -45,27 +45,11 @@ public class Experiment {
 
     }
 
-
     public static void main(String[] args) {
         //TODO: here running
-//        Experiment experiment = new Experiment(
-//                new StrategyAlphaBeta(c, "Monte Carlo"),
-//                new StrategyAlphaBetaId(c, "a-b with id"));
-//        experiment.runExperiments();
-//
-//        experiment = new Experiment(
-//                new StrategyAlphaBeta(c, "a-b with id"),
-//                new StrategyAlphaBetaId(c, "Monte Carlo"));
-//        experiment.runExperiments();
-        Experiment experiment = new Experiment(
-                new StrategyAlphaBeta(c, "Monte Carlo"),
-                new StrategyAlphaBetaId(c, "a-b with mc"));
+        Experiment experiment = new Experiment(  // Change instantiations for different experiment setup
+                new StrategyMonteCarlo(c, "Monte Carlo"),
+                new StrategyAlphaBetaIdMc(c, "a-b with mc"));
         experiment.runExperiments();
-
-//        experiment = new Experiment(
-//                new StrategyAlphaBeta(c, "a-b with mc"),
-//                new StrategyAlphaBetaId(c, "Monte Carlo"));
-//        experiment.runExperiments();
-
     }
 }
