@@ -47,14 +47,25 @@ public class Experiment {
 
 
     public static void main(String[] args) {
+        //TODO: here running
+//        Experiment experiment = new Experiment(
+//                new StrategyAlphaBeta(c, "Monte Carlo"),
+//                new StrategyAlphaBetaId(c, "a-b with id"));
+//        experiment.runExperiments();
+//
+//        experiment = new Experiment(
+//                new StrategyAlphaBeta(c, "a-b with id"),
+//                new StrategyAlphaBetaId(c, "Monte Carlo"));
+//        experiment.runExperiments();
         Experiment experiment = new Experiment(
                 new StrategyAlphaBeta(c, "Monte Carlo"),
-                new StrategyAlphaBetaId(c, "a-b with id"));
+                new StrategyAlphaBetaId(c, "a-b with mc"));
         experiment.runExperiments();
 
-        experiment = new Experiment(
-                new StrategyAlphaBeta(c, "a-b with id"),
-                new StrategyAlphaBetaId(c, "Monte Carlo"));
-        experiment.runExperiments();
+//        experiment = new Experiment(
+//                new StrategyAlphaBeta(c, "a-b with mc"),
+//                new StrategyAlphaBetaId(c, "Monte Carlo"));
+//        experiment.runExperiments();
+
     }
 }

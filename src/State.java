@@ -28,7 +28,7 @@ public class State implements Comparable<State>  {
 
     //Constructors with default values
     State(Controller c) {
-        this(c, (byte) 5, (byte) 4);
+        this(c, (byte) 5, (byte) 2);
     }
 
     State(Controller c, byte size, byte numPlayer) {
@@ -330,7 +330,7 @@ public class State implements Comparable<State>  {
             value = myScoreMinOthers(curPlayerIdx) / 10;//(int) (scores[curPlayerIdx] - scores[getOpponentIdx(curPlayerIdx)])/10; // score different MAX-MIN
         }
         // flip value if it's a MIN node
-        if (isMinNode) {//((curPlayerIdx+1) != nextPlayer()) { // current player is next player
+        if (isMinNode) {//((curPlayerIdx+1) != nextPlayer())
             value = -value;
         }
     }

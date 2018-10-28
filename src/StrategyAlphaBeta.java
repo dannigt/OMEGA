@@ -57,7 +57,7 @@ public class StrategyAlphaBeta extends SearchStrategy{
         }
 
         if (sIn.isTerminal() || depth == 0) {
-            sIn.eval(pIndex, (rootTurn > (totalTurns / 2)), pIndex != sIn.nextPlayerIdx()); // leaf node, eval and return myself.
+            sIn.eval(pIndex, (rootTurn > (totalTurns / 4)), pIndex != sIn.nextPlayerIdx()); // leaf node, eval and return myself.
             return sIn;
         }
 

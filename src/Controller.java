@@ -22,7 +22,7 @@ public class Controller // implements Serializable
 	private byte[] player_strategy;
 	private long[][] RAND;
 	private int[] timer;
-    private int TIME_LIMIT = 18000; //ms
+//    private int TIME_LIMIT = 18000; //ms
 	private boolean paused;
 	private String warning_info = "";
     private static Random random = new Random();
@@ -41,7 +41,7 @@ public class Controller // implements Serializable
 
 		LOG_DIR = Paths.get(System.getProperty("user.dir"), "log").toString();
 		HASH_DIR = Paths.get(System.getProperty("user.dir") , "hash").toString();
-        STRATEGY_NAMES = new String[] {"random", "human", "a-b", "a-b with id", "Monte Carlo"};
+        STRATEGY_NAMES = new String[] {"Random", "Manual", "A-B with ID", "Monte Carlo", "A-B with MC"};
 
 		player_strategy = new byte[state.getNumPlayer()];
 		timer = new int[state.getNumPlayer()];
@@ -65,6 +65,8 @@ public class Controller // implements Serializable
 				return new StrategyAlphaBetaId(this, name);
             case "monte carlo":
                 return new StrategyMonteCarlo(this, name);
+            case "a-b with mc":
+                return new StrategyAlphaBetaIdMc(this, name);
 			default:
 				throw new IllegalArgumentException("No strategy with name " + name);
 		}
@@ -279,9 +281,9 @@ public class Controller // implements Serializable
                 } else {
                     long start = System.currentTimeMillis();//timer[pIdx-1]/(Math.max(1, state.turnsLeft()/2-4)
                     int limit = timer[pIdx-1]/(Math.max(2, state.turnsLeft()/2));
-                    if (state.currentTurn() <= 14) {
-                        limit = TIME_LIMIT;
-                    }
+//                    if (state.currentTurn() <= 14) {
+//                        limit = TIME_LIMIT;
+//                    }
                     short[] moves = s.getNextMove(state, limit, (byte) (pIdx-1));
                     System.out.println("==================\t\t" + s.getStrategyName() + ": " + Arrays.toString(moves));
 //                    try {

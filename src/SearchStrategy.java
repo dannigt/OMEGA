@@ -31,7 +31,7 @@ public abstract class SearchStrategy {
                 if (i == pIx) {
                     res[i] = 0;
                 } else {
-                    res[i] = (short)(s.getTotalCells()/2 + i);
+                    res[i] = (short)((s.getTotalCells()+i)/2);
                 }
             }
 //            res[opponentIdx] = (short)(s.getTotalCells()/2);

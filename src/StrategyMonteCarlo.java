@@ -4,7 +4,7 @@ import java.util.Collections;
 public class StrategyMonteCarlo extends SearchStrategy {
     private long startTime;
     private int timeLimit;
-    private int simCnt = 10000; // TODO: set it to max
+    private int simCnt = Integer.MAX_VALUE; // TODO: set it to max
 
 
     public StrategyMonteCarlo(Controller c, String name) {
@@ -74,7 +74,7 @@ public class StrategyMonteCarlo extends SearchStrategy {
         }
     }
 
-    private int playoutAndEval(State sIn, byte pIdx) {
+    public static State playoutAndEval(State sIn, byte pIdx) {
         State s = new State(sIn);
         while(!s.isTerminal()) {
             short[] move = StrategyRandom.randMove(s);
@@ -83,7 +83,7 @@ public class StrategyMonteCarlo extends SearchStrategy {
             }
         }
         s.eval(pIdx, true, false);
-        return s.getValue();
+        return s;
     }
 
     private void mc(byte pIndex, int simCnt, ArrayList<State> children, int numMoves, int[] sum, int[] cnt) {
@@ -94,12 +94,10 @@ public class StrategyMonteCarlo extends SearchStrategy {
             }
             for (int j = 0; j < numMoves; j++) {
                 // TODO: no need to play out further if sum is too low (<-simCnt/2)
-                if (sum[j] < - simCnt/2) {
-//                    System.out.println("====================================");
-                }
-                else {sum[j] += playoutAndEval(children.get(j), pIndex)>0 ? 1: -1;
-                    cnt[j]++;
-                }
+//                playoutAndEval(children.get(j), pIndex);
+                sum[j] += playoutAndEval(children.get(j), pIndex).getValue();
+                cnt[j]++;
+//
             }
 //            System.out.println(i + ": " + sChild.getScore());
         }
