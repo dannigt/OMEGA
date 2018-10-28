@@ -56,7 +56,7 @@ public class Controller // implements Serializable
 		switch (name.toLowerCase()) {
 			case "random":
 				return new StrategyRandom(this, name);
-			case "human":
+			case "manual":
 				return new StrategyManual(this, name);
 			case "a-b":
 				return new StrategyAlphaBeta(this, name);
@@ -259,11 +259,9 @@ public class Controller // implements Serializable
                     } while
                     (state.nextPlayer() == pIdx);
                 } else {
-                    long start = System.currentTimeMillis();//timer[pIdx-1]/(Math.max(1, state.turnsLeft()/2-4)
+                    long start = System.currentTimeMillis();
                     int limit = timer[pIdx - 1]/(Math.max(2, state.turnsLeft()/2));
-//                    if (state.currentTurn() <= 14) {
-//                        limit = TIME_LIMIT;
-//                    }
+
                     short[] moves = s.getNextMove(state, limit, (byte) (pIdx-1));
                     System.out.println("==================\t\t" + s.getStrategyName() + ": " + Arrays.toString(moves));
 //                    try {
