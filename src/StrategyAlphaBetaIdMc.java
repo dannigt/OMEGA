@@ -72,12 +72,6 @@ public class StrategyAlphaBetaIdMc extends SearchStrategy {
     }
 
     @Override
-    State getNextState(State state, int millisec, byte pIndex) {
-//        return moves[(int) (Math.random() * moves.length)];
-        return null;
-    }
-
-    @Override
     boolean waitsForUI() {
         return false;
     }
@@ -177,11 +171,6 @@ public class StrategyAlphaBetaIdMc extends SearchStrategy {
         tt.get(curTurn).put(sIn.getHashKey(), sIn);
 
         return bestChild;
-    }
-
-    public short[] requestFallback(State state) {
-        System.err.println("----------------------------------------------");
-        return state.moveGen()[(int) (Math.random() * state.numMoves())];
     }
 
     private void shuffle(short[] array) {

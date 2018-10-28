@@ -10,22 +10,7 @@ public class StrategyRandom extends SearchStrategy {
 
     @Override
     public short[] getNextMove(State state , int millisec, byte pIdx) {
-//        short[][] moves = ;
-//        short[] indices = state.getEmptyCellsIdx();
-//        shuffle(indices);
-//        return Arrays.copyOfRange(indices, 0, state.getNumPlayer());
         return randMove(state);
-    }
-    @Override
-    public short[] requestFallback(State state) {
-        return null;
-//        state.moveGen()[(int) (Math.random() * state.numMoves())];
-    }
-
-    @Override
-    State getNextState(State state, int millisec, byte pIndex) {
-//        return moves[(int) (Math.random() * moves.length)];
-        return null;
     }
 
     @Override

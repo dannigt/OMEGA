@@ -362,11 +362,4 @@ public class Controller // implements Serializable
             }
         }
     }
-
-
-
-    public void setState(State newState) {
-	    state = newState;
-	    view.repaint();
-    }
 }

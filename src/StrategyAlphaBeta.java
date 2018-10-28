@@ -10,12 +10,6 @@ public class StrategyAlphaBeta extends SearchStrategy{
     }
 
     @Override
-    State getNextState(State state, int millisec, byte pIndex) {
-//        return moves[(int) (Math.random() * moves.length)];
-        return null;
-    }
-
-    @Override
     short[] getNextMove(State state, int time, byte pIndex) {
 //        cnt = 0;
         startTime = System.currentTimeMillis();
@@ -93,10 +87,5 @@ public class StrategyAlphaBeta extends SearchStrategy{
         }
 
         return bestChild;
-    }
-
-    @Override
-    public short[] requestFallback(State state) {
-        return state.moveGen()[(int) (Math.random() * state.numMoves())];
     }
 }

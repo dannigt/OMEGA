@@ -5,20 +5,12 @@ public class StrategyManual extends SearchStrategy {
 
     @Override
     short[] getNextMove(State state , int millisec, byte pIndex) {
-        // Get two moves from UI. This is an ugly workaround
-        return null;
-    }
-    @Override
-    State getNextState(State state, int millisec, byte pIndex) {
+        // Wait for two moves from UI. The get move action does not happen here.
         return null;
     }
 
     @Override
     boolean waitsForUI() {
         return true;
-    }
-    @Override
-    public short[] requestFallback(State state) {
-        return state.moveGen()[(int) (Math.random() * state.numMoves())];
     }
 }

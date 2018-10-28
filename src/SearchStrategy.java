@@ -9,9 +9,10 @@ public abstract class SearchStrategy {
 
     abstract short[] getNextMove(State state, int millisec, byte pIndex);
 
-    abstract short[] requestFallback(State state);
-
-    abstract State getNextState(State state, int millisec, byte pIndex);
+    // In case of illegal move (e.g. hash collision), return a random move
+    protected short[] requestFallback(State state) {
+        return StrategyRandom.randMove(state);
+    }
 
     String getStrategyName() {
         return strategy_name;
@@ -23,33 +24,15 @@ public abstract class SearchStrategy {
         // pIndex + 1 is color
         short[] res = new short[]{0, 0};
 
-        short opponentIdx = s.getOpponentIdx(pIx);
-
-        if (currentTurn == 1) { // empty board
-//            res[pIx] = 0; //(short) (s.getTotalCells()/2); //0;
+        if (currentTurn == 1) { // first round
             for (byte i = 0; i < s.getNumPlayer(); i++) {
                 if (i == pIx) {
-                    res[i] = 0;
+                    res[i] = 0; // put me int eh score
                 } else {
-                    res[i] = (short)((s.getTotalCells()-i)/2);
+                    res[i] = (short)((s.getTotalCells()-i)/2); // put opponent in center
                 }
             }
-//            res[opponentIdx] = (short)(s.getTotalCells()/2);
         }
-//        else { // 2nd turn onwards
-//            for (short i=0; i<s.getNumCells(); i++) {
-//                if (s.getCellContent(i) == pIx+1) { // choose place for my color
-//                    res[pIx] = s.getRandFarawayCell(i);
-////                    res[pIx] = s.getRandNeighbor(i);
-//                } else if (s.getCellContent(i) == opponentIdx+1) { // for opponent's color
-//                    short ngb = s.getRandNeighbor(i);
-//                    while (res[pIx]== ngb) { // avoid putting on the same cell
-//                        ngb = s.getRandNeighbor(i);
-//                    }
-//                    res[opponentIdx] = ngb;
-//                }
-//            }
-//        }
         return res;
     }
 }
