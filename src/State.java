@@ -329,12 +329,11 @@ public class State implements Comparable<State>  {
             // for every opponent
             value = myScoreMinOthers(curPlayerIdx) / 10;//(int) (scores[curPlayerIdx] - scores[getOpponentIdx(curPlayerIdx)])/10; // score different MAX-MIN
         }
-        // flip value if it's a MIN node
-        if (isMinNode) {//((curPlayerIdx+1) != nextPlayer())
+        // negate value if it's a MIN node
+        if (isMinNode) {
             value = -value;
         }
     }
-
 
     void setValue(int v) {
         value = v;

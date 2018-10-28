@@ -48,7 +48,7 @@ public class StrategyAlphaBetaIdMc extends SearchStrategy {
             // do a-b search with current # of ply
             try {
                 res = alphaBetaTT(state, ply, -60000, 60000, pIndex, tt, currentTurn, directChildren,
-                        true, 10);
+                        true, 100);
             } catch (TimeoutException ex) {
                 res = bestState;
                 break;
@@ -108,7 +108,7 @@ public class StrategyAlphaBetaIdMc extends SearchStrategy {
         }
 
         if (sIn.isTerminal()) { // eval terminal node
-            sIn.eval(pIndex, true, pIndex!= sIn.nextPlayer());
+            sIn.eval(pIndex, true, pIndex!= sIn.nextPlayerIdx());
             return sIn;
         }
         if (depth==0) { // if not terminal node, but a leaf node, use MC eval
@@ -116,7 +116,7 @@ public class StrategyAlphaBetaIdMc extends SearchStrategy {
             for (int i=0; i<simCnt; i++) {
                 sum += StrategyMonteCarlo.playoutAndEval(sIn, pIndex).getValue();
             }
-            if (pIndex == sIn.nextPlayer()) { // flip value if it's a MIN node
+            if (pIndex != sIn.nextPlayerIdx()) { // flip value if it's a MIN node
                 sum = -sum;
             }
             sIn.setValue((int) (sum / simCnt));
