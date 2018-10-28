@@ -28,7 +28,7 @@ public class StrategyAlphaBeta extends SearchStrategy{
 
         State res = null;
         try {
-            res = alphaBeta(state, 3, -60000, 60000, pIndex, currentTurn, true,
+            res = alphaBeta(state, 3, Integer.MIN_VALUE, Integer.MAX_VALUE, pIndex, currentTurn, true,
                     state.currentTurn(), state.totalTurns());
         } catch (TimeoutException ex) {  // store the most recent best move
             res = bestState;

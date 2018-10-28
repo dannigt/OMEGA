@@ -22,10 +22,8 @@ public class Controller // implements Serializable
 	private byte[] player_strategy;
 	private long[][] RAND;
 	private int[] timer;
-//    private int TIME_LIMIT = 18000; //ms
 	private boolean paused;
 	private String warning_info = "";
-    private static Random random = new Random();
 
 
 	public void clear() {
@@ -41,7 +39,7 @@ public class Controller // implements Serializable
 
 		LOG_DIR = Paths.get(System.getProperty("user.dir"), "log").toString();
 		HASH_DIR = Paths.get(System.getProperty("user.dir") , "hash").toString();
-        STRATEGY_NAMES = new String[] {"Random", "Manual", "A-B with ID", "Monte Carlo", "A-B with MC"};
+        STRATEGY_NAMES = new String[] {"Random", "Manual", "A-B", "A-B with ID", "Monte Carlo", "A-B with MC"};
 
 		player_strategy = new byte[state.getNumPlayer()];
 		timer = new int[state.getNumPlayer()];
