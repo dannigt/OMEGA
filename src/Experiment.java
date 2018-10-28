@@ -29,7 +29,7 @@ public class Experiment {
         for (int i = 0; i < setups.length; i++) {
             names[i] = setups[i].getStrategyName();
         }
-        String pair = String.join("_VS_" + names);
+        String pair = String.join("_VS_", names);
 
 //        String pair = strategies[a].getStrategyName() + " VS " + strategies[b].getStrategyName();
 
