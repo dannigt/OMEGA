@@ -6,6 +6,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class Controller // implements Serializable
@@ -25,8 +26,8 @@ public class Controller // implements Serializable
 	private boolean paused;
 	private String warning_info = "";
 
-
 	public void clear() {
+	    state.reset();
         player_strategy = new byte[state.getNumPlayer()];
         timer = new int[state.getNumPlayer()];
         Arrays.fill(player_strategy, (byte) 0);
@@ -177,12 +178,12 @@ public class Controller // implements Serializable
             clear();
 			ArrayList<Short> foo = (ArrayList<Short>) ois.readObject();
 
-
-			for (short move : foo) {
+			for (short move : foo) { // one second per piece, for better visibility
 				state.placePiece(move);
-                System.out.print(move + ",");
+                TimeUnit.MILLISECONDS.sleep(500);
 			}
 
+            System.out.println(getScore());
 
 		} catch (Exception ex) {
 			throw ex;
@@ -210,6 +211,7 @@ public class Controller // implements Serializable
     public void setWarningInfo(String in) {
         warning_info = in;
     }
+
     public String getScore() {
         return state.getScore();
     }

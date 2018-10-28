@@ -136,7 +136,7 @@ public class View
 //		menu.add(cbMenuItem);
 
 		//Build second menu in the menu bar.
-		menu = new JMenu("Oops...");
+		menu = new JMenu("Restore");
 		menuItem = new JMenuItem("Load Game Status From...");
 		menuItem.addActionListener(e -> {
 			JFileChooser chooser = new JFileChooser();
@@ -145,21 +145,18 @@ public class View
 			int rVal = chooser.showSaveDialog(panel);
 			if (rVal == JFileChooser.APPROVE_OPTION) {
 				String path = Paths.get(chooser.getCurrentDirectory().toString(), chooser.getSelectedFile().getName()).toString();
-				try {
-					c.applyCache(path);
-				}
-				catch (Exception ex){
-					JOptionPane.showMessageDialog(null,
-							"Cannot load the progress dump. Make sure the correct file is chosen.",
-							"Loading failed", JOptionPane.INFORMATION_MESSAGE);
-				}
+				Thread thread = new Thread(() -> { // use a new thread to run the game
+					try {
+						c.applyCache(path);
+					}
+					catch (Exception ex){
+						JOptionPane.showMessageDialog(null,
+								"Cannot load the progress dump. Make sure the correct file is chosen.",
+								"Loading failed", JOptionPane.INFORMATION_MESSAGE);
+					}
+				});
+				thread.start();
 			}
-		});
-		menu.add(menuItem);
-
-		menuItem = new JMenuItem("Reverse");
-		menuItem.addActionListener(e -> {
-			c.reverseMove();
 		});
 		menu.add(menuItem);
 
