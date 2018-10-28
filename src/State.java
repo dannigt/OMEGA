@@ -8,7 +8,7 @@ public class State implements Comparable<State>  {
     private Controller c;
 
     private byte[] cells; // Color placed in the cell. Empty is 0
-    private byte size; // board size
+    private byte size; // board size (# cells on the side)
     private ArrayList<Short>[] adjList;  // neighbor indices
     private byte numPlayer;
     private short totalCells;
