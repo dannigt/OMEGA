@@ -107,7 +107,6 @@ public class View
 
         menuItem = new JMenuItem("Set Player Number");
 
-        JMenu menuFinal = menu;
         menuItem.addActionListener(e -> {
             final JOptionPane optionPane = new JOptionPane("Choose player number:",
                     JOptionPane.PLAIN_MESSAGE,
