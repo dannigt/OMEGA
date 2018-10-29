@@ -172,20 +172,4 @@ public class StrategyAlphaBetaIdMc extends SearchStrategy {
 
         return bestChild;
     }
-
-    private void shuffle(short[] array) {
-        int n = array.length;
-        // Loop over array.
-        for (int i = 0; i < array.length; i++) {
-            // Get a random index of the array past the current index.
-            // ... The argument is an exclusive bound.
-            //     It will not go past the array's end.
-            int randomValue = i + random.nextInt(n - i);
-
-            // Swap the random element with the present element.
-            short randomElement = array[randomValue];
-            array[randomValue] = array[i];
-            array[i] = randomElement;
-        }
-    }
 }

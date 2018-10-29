@@ -230,7 +230,6 @@ public class View
 			for (String arg : args) {
 				res += arg + "<br/>";
 			}
-//			System.out.println(res);
 			return res + "</html>";
 		}
 	} 
@@ -279,36 +278,15 @@ public class View
 		}
 	}
 
-/*********************************************************
-Name: hex()
-Parameters: (x0,y0) This point is normally the top left corner
-    of the rectangle enclosing the hexagon.
-    However, if XYVertex is true then (x0,y0) is the vertex of the
-    top left corner of the hexagon.
-Returns: a polygon containing the six points.
-Called from: drawHex(), fillhex()
-Purpose: This function takes two points that describe a hexagon
-and calculates all six of the points in the hexagon.
-*********************************************************/
 	public static Polygon hex (int x0, int y0) {
 		int[] cornerXs,cornerYs;
-		int y = y0;// + boarderPxl;
-		int x = x0;// + boarderPxl; // + (XYVertex ? t : 0); //Fix added for XYVertex = true.
-//		  *for POINTY ORIENTATION:
+		int y = y0;
+		int x = x0;
 		cornerXs = new int[] {x,x+a,x+a,x,x-a,x-a};
 		cornerYs = new int[] {y-s, y-s/2, y+s/2, y+s, y+s/2, y-s/2};
 		return new Polygon(cornerXs,cornerYs,6); //hexagon 6 sides
 	}
 
-/********************************************************************
-Name: drawHex()
-Parameters: (i,j) : the x,y coordinates of the inital point of the hexagon
-	    g2: the Graphics2D object to draw on.
-Returns: void
-Calls: hex() 
-Purpose: This function draws a hexagon based on the initial point (x,y).
-The hexagon is drawn in the colour specified in hexgame.COLOURELL.
-*********************************************************************/
 	private static void drawHex(int x, int y, Graphics2D g2, Color cellColor, Color textColor, int index, boolean focus) {
 		Polygon poly = hex(x,y);
 		g2.setColor(cellColor);

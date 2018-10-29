@@ -17,7 +17,7 @@ public class StrategyAlphaBetaId extends SearchStrategy {
         timeLimit = milli;
 
         byte currentTurn = state.currentTurn();
-        if (currentTurn == 1) { // 0th or 1st turn, use opening book
+        if (currentTurn == 1) { // 1st turn, use opening book
             return openingBook(state, pIndex, state.currentTurn());
         }
 

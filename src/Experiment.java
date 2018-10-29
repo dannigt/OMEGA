@@ -62,34 +62,28 @@ public class Experiment {
     public static void main(String[] args) {
         Experiment exp;
         c = new Controller();
-        //TODO: here running
-        // For two-player version
-//        exp = new Experiment(  // Change instantiations for different experiment setup
-//                new StrategyMonteCarlo(c, "Monte Carlo"),
-//                new StrategyAlphaBetaIdMc(c, "a-b with mc"));
-//        exp.runExperiments();
 
         /**
          * Uncomment the following for running and analyzing experiment.
          * If only analyzing experiments, leave the exp.runExperiments() commented out!
          * board size 5. a-b with ID - MC. 2-player.
          */
-//        exp = new Experiment(  // Change instantiations for different experiment setup
-//                new StrategyAlphaBetaId(c, "a-b with id"), // White
-//                new StrategyMonteCarlo(c, "Monte Carlo")); // Black
-//        exp.runExperiments();
-//        exp.analyzeExperients();
+        exp = new Experiment(  // Change instantiations for different experiment setup
+                new StrategyAlphaBetaId(c, "a-b with id"), // White
+                new StrategyMonteCarlo(c, "Monte Carlo")); // Black
+        exp.runExperiments();
+        exp.analyzeExperients();
 
         /**
          * Uncomment the following for running and analyzing experiment.
          * If only analyzing experiments, leave the exp.runExperiments() commented out!
          * board size 5. MC - a-b with ID. 2-player.
          */
-//        exp = new Experiment(  // Change instantiations for different experiment setup
-//                 new StrategyMonteCarlo(c, "Monte Carlo"),// White
-//                new StrategyAlphaBetaId(c, "a-b with id")); // Black
-//        exp.runExperiments();
-//        exp.analyzeExperients();
+        exp = new Experiment(  // Change instantiations for different experiment setup
+                 new StrategyMonteCarlo(c, "Monte Carlo"),// White
+                new StrategyAlphaBetaId(c, "a-b with id")); // Black
+        exp.runExperiments();
+        exp.analyzeExperients();
 
         /**
          * Uncomment the following for running and analyzing experiment.
@@ -99,7 +93,7 @@ public class Experiment {
         exp = new Experiment(  // Change instantiations for different experiment setup
                 new StrategyAlphaBetaIdMc(c, "a-b with mc"), // White
                 new StrategyMonteCarlo(c, "Monte Carlo")); // Black
-//        exp.runExperiments();
+        exp.runExperiments();
         exp.analyzeExperients();
 
         /**
@@ -111,7 +105,7 @@ public class Experiment {
                 new StrategyMonteCarlo(c, "Monte Carlo"),// White
                 new StrategyAlphaBetaIdMc(c, "a-b with mc") // Black
         );
-//        exp.runExperiments();
+        exp.runExperiments();
         exp.analyzeExperients();
 
 

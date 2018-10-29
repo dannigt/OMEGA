@@ -11,12 +11,11 @@ public class StrategyAlphaBeta extends SearchStrategy{
 
     @Override
     short[] getNextMove(State state, int time, byte pIndex) {
-//        cnt = 0;
         startTime = System.currentTimeMillis();
         timeLimit = time;
 
-        byte currentTurn = (byte) (state.currentTurn()+1);
-        if (currentTurn <=2) { // 0th or 1st turn, use opening book
+        byte currentTurn = state.currentTurn();
+        if (currentTurn == 1) { // 1st turn, use opening book
             return openingBook(state, pIndex, state.currentTurn());
         }
 

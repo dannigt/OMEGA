@@ -1,5 +1,3 @@
-//import org.apache.commons.lang3.time.StopWatch;
-
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -9,7 +7,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class Controller // implements Serializable
+public class Controller
 {
 	private final byte MIN_SIZE = 5;
 	private final byte MAX_SIZE = 10;
@@ -31,7 +29,7 @@ public class Controller // implements Serializable
         player_strategy = new byte[state.getNumPlayer()];
         timer = new int[state.getNumPlayer()];
         Arrays.fill(player_strategy, (byte) 0);
-        Arrays.fill(timer, 900000);
+        Arrays.fill(timer, 800000);
         paused = true;
     }
 
@@ -244,9 +242,11 @@ public class Controller // implements Serializable
         clear();
 
         paused = false;
+
         loadRand();
         placementOrder = new ArrayList<>(state.getTotalCells());
         timestamp = LocalDateTime.now().toString().replace( ":" , "-" );
+        notifyChange();
 
         // while game not terminated, alternate between players to get next move
         while (!state.isTerminal()) {
@@ -264,13 +264,13 @@ public class Controller // implements Serializable
 
                     short[] moves = s.getNextMove(state, limit, (byte) (pIdx-1));
                     System.out.println("==================\t\t" + s.getStrategyName() + ": " + Arrays.toString(moves));
-//                    try {
+                    try {
                         for (short stone_placement : moves) {
                             processCellClick(stone_placement, false);
                         }
-//                    } catch (Exception ex) {
-//                        s.requestFallback(state);
-//                    }
+                    } catch (Exception ex) { // in the rare case of hash collision
+                        s.requestFallback(state);
+                    }
                     timer[pIdx-1] -= (System.currentTimeMillis() - start);
                     System.out.println("Timer: " + Arrays.toString(timer));
                 }
@@ -281,7 +281,6 @@ public class Controller // implements Serializable
 
 	// star the game
 	public void start() {
-        System.out.println("--------------" + numPlayers());
         SearchStrategy[] players = new SearchStrategy[numPlayers()];
         for (byte p_idx = 1; p_idx <= numPlayers(); p_idx++) {
 			players[p_idx-1] = getStrategy(STRATEGY_NAMES[player_strategy[p_idx-1]]);

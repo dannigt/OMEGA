@@ -308,11 +308,9 @@ public class State implements Comparable<State>  {
         return value;
     }
 
-    //TODO: implement evaluation function
-    //TODO: would this overflow in larger boards?
     void eval(byte curPlayerIdx, boolean useExactscore, boolean isMinNode) {
         // in earlier turns, use
-        if (!useExactscore) { // TODO: closed groups!
+        if (!useExactscore) {
             value = 0;
             for (short entry : groupSizeCounter.keySet()) {
                 if (groupSizeCounter.get(entry)!= 0) {
